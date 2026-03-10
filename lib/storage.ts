@@ -1,4 +1,4 @@
-import { MoodEntry } from './types';
+import { MoodEntry, MoodStats } from './types';
 
 const STORAGE_KEY = 'mood_journal_entries';
 const SETTINGS_KEY = 'mood_journal_settings';
@@ -132,9 +132,9 @@ export function getStreak(): number {
   return streak;
 }
 
-export function getMoodStats(): Record<string, number> {
+export function getMoodStats(): MoodStats {
   const entries = getEntries();
-  const stats: Record<string, number> = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
+  const stats: MoodStats = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
   entries.forEach(e => { stats[e.mood] = (stats[e.mood] || 0) + 1; });
   return stats;
 }

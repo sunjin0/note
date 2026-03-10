@@ -13,6 +13,14 @@ export interface MoodEntry {
 
 export type ViewType = 'dashboard' | 'calendar' | 'journal' | 'settings';
 
+export interface MoodStats {
+  great: number;
+  good: number;
+  okay: number;
+  sad: number;
+  angry: number;
+}
+
 export const MOOD_CONFIG: Record<Mood, { emoji: string; label: string; color: string; bgClass: string; ringClass: string }> = {
   great: { emoji: '😊', label: '很棒', color: 'text-mood-great', bgClass: 'mood-bg-great', ringClass: 'mood-ring-great' },
   good: { emoji: '🙂', label: '不错', color: 'text-mood-good', bgClass: 'mood-bg-good', ringClass: 'mood-ring-good' },
