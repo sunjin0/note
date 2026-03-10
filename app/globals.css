@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 98%;
+    --foreground: 263 20% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 263 20% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 263 20% 15%;
+    --primary: 263 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 263 30% 95%;
+    --secondary-foreground: 263 50% 30%;
+    --muted: 263 15% 93%;
+    --muted-foreground: 263 10% 45%;
+    --accent: 280 40% 93%;
+    --accent-foreground: 263 60% 30%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 263 20% 90%;
+    --input: 263 15% 88%;
+    --ring: 263 70% 50%;
+    --radius: 0.75rem;
+
+    /* Mood palette */
+    --mood-great: 38 92% 50%;
+    --mood-good: 152 69% 40%;
+    --mood-okay: 199 89% 48%;
+    --mood-sad: 234 65% 55%;
+    --mood-angry: 350 80% 58%;
+
+    /* Shadows */
+    --shadow-color: 263 70% 50%;
+  }
+
+  .dark {
+    --background: 263 30% 8%;
+    --foreground: 263 10% 92%;
+    --card: 263 25% 12%;
+    --card-foreground: 263 10% 92%;
+    --popover: 263 25% 12%;
+    --popover-foreground: 263 10% 92%;
+    --primary: 263 70% 65%;
+    --primary-foreground: 263 30% 8%;
+    --secondary: 263 25% 18%;
+    --secondary-foreground: 263 15% 80%;
+    --muted: 263 20% 16%;
+    --muted-foreground: 263 10% 55%;
+    --accent: 280 30% 20%;
+    --accent-foreground: 263 15% 80%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 95%;
+    --border: 263 20% 18%;
+    --input: 263 20% 18%;
+    --ring: 263 70% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(263 70% 50%), hsl(280 65% 60%));
+  }
+  .gradient-warm {
+    background: linear-gradient(135deg, hsl(40 33% 98%), hsl(263 30% 96%));
+  }
+  .gradient-hero {
+    background: linear-gradient(135deg, hsl(263 70% 50% / 0.08), hsl(280 65% 60% / 0.05), hsl(38 92% 50% / 0.03));
+  }
+  .gradient-sidebar {
+    background: linear-gradient(180deg, hsl(263 40% 97%), hsl(280 30% 96%));
+  }
+  .mood-bg-great { background-color: hsl(38 92% 50% / 0.15); }
+  .mood-bg-good { background-color: hsl(152 69% 40% / 0.15); }
+  .mood-bg-okay { background-color: hsl(199 89% 48% / 0.15); }
+  .mood-bg-sad { background-color: hsl(234 65% 55% / 0.15); }
+  .mood-bg-angry { background-color: hsl(350 80% 58% / 0.15); }
+  .mood-ring-great { box-shadow: 0 0 0 2px hsl(38 92% 50% / 0.3); }
+  .mood-ring-good { box-shadow: 0 0 0 2px hsl(152 69% 40% / 0.3); }
+  .mood-ring-okay { box-shadow: 0 0 0 2px hsl(199 89% 48% / 0.3); }
+  .mood-ring-sad { box-shadow: 0 0 0 2px hsl(234 65% 55% / 0.3); }
+  .mood-ring-angry { box-shadow: 0 0 0 2px hsl(350 80% 58% / 0.3); }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(263 20% 85%) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(263 20% 85%);
+    border-radius: 3px;
+  }
+}

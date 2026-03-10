@@ -1,0 +1,40 @@
+{
+  "name": "mood-journal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "react": "latest",
+    "react-dom": "latest",
+    "next": "latest",
+    "class-variance-authority": "latest",
+    "clsx": "latest",
+    "lucide-react": "latest",
+    "tailwind-merge": "latest",
+    "tailwindcss-animate": "latest"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@testing-library/user-event": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "autoprefixer": "latest",
+    "jsdom": "latest",
+    "postcss": "latest",
+    "tailwindcss": "^3.4.0",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}

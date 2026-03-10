@@ -1,0 +1,276 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Mood, MoodEntry, MOOD_CONFIG, FACTOR_OPTIONS, MoodStats } from '@/lib/types';
+import { getStreak, getMoodStats } from '@/lib/storage';
+import { Plus, Flame, BookOpen, TrendingUp, ChevronRight } from 'lucide-react';
+
+interface DashboardProps {
+  onNewEntry: (date?: string) => void;
+  onViewJournal: () => void;
+  entries: MoodEntry[];
+}
+
+const defaultStats: MoodStats = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
+
+export default function Dashboard({ onNewEntry, onViewJournal, entries }: DashboardProps) {
+  const [streak, setStreak] = useState(0);
+  const [stats, setStats] = useState<MoodStats>(defaultStats);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+    setStreak(getStreak());
+    setStats(getMoodStats());
+  }, [entries]);
+  
+  const totalEntries = entries.length;
+  const [todayStr, setTodayStr] = useState('');
+  const [last7Days, setLast7Days] = useState<{date: Date; label: string; dayNum: number; entry?: MoodEntry}[]>([]);
+  
+  useEffect(() => {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    setTodayStr(today);
+    
+    // Last 7 days mood data
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - (6 - i));
+      const dateStr = d.toISOString().split('T')[0];
+      const entry = entries.find(e => e.date === dateStr);
+      return {
+        date: d,
+        label: ['日', '一', '二', '三', '四', '五', '六'][d.getDay()],
+        dayNum: d.getDate(),
+        entry,
+      };
+    });
+    setLast7Days(days);
+  }, [entries]);
+  
+  const todayEntry = entries.find(e => e.date === todayStr);
+  const recentEntries = entries.slice(0, 5);
+
+  const moodToHeight: Record<Mood, number> = { great: 100, good: 75, okay: 50, sad: 30, angry: 15 };
+  const moodBarColor: Record<Mood, string> = {
+    great: 'bg-mood-great',
+    good: 'bg-mood-good',
+    okay: 'bg-mood-okay',
+    sad: 'bg-mood-sad',
+    angry: 'bg-mood-angry',
+  };
+
+  // Most common mood
+  const topMood = (Object.entries(stats) as [Mood, number][]).sort((a, b) => b[1] - a[1])[0];
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Hero Banner */}
+      <div className="relative rounded-2xl overflow-hidden h-48 md:h-56">
+        <img
+          src="/images/hero-banner.png"
+          alt="心情日记横幅"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-foreground/60 to-foreground/20 flex items-center">
+          <div className="px-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
+              {!mounted ? '加载中...' : (todayEntry ? `今天心情${MOOD_CONFIG[todayEntry.mood].label}` : '今天感觉怎么样？')}
+            </h1>
+            <p className="text-primary-foreground/80 text-sm mb-4">记录你的每一刻，发现心情的规律</p>
+            <Button
+              onClick={() => onNewEntry(todayStr)}
+              className="shadow-medium"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {todayEntry ? '更新今日心情' : '记录今日心情'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-none">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
+              <Flame className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{mounted ? streak : '—'}</p>
+              <p className="text-xs text-muted-foreground">连续天数</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-none">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center flex-shrink-0">
+              <BookOpen className="h-5 w-5 text-accent-foreground" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{totalEntries}</p>
+              <p className="text-xs text-muted-foreground">总记录数</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-none">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="h-5 w-5 text-secondary-foreground" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">
+                {mounted && topMood && topMood[1] > 0 ? MOOD_CONFIG[topMood[0]].emoji : '—'}
+              </p>
+              <p className="text-xs text-muted-foreground">最多心情</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-none">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center flex-shrink-0">
+              <span className="text-lg">📊</span>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">
+                {mounted ? (totalEntries > 0 ? Math.round((stats.great + stats.good) / totalEntries * 100) : 0) : '—'}%
+              </p>
+              <p className="text-xs text-muted-foreground">积极比例</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Weekly Chart + Quick Mood */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Weekly Mood Chart */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">本周心情趋势</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end justify-between gap-2 h-32">
+              {last7Days.map((day, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="w-full flex items-end justify-center h-24">
+                    {day.entry ? (
+                      <div
+                        className={cn('w-full max-w-[32px] rounded-t-lg transition-all duration-500', moodBarColor[day.entry.mood])}
+                        style={{ height: `${moodToHeight[day.entry.mood]}%` }}
+                      />
+                    ) : (
+                      <div className="w-full max-w-[32px] h-2 rounded-full bg-muted" />
+                    )}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{day.label}</span>
+                  <span className="text-[10px] font-medium text-foreground">{day.dayNum}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Mood Selection */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">快速签到</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-5 gap-2">
+              {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
+                <button
+                  key={key}
+                  onClick={() => todayStr && onNewEntry(todayStr)}
+                  disabled={!todayStr}
+                  className={cn(
+                    'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 disabled:opacity-50',
+                    todayEntry?.mood === key
+                      ? `${config.bgClass} ${config.ringClass} border-transparent`
+                      : 'border-transparent hover:bg-accent'
+                  )}
+                >
+                  <span className="text-3xl">{config.emoji}</span>
+                  <span className={cn('text-[10px] font-medium', todayEntry?.mood === key ? config.color : 'text-muted-foreground')}>
+                    {config.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {todayEntry && (
+              <p className="text-xs text-muted-foreground text-center mt-3">
+                今日已记录 · {MOOD_CONFIG[todayEntry.mood].emoji} {MOOD_CONFIG[todayEntry.mood].label}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Entries */}
+      <Card>
+        <CardHeader className="pb-2 flex-row items-center justify-between">
+          <CardTitle className="text-sm">最近记录</CardTitle>
+          <button onClick={onViewJournal} className="text-xs text-primary hover:underline flex items-center gap-0.5">
+            查看全部 <ChevronRight className="h-3 w-3" />
+          </button>
+        </CardHeader>
+        <CardContent>
+          {recentEntries.length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="text-3xl mb-2">📝</p>
+              <p className="text-sm text-muted-foreground">还没有记录，开始你的第一条吧</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recentEntries.map(entry => {
+                const config = MOOD_CONFIG[entry.mood];
+                const d = new Date(entry.date + 'T00:00:00');
+                const dateLabel = `${d.getMonth() + 1}月${d.getDate()}日`;
+                const plainText = entry.journal.replace(/<[^>]*>/g, '');
+                const entryFactors = entry.factors.map(f => FACTOR_OPTIONS.find(o => o.id === f)).filter(Boolean);
+                return (
+                  <div
+                    key={entry.id}
+                    className={cn('flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 hover:bg-accent/50', config.bgClass)}
+                    onClick={() => onNewEntry(entry.date)}
+                  >
+                    <span className="text-xl flex-shrink-0 mt-0.5">{config.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-semibold text-foreground">{dateLabel}</span>
+                        <span className={cn('text-xs font-medium', config.color)}>{config.label}</span>
+                      </div>
+                      {plainText && (
+                        <p className="text-xs text-muted-foreground truncate">{plainText}</p>
+                      )}
+                      {entryFactors.length > 0 && (
+                        <div className="flex gap-1 mt-1.5">
+                          {entryFactors.slice(0, 3).map(f => (
+                            <span key={f!.id} className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-secondary-foreground">
+                              {f!.emoji} {f!.label}
+                            </span>
+                          ))}
+                          {entryFactors.length > 3 && (
+                            <span className="text-[10px] text-muted-foreground">+{entryFactors.length - 3}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {entry.photos.length > 0 && (
+                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                        <img src={entry.photos[0]} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
