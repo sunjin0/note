@@ -32,10 +32,14 @@ export default function MoodEditor({
     setJournal(initialJournal);
     setFactors(initialFactors);
     setPhotos(initialPhotos);
-    if (editorRef.current) {
+  }, [initialMood, initialJournal, initialFactors, initialPhotos, date]);
+
+  // Separate effect to handle editor content update
+  React.useEffect(() => {
+    if (editorRef.current && isOpen) {
       editorRef.current.innerHTML = initialJournal;
     }
-  }, [initialMood, initialJournal, initialFactors, initialPhotos, date]);
+  }, [initialJournal, isOpen]);
 
   const toggleFactor = (id: string) => {
     setFactors(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
