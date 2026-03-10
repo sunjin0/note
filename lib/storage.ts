@@ -2,10 +2,47 @@ import { MoodEntry, MoodStats } from './types';
 
 const STORAGE_KEY = 'mood_journal_entries';
 const SETTINGS_KEY = 'mood_journal_settings';
+const SECURITY_KEY = 'mood_journal_security';
+const SESSION_KEY = 'mood_journal_session';
 
 export interface AppSettings {
   encrypted: boolean;
   createdAt: string;
+}
+
+export interface SecuritySettings {
+  passwordEnabled: boolean;
+  passwordHash: string;
+  securityQuestions: SecurityQuestion[];
+  lockoutAttempts: number;
+  lockoutUntil: string | null;
+}
+
+export interface SecurityQuestion {
+  id: string;
+  question: string;
+  answerHash: string;
+}
+
+export const DEFAULT_SECURITY_QUESTIONS = [
+  { id: 'q1', questionKey: 'security.questions.pet', defaultQuestion: '你童年宠物的名字是什么？' },
+  { id: 'q2', questionKey: 'security.questions.school', defaultQuestion: '你小学的名字是什么？' },
+  { id: 'q3', questionKey: 'security.questions.city', defaultQuestion: '你出生的城市是哪里？' },
+  { id: 'q4', questionKey: 'security.questions.mother', defaultQuestion: '你母亲的娘家姓是什么？' },
+  { id: 'q5', questionKey: 'security.questions.book', defaultQuestion: '你最喜欢的书是什么？' },
+];
+
+export const MIN_SECURITY_QUESTIONS = 1;
+export const MAX_SECURITY_QUESTIONS = 5;
+
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(36);
 }
 
 function generateId(): string {
@@ -137,4 +174,166 @@ export function getMoodStats(): MoodStats {
   const stats: MoodStats = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
   entries.forEach(e => { stats[e.mood] = (stats[e.mood] || 0) + 1; });
   return stats;
+}
+
+export function getSecuritySettings(): SecuritySettings {
+  if (typeof window === 'undefined') {
+    return {
+      passwordEnabled: false,
+      passwordHash: '',
+      securityQuestions: [],
+      lockoutAttempts: 0,
+      lockoutUntil: null,
+    };
+  }
+  try {
+    const data = localStorage.getItem(SECURITY_KEY);
+    if (!data) {
+      return {
+        passwordEnabled: false,
+        passwordHash: '',
+        securityQuestions: [],
+        lockoutAttempts: 0,
+        lockoutUntil: null,
+      };
+    }
+    return JSON.parse(data) as SecuritySettings;
+  } catch {
+    return {
+      passwordEnabled: false,
+      passwordHash: '',
+      securityQuestions: [],
+      lockoutAttempts: 0,
+      lockoutUntil: null,
+    };
+  }
+}
+
+export function saveSecuritySettings(settings: SecuritySettings): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(SECURITY_KEY, JSON.stringify(settings));
+}
+
+export function setPassword(password: string, questions: { question: string; answer: string }[]): void {
+  const security: SecuritySettings = {
+    passwordEnabled: true,
+    passwordHash: simpleHash(password),
+    securityQuestions: questions.map(q => ({
+      id: Math.random().toString(36).substr(2, 9),
+      question: q.question,
+      answerHash: simpleHash(q.answer.toLowerCase().trim()),
+    })),
+    lockoutAttempts: 0,
+    lockoutUntil: null,
+  };
+  saveSecuritySettings(security);
+}
+
+export function disablePassword(): void {
+  const settings = getSecuritySettings();
+  settings.passwordEnabled = false;
+  settings.passwordHash = '';
+  settings.securityQuestions = [];
+  settings.lockoutAttempts = 0;
+  settings.lockoutUntil = null;
+  saveSecuritySettings(settings);
+  clearSession();
+}
+
+export function verifyPassword(password: string): boolean {
+  const settings = getSecuritySettings();
+  if (!settings.passwordEnabled) return true;
+  
+  if (settings.lockoutUntil) {
+    const lockoutTime = new Date(settings.lockoutUntil).getTime();
+    if (Date.now() < lockoutTime) {
+      return false;
+    }
+    settings.lockoutUntil = null;
+    settings.lockoutAttempts = 0;
+  }
+  
+  const isValid = simpleHash(password) === settings.passwordHash;
+  
+  if (!isValid) {
+    settings.lockoutAttempts++;
+    if (settings.lockoutAttempts >= 5) {
+      settings.lockoutUntil = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+    }
+    saveSecuritySettings(settings);
+  } else {
+    settings.lockoutAttempts = 0;
+    settings.lockoutUntil = null;
+    saveSecuritySettings(settings);
+    createSession();
+  }
+  
+  return isValid;
+}
+
+export function verifySecurityAnswers(answers: string[]): boolean {
+  const settings = getSecuritySettings();
+  if (!settings.passwordEnabled || settings.securityQuestions.length === 0) return false;
+  
+  return settings.securityQuestions.every((q, index) => {
+    const answer = answers[index]?.toLowerCase().trim() || '';
+    return simpleHash(answer) === q.answerHash;
+  });
+}
+
+export function resetPassword(newPassword: string): void {
+  const settings = getSecuritySettings();
+  settings.passwordHash = simpleHash(newPassword);
+  settings.lockoutAttempts = 0;
+  settings.lockoutUntil = null;
+  saveSecuritySettings(settings);
+  createSession();
+}
+
+export function createSession(): void {
+  if (typeof window === 'undefined') return;
+  const session = {
+    authenticated: true,
+    createdAt: new Date().toISOString(),
+  };
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+export function clearSession(): void {
+  if (typeof window === 'undefined') return;
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+export function isSessionValid(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    const data = sessionStorage.getItem(SESSION_KEY);
+    if (!data) return false;
+    const session = JSON.parse(data);
+    return session.authenticated === true;
+  } catch {
+    return false;
+  }
+}
+
+export function isPasswordEnabled(): boolean {
+  const settings = getSecuritySettings();
+  return settings.passwordEnabled;
+}
+
+export function getLockoutStatus(): { isLocked: boolean; remainingMinutes: number } {
+  const settings = getSecuritySettings();
+  if (!settings.lockoutUntil) return { isLocked: false, remainingMinutes: 0 };
+  
+  const lockoutTime = new Date(settings.lockoutUntil).getTime();
+  const remaining = Math.ceil((lockoutTime - Date.now()) / (60 * 1000));
+  
+  if (remaining <= 0) {
+    settings.lockoutUntil = null;
+    settings.lockoutAttempts = 0;
+    saveSecuritySettings(settings);
+    return { isLocked: false, remainingMinutes: 0 };
+  }
+  
+  return { isLocked: true, remainingMinutes: remaining };
 }
