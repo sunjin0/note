@@ -4,12 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
-  getSettings, saveSettings, exportData, clearAllData, AppSettings,
+  getSettings, saveSettings, exportData, clearAllData, getEntries, AppSettings,
   getSecuritySettings, setPassword, disablePassword, verifyPassword, resetPassword, verifySecurityAnswers,
+  reEncryptAllEntries,
   DEFAULT_SECURITY_QUESTIONS, MIN_SECURITY_QUESTIONS, MAX_SECURITY_QUESTIONS, SecuritySettings
 } from '@/lib/storage';
 import { useTranslation, Locale } from '@/lib/i18n';
-import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon } from 'lucide-react';
+import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2 } from 'lucide-react';
 
 interface SettingsProps {
   onDataChange: () => void;
@@ -38,6 +39,10 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
   ]);
   const [verifyAnswers, setVerifyAnswers] = useState(['', '', '']);
   const [answerError, setAnswerError] = useState('');
+  
+  const [isReEncrypting, setIsReEncrypting] = useState(false);
+  const [reEncryptProgress, setReEncryptProgress] = useState({ current: 0, total: 0 });
+  const [reEncryptStatus, setReEncryptStatus] = useState<'idle' | 'encrypting' | 'decrypting' | 'success'>('idle');
 
   useEffect(() => {
     setMounted(true);
@@ -165,10 +170,43 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
     resetSecurityForm();
   };
 
-  const toggleEncryption = () => {
-    const updated = { ...settings, encrypted: !settings.encrypted };
-    saveSettings(updated);
-    setSettings(updated);
+  const toggleEncryption = async () => {
+    const newEncryptedState = !settings.encrypted;
+    const entryCount = getEntries().length;
+    
+    if (entryCount > 0) {
+      setIsReEncrypting(true);
+      setReEncryptStatus(newEncryptedState ? 'encrypting' : 'decrypting');
+      setReEncryptProgress({ current: 0, total: entryCount });
+      
+      // Use setTimeout to allow UI to update before starting heavy operation
+      setTimeout(() => {
+        try {
+          reEncryptAllEntries(newEncryptedState, (current, total) => {
+            setReEncryptProgress({ current, total });
+          });
+          
+          const updated = { ...settings, encrypted: newEncryptedState };
+          saveSettings(updated);
+          setSettings(updated);
+          setReEncryptStatus('success');
+          
+          // Reset status after 2 seconds
+          setTimeout(() => {
+            setReEncryptStatus('idle');
+            setIsReEncrypting(false);
+          }, 2000);
+        } catch (error) {
+          console.error('Re-encryption failed:', error);
+          setIsReEncrypting(false);
+          setReEncryptStatus('idle');
+        }
+      }, 100);
+    } else {
+      const updated = { ...settings, encrypted: newEncryptedState };
+      saveSettings(updated);
+      setSettings(updated);
+    }
   };
 
   const handleExport = () => {
@@ -618,20 +656,62 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
           <CardDescription>{t('settings.privacy.description')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-foreground">{t('settings.privacy.encryption')}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {!mounted ? t('settings.privacy.loading') : (settings.encrypted ? t('settings.privacy.encrypted') : t('settings.privacy.notEncrypted'))}
-              </p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">{t('settings.privacy.encryption')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {!mounted ? t('settings.privacy.loading') : (settings.encrypted ? t('settings.privacy.encrypted') : t('settings.privacy.notEncrypted'))}
+                </p>
+              </div>
+              <button
+                onClick={toggleEncryption}
+                disabled={!mounted || isReEncrypting}
+                className={`relative w-12 h-6 rounded-full transition-colors duration-200 disabled:opacity-50 ${settings.encrypted ? 'bg-primary' : 'bg-muted'}`}
+              >
+                <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card shadow-soft transition-transform duration-200 ${settings.encrypted ? 'translate-x-6' : ''}`} />
+              </button>
             </div>
-            <button
-              onClick={toggleEncryption}
-              disabled={!mounted}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-200 disabled:opacity-50 ${settings.encrypted ? 'bg-primary' : 'bg-muted'}`}
-            >
-              <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card shadow-soft transition-transform duration-200 ${settings.encrypted ? 'translate-x-6' : ''}`} />
-            </button>
+            
+            {/* Progress Display */}
+            {isReEncrypting && (
+              <div className="space-y-2 pt-2 border-t border-border">
+                <div className="flex items-center gap-2 text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-muted-foreground">
+                    {reEncryptStatus === 'encrypting' 
+                      ? t('settings.privacy.encryptingProgress').replace('{current}', String(reEncryptProgress.current)).replace('{total}', String(reEncryptProgress.total))
+                      : reEncryptStatus === 'decrypting'
+                      ? t('settings.privacy.decryptingProgress').replace('{current}', String(reEncryptProgress.current)).replace('{total}', String(reEncryptProgress.total))
+                      : t('settings.privacy.processingSuccess')
+                    }
+                  </span>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary transition-all duration-300 ease-out"
+                    style={{ width: `${reEncryptProgress.total > 0 ? (reEncryptProgress.current / reEncryptProgress.total) * 100 : 0}%` }}
+                  />
+                </div>
+                
+                {/* Percentage */}
+                <p className="text-xs text-muted-foreground text-right">
+                  {reEncryptProgress.total > 0 ? Math.round((reEncryptProgress.current / reEncryptProgress.total) * 100) : 0}%
+                </p>
+              </div>
+            )}
+            
+            {/* Success Message */}
+            {reEncryptStatus === 'success' && (
+              <div className="flex items-center gap-2 text-sm text-green-600 pt-2 border-t border-border">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{settings.encrypted ? t('settings.privacy.encryptSuccess') : t('settings.privacy.decryptSuccess')}</span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

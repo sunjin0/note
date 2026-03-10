@@ -99,7 +99,12 @@
       "encryption": "本地数据加密",
       "encrypted": "数据已加密存储",
       "notEncrypted": "数据以明文存储",
-      "loading": "加载中..."
+      "loading": "加载中...",
+      "encryptingProgress": "正在加密数据... {current}/{total} 条记录",
+      "decryptingProgress": "正在解密数据... {current}/{total} 条记录",
+      "processingSuccess": "处理完成",
+      "encryptSuccess": "数据加密完成",
+      "decryptSuccess": "数据解密完成"
     },
     "export": {
       "title": "导出数据",

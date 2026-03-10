@@ -99,7 +99,12 @@
       "encryption": "Local Data Encryption",
       "encrypted": "Data is encrypted",
       "notEncrypted": "Data is stored in plain text",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "encryptingProgress": "Encrypting data... {current}/{total} entries",
+      "decryptingProgress": "Decrypting data... {current}/{total} entries",
+      "processingSuccess": "Processing complete",
+      "encryptSuccess": "Data encryption complete",
+      "decryptSuccess": "Data decryption complete"
     },
     "export": {
       "title": "Export Data",

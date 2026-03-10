@@ -45,6 +45,53 @@ function simpleHash(str: string): string {
   return hash.toString(36);
 }
 
+// Simple XOR encryption for diary content
+function getEncryptionKey(): string {
+  const security = getSecuritySettings();
+  return security.passwordHash || 'default-key';
+}
+
+function encryptData(data: string): string {
+  const key = getEncryptionKey();
+  let result = '';
+  for (let i = 0; i < data.length; i++) {
+    result += String.fromCharCode(data.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  // Use encodeURIComponent + btoa for Unicode support
+  return btoa(encodeURIComponent(result));
+}
+
+function decryptData(encryptedData: string): string {
+  try {
+    const key = getEncryptionKey();
+    // Use decodeURIComponent + atob for Unicode support
+    const data = decodeURIComponent(atob(encryptedData));
+    let result = '';
+    for (let i = 0; i < data.length; i++) {
+      result += String.fromCharCode(data.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+    return result;
+  } catch {
+    return encryptedData;
+  }
+}
+
+function encryptEntry(entry: MoodEntry): MoodEntry {
+  return {
+    ...entry,
+    journal: encryptData(entry.journal),
+    journalEncrypted: true,
+  };
+}
+
+function decryptEntry(entry: MoodEntry): MoodEntry {
+  return {
+    ...entry,
+    journal: decryptData(entry.journal),
+    journalEncrypted: false,
+  };
+}
+
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
@@ -55,8 +102,10 @@ export function getEntries(): MoodEntry[] {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) return [];
     const entries = JSON.parse(data) as MoodEntry[];
-    // Sort by date descending (newest first)
-    return entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Decrypt entries and sort by date descending (newest first)
+    return entries
+      .map(decryptEntry)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } catch {
     return [];
   }
@@ -74,7 +123,8 @@ export function saveEntry(entry: Omit<MoodEntry, 'id' | 'createdAt' | 'updatedAt
       ...entry,
       updatedAt: now,
     };
-    entries[existingIndex] = updated;
+    const encryptedUpdated = encryptEntry(updated);
+    entries[existingIndex] = encryptedUpdated;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
     return updated;
   }
@@ -85,7 +135,8 @@ export function saveEntry(entry: Omit<MoodEntry, 'id' | 'createdAt' | 'updatedAt
     createdAt: now,
     updatedAt: now,
   };
-  entries.unshift(newEntry);
+  const encryptedNewEntry = encryptEntry(newEntry);
+  entries.unshift(encryptedNewEntry);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   return newEntry;
 }
@@ -100,7 +151,8 @@ export function updateEntry(id: string, updates: Partial<MoodEntry>): MoodEntry 
     ...updates,
     updatedAt: new Date().toISOString(),
   };
-  entries[index] = updated;
+  const encryptedUpdated = encryptEntry(updated);
+  entries[index] = encryptedUpdated;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   return updated;
 }
@@ -146,6 +198,42 @@ export function exportData(): string {
 export function clearAllData(): void {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(SETTINGS_KEY);
+}
+
+export function reEncryptAllEntries(enableEncryption: boolean, onProgress?: (current: number, total: number) => void): void {
+  if (typeof window === 'undefined') return;
+  
+  const data = localStorage.getItem(STORAGE_KEY);
+  if (!data) return;
+  
+  try {
+    const entries = JSON.parse(data) as MoodEntry[];
+    const total = entries.length;
+    
+    const processedEntries = entries.map((entry, index) => {
+      if (onProgress) {
+        onProgress(index + 1, total);
+      }
+      
+      if (enableEncryption) {
+        // Encrypt if not already encrypted
+        if (!entry.journalEncrypted) {
+          return encryptEntry(entry);
+        }
+      } else {
+        // Decrypt if encrypted
+        if (entry.journalEncrypted) {
+          return decryptEntry(entry);
+        }
+      }
+      return entry;
+    });
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(processedEntries));
+  } catch (error) {
+    console.error('Failed to re-encrypt entries:', error);
+    throw error;
+  }
 }
 
 export function getStreak(): number {

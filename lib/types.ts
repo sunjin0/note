@@ -9,6 +9,7 @@ export interface MoodEntry {
   photos: string[];
   createdAt: string;
   updatedAt: string;
+  journalEncrypted?: boolean;
 }
 
 export type ViewType = 'dashboard' | 'calendar' | 'journal' | 'settings';
