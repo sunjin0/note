@@ -1,0 +1,125 @@
+{
+  "app": {
+    "title": "Mood Journal",
+    "subtitle": "Track your mood daily",
+    "description": "A simple mood tracking and journaling app to help you understand your emotional patterns over time. Record moods, write journals, add photos, and discover emotional patterns."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "calendar": "Calendar",
+    "journal": "Journal",
+    "settings": "Settings",
+    "menu": "Menu"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "todayMood": "Today's Mood",
+    "howAreYou": "How are you feeling today?",
+    "recordMood": "Record Today's Mood",
+    "updateMood": "Update Today's Mood",
+    "streak": "Streak",
+    "days": "days",
+    "totalEntries": "Total Entries",
+    "commonMood": "Most Common Mood",
+    "recentEntries": "Recent Entries",
+    "viewAll": "View All",
+    "noRecords": "No records yet. Start your first entry!",
+    "last7Days": "Last 7 Days Mood Trend"
+  },
+  "calendar": {
+    "title": "{month}/{year}",
+    "recordsThisMonth": "{count} days recorded this month",
+    "today": "Today",
+    "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "monthSummary": "Monthly Summary",
+    "heatmap": "Last 3 Months Heatmap",
+    "heatmapLess": "Less",
+    "heatmapMore": "More",
+    "noRecord": "No record"
+  },
+  "journal": {
+    "title": "Journal",
+    "recordCount": "{count} entries",
+    "newEntry": "New Entry",
+    "search": "Search journal content, mood, factors...",
+    "noResults": "No matching records found",
+    "noEntries": "No entries yet. Start journaling!",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Confirm Delete",
+    "cancel": "Cancel"
+  },
+  "editor": {
+    "title": "Record Mood",
+    "howAreYou": "How are you feeling?",
+    "factors": "Factors",
+    "writeSomething": "Write something...",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "addPhoto": "Add Photo",
+    "cancel": "Cancel",
+    "save": "Save Record"
+  },
+  "mood": {
+    "great": "Great",
+    "good": "Good",
+    "okay": "Okay",
+    "sad": "Sad",
+    "angry": "Angry"
+  },
+  "factors": {
+    "work": "Work",
+    "family": "Family",
+    "health": "Health",
+    "weather": "Weather",
+    "exercise": "Exercise",
+    "food": "Food",
+    "sleep": "Sleep",
+    "social": "Social",
+    "hobby": "Hobby",
+    "study": "Study",
+    "travel": "Travel",
+    "love": "Love"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your data and privacy",
+    "language": {
+      "title": "Language",
+      "description": "Choose app display language",
+      "zhCN": "简体中文",
+      "enUS": "English"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "description": "Enable data encryption to protect your journal",
+      "encryption": "Local Data Encryption",
+      "encrypted": "Data is encrypted",
+      "notEncrypted": "Data is stored in plain text",
+      "loading": "Loading..."
+    },
+    "export": {
+      "title": "Export Data",
+      "description": "Export all records as JSON file",
+      "button": "Export All Data",
+      "success": "Export Successful ✓"
+    },
+    "clear": {
+      "title": "Clear Data",
+      "description": "This action cannot be undone. Please proceed with caution.",
+      "button": "Clear All Data",
+      "confirm": "Are you sure you want to delete all data?",
+      "confirmButton": "Confirm Delete",
+      "cancelButton": "Cancel"
+    },
+    "about": {
+      "title": "About",
+      "appName": "Mood Journal v1.0",
+      "description": "A simple mood tracking and journaling app. All data is securely stored on your local device and will not be uploaded to any server.",
+      "storageNote": "All data is saved in browser localStorage only"
+    }
+  }
+}

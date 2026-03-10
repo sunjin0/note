@@ -3,6 +3,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Mood, MOOD_CONFIG, FACTOR_OPTIONS } from '@/lib/types';
+import { useTranslation } from '@/lib/i18n';
 import { X, Camera, Bold, Italic, Underline } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -20,6 +21,7 @@ interface MoodEditorProps {
 export default function MoodEditor({
   isOpen, onClose, date, initialMood, initialJournal = '', initialFactors = [], initialPhotos = [], onSave,
 }: MoodEditorProps) {
+  const { t } = useTranslation();
   const [mood, setMood] = React.useState<Mood | undefined>(initialMood);
   const [journal, setJournal] = React.useState(initialJournal);
   const [factors, setFactors] = React.useState<string[]>(initialFactors);
@@ -78,7 +80,7 @@ export default function MoodEditor({
 
   const formatDate = (d: string) => {
     const dt = new Date(d + 'T00:00:00');
-    return `${dt.getFullYear()}年${dt.getMonth() + 1}月${dt.getDate()}日`;
+    return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
   };
 
   if (!isOpen) return null;
@@ -90,7 +92,7 @@ export default function MoodEditor({
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-card rounded-t-2xl">
           <div>
-            <h2 className="text-base font-semibold text-foreground">记录心情</h2>
+            <h2 className="text-base font-semibold text-foreground">{t('editor.title')}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">{formatDate(date)}</p>
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-accent transition-colors">
@@ -101,7 +103,7 @@ export default function MoodEditor({
         <div className="p-5 space-y-5">
           {/* Mood Selection */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-3 block">今天感觉怎么样？</label>
+            <label className="text-sm font-medium text-foreground mb-3 block">{t('editor.howAreYou')}</label>
             <div className="flex gap-2">
               {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
                 <button
@@ -116,7 +118,7 @@ export default function MoodEditor({
                 >
                   <span className="text-2xl">{config.emoji}</span>
                   <span className={cn('text-xs font-medium', mood === key ? config.color : 'text-muted-foreground')}>
-                    {config.label}
+                    {t(`mood.${key}`)}
                   </span>
                 </button>
               ))}
@@ -125,7 +127,7 @@ export default function MoodEditor({
 
           {/* Factor Tags */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-3 block">影响因素</label>
+            <label className="text-sm font-medium text-foreground mb-3 block">{t('editor.factors')}</label>
             <div className="flex flex-wrap gap-2">
               {FACTOR_OPTIONS.map(factor => (
                 <button
@@ -139,7 +141,7 @@ export default function MoodEditor({
                   )}
                 >
                   <span>{factor.emoji}</span>
-                  {factor.label}
+                  {t(`factors.${factor.id}`)}
                 </button>
               ))}
             </div>
@@ -147,16 +149,16 @@ export default function MoodEditor({
 
           {/* Rich Text Editor */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-3 block">写点什么...</label>
+            <label className="text-sm font-medium text-foreground mb-3 block">{t('editor.writeSomething')}</label>
             <div className="border border-input rounded-xl overflow-hidden bg-background">
               <div className="flex items-center gap-1 px-3 py-2 border-b border-border bg-secondary/30">
-                <button onClick={() => execCommand('bold')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title="加粗">
+                <button onClick={() => execCommand('bold')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.bold')}>
                   <Bold className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
-                <button onClick={() => execCommand('italic')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title="斜体">
+                <button onClick={() => execCommand('italic')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.italic')}>
                   <Italic className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
-                <button onClick={() => execCommand('underline')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title="下划线">
+                <button onClick={() => execCommand('underline')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.underline')}>
                   <Underline className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               </div>
@@ -172,7 +174,7 @@ export default function MoodEditor({
 
           {/* Photo Upload */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-3 block">添加照片</label>
+            <label className="text-sm font-medium text-foreground mb-3 block">{t('editor.addPhoto')}</label>
             <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
             <div className="flex flex-wrap gap-2">
               {photos.map((photo, i) => (
@@ -198,8 +200,8 @@ export default function MoodEditor({
 
         {/* Footer */}
         <div className="sticky bottom-0 flex justify-end gap-3 p-5 border-t border-border bg-card rounded-b-2xl">
-          <Button variant="outline" onClick={onClose}>取消</Button>
-          <Button onClick={handleSave} disabled={!mood}>保存记录</Button>
+          <Button variant="outline" onClick={onClose}>{t('editor.cancel')}</Button>
+          <Button onClick={handleSave} disabled={!mood}>{t('editor.save')}</Button>
         </div>
       </div>
     </div>

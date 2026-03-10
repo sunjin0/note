@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoodEntry, MOOD_CONFIG, FACTOR_OPTIONS } from '@/lib/types';
 import { deleteEntry } from '@/lib/storage';
+import { useTranslation } from '@/lib/i18n';
 import { Search, Plus, Trash2, Edit3, X, Image as ImageIcon } from 'lucide-react';
 
 interface JournalListProps {
@@ -16,6 +17,7 @@ interface JournalListProps {
 }
 
 export default function JournalList({ entries, onNewEntry, onEditEntry, onDataChange }: JournalListProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = React.useState('');
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
@@ -43,32 +45,30 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     const yesterday = new Date(now.setDate(now.getDate() - 1)).toISOString().split('T')[0];
-    if (dateStr === today) return '今天';
-    if (dateStr === yesterday) return '昨天';
-    return `${d.getMonth() + 1}月${d.getDate()}日`;
-  };
-
-  const formatYear = (dateStr: string) => {
-    const d = new Date(dateStr + 'T00:00:00');
-    return `${d.getFullYear()}年`;
+    if (dateStr === today) return t('journal.today');
+    if (dateStr === yesterday) return t('journal.yesterday');
+    return `${d.getMonth() + 1}/${d.getDate()}`;
   };
 
   const weekDay = (dateStr: string) => {
     const d = new Date(dateStr + 'T00:00:00');
-    return ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()];
+    const weekDays = t('calendar.weekDays', {}) as unknown as string[];
+    return weekDays[d.getDay()];
   };
+
+
 
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-foreground">日记本</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">共 {entries.length} 条记录</p>
+          <h2 className="text-xl font-bold text-foreground">{t('journal.title')}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('journal.recordCount', { count: entries.length })}</p>
         </div>
         <Button onClick={() => onNewEntry()}>
           <Plus className="h-4 w-4 mr-2" />
-          新记录
+          {t('journal.newEntry')}
         </Button>
       </div>
 
@@ -77,7 +77,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           type="text"
-          placeholder="搜索日记内容、心情、因素..."
+          placeholder={t('journal.search')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="w-full h-10 pl-10 pr-4 rounded-xl bg-card border border-input text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -95,7 +95,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
           <CardContent className="py-12 text-center">
             <p className="text-3xl mb-2">📖</p>
             <p className="text-sm text-muted-foreground">
-              {search ? '没有找到匹配的记录' : '还没有日记，开始记录吧'}
+              {search ? t('journal.noResults') : t('journal.noEntries')}
             </p>
           </CardContent>
         </Card>
@@ -125,7 +125,8 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm font-semibold text-foreground">{formatDate(entry.date)}</span>
                         <span className="text-xs text-muted-foreground">{weekDay(entry.date)}</span>
-                        <span className={cn('text-xs font-medium', config.color)}>{config.label}</span>
+                        <span className={cn('text-xs font-medium', config.color)}>{t(`mood.${entry.mood}`)}</span>
+
                       </div>
 
                       {/* Content preview or full */}
@@ -145,7 +146,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
                         <div className="flex flex-wrap gap-1 mt-2">
                           {entryFactors.map(f => (
                             <span key={f!.id} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-secondary-foreground">
-                              {f!.emoji} {f!.label}
+                              {f!.emoji} {t(`factors.${f!.id}`)}
                             </span>
                           ))}
                         </div>
@@ -171,15 +172,15 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
                             onClick={(e) => { e.stopPropagation(); onEditEntry(entry.date); }}
                           >
                             <Edit3 className="h-3.5 w-3.5 mr-1.5" />
-                            编辑
+                            {t('journal.edit')}
                           </Button>
                           {confirmDelete === entry.id ? (
                             <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
                               <Button variant="destructive" size="sm" onClick={() => handleDelete(entry.id)}>
-                                确认删除
+                                {t('journal.confirmDelete')}
                               </Button>
                               <Button variant="outline" size="sm" onClick={() => setConfirmDelete(null)}>
-                                取消
+                                {t('journal.cancel')}
                               </Button>
                             </div>
                           ) : (
@@ -190,7 +191,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
                               onClick={(e) => { e.stopPropagation(); setConfirmDelete(entry.id); }}
                             >
                               <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                              删除
+                              {t('journal.delete')}
                             </Button>
                           )}
                         </div>

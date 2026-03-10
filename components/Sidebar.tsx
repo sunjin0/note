@@ -3,6 +3,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { ViewType } from '@/lib/types';
+import { useTranslation } from '@/lib/i18n';
 import { LayoutDashboard, Calendar, BookOpen, Settings, Heart, Menu, X } from 'lucide-react';
 
 interface SidebarProps {
@@ -10,15 +11,16 @@ interface SidebarProps {
   onViewChange: (view: ViewType) => void;
 }
 
-const NAV_ITEMS: { view: ViewType; label: string; icon: React.ElementType }[] = [
-  { view: 'dashboard', label: '仪表盘', icon: LayoutDashboard },
-  { view: 'calendar', label: '心情日历', icon: Calendar },
-  { view: 'journal', label: '日记本', icon: BookOpen },
-  { view: 'settings', label: '设置', icon: Settings },
-];
-
 export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  const NAV_ITEMS: { view: ViewType; label: string; icon: React.ElementType }[] = [
+    { view: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
+    { view: 'calendar', label: t('nav.calendar'), icon: Calendar },
+    { view: 'journal', label: t('nav.journal'), icon: BookOpen },
+    { view: 'settings', label: t('nav.settings'), icon: Settings },
+  ];
 
   return (
     <>
@@ -26,7 +28,7 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="fixed top-4 left-4 z-50 lg:hidden rounded-xl bg-card p-2.5 shadow-medium border border-border"
-        aria-label="菜单"
+        aria-label={t('nav.menu')}
       >
         {mobileOpen ? <X className="h-5 w-5 text-foreground" /> : <Menu className="h-5 w-5 text-foreground" />}
       </button>
@@ -52,8 +54,8 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
             <Heart className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-foreground">心情日记</h1>
-            <p className="text-xs text-muted-foreground">记录每一天</p>
+            <h1 className="text-base font-bold text-foreground">{t('app.title')}</h1>
+            <p className="text-xs text-muted-foreground">{t('app.subtitle')}</p>
           </div>
         </div>
 
@@ -80,7 +82,7 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
         <div className="p-4 border-t border-border">
           <div className="rounded-xl bg-accent/50 p-4">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              你的数据安全地存储在本地设备上。
+              {t('settings.about.storageNote')}
             </p>
           </div>
         </div>

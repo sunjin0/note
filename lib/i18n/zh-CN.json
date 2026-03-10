@@ -1,0 +1,125 @@
+{
+  "app": {
+    "title": "心情日记",
+    "subtitle": "记录每一天",
+    "description": "一个简洁的心情追踪和日记应用，帮助你了解随时间变化的情绪模式。记录心情、写日记、添加照片，发现情绪规律。"
+  },
+  "nav": {
+    "dashboard": "仪表盘",
+    "calendar": "日历",
+    "journal": "日记本",
+    "settings": "设置",
+    "menu": "菜单"
+  },
+  "dashboard": {
+    "title": "仪表盘",
+    "todayMood": "今天心情",
+    "howAreYou": "今天感觉怎么样？",
+    "recordMood": "记录今日心情",
+    "updateMood": "更新今日心情",
+    "streak": "连续记录",
+    "days": "天",
+    "totalEntries": "总记录数",
+    "commonMood": "最常见心情",
+    "recentEntries": "最近记录",
+    "viewAll": "查看全部",
+    "noRecords": "还没有记录，开始你的第一条吧",
+    "last7Days": "最近7天心情趋势"
+  },
+  "calendar": {
+    "title": "{year}年{month}月",
+    "recordsThisMonth": "本月记录了 {count} 天",
+    "today": "今天",
+    "weekDays": ["日", "一", "二", "三", "四", "五", "六"],
+    "monthSummary": "本月心情统计",
+    "heatmap": "最近三个月心情热图",
+    "heatmapLess": "少",
+    "heatmapMore": "好",
+    "noRecord": "未记录"
+  },
+  "journal": {
+    "title": "日记本",
+    "recordCount": "共 {count} 条记录",
+    "newEntry": "新记录",
+    "search": "搜索日记内容、心情、因素...",
+    "noResults": "没有找到匹配的记录",
+    "noEntries": "还没有日记，开始记录吧",
+    "today": "今天",
+    "yesterday": "昨天",
+    "edit": "编辑",
+    "delete": "删除",
+    "confirmDelete": "确认删除",
+    "cancel": "取消"
+  },
+  "editor": {
+    "title": "记录心情",
+    "howAreYou": "今天感觉怎么样？",
+    "factors": "影响因素",
+    "writeSomething": "写点什么...",
+    "bold": "加粗",
+    "italic": "斜体",
+    "underline": "下划线",
+    "addPhoto": "添加照片",
+    "cancel": "取消",
+    "save": "保存记录"
+  },
+  "mood": {
+    "great": "很棒",
+    "good": "不错",
+    "okay": "一般",
+    "sad": "难过",
+    "angry": "生气"
+  },
+  "factors": {
+    "work": "工作",
+    "family": "家庭",
+    "health": "健康",
+    "weather": "天气",
+    "exercise": "运动",
+    "food": "饮食",
+    "sleep": "睡眠",
+    "social": "社交",
+    "hobby": "爱好",
+    "study": "学习",
+    "travel": "旅行",
+    "love": "感情"
+  },
+  "settings": {
+    "title": "设置",
+    "subtitle": "管理你的数据和隐私",
+    "language": {
+      "title": "语言",
+      "description": "选择应用显示语言",
+      "zhCN": "简体中文",
+      "enUS": "English"
+    },
+    "privacy": {
+      "title": "隐私保护",
+      "description": "开启数据加密保护你的日记内容",
+      "encryption": "本地数据加密",
+      "encrypted": "数据已加密存储",
+      "notEncrypted": "数据以明文存储",
+      "loading": "加载中..."
+    },
+    "export": {
+      "title": "导出数据",
+      "description": "将所有记录导出为 JSON 文件",
+      "button": "导出所有数据",
+      "success": "导出成功 ✓"
+    },
+    "clear": {
+      "title": "清除数据",
+      "description": "此操作不可逆，请谨慎操作",
+      "button": "清除所有数据",
+      "confirm": "确定要删除所有数据吗？",
+      "confirmButton": "确认删除",
+      "cancelButton": "取消"
+    },
+    "about": {
+      "title": "关于",
+      "appName": "心情日记 v1.0",
+      "description": "一个简洁的心情追踪和日记应用。所有数据安全存储在你的本地设备上，不会上传到任何服务器。",
+      "storageNote": "所有数据仅保存在浏览器 localStorage 中"
+    }
+  }
+}

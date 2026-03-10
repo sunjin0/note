@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mood, MoodEntry, MOOD_CONFIG } from '@/lib/types';
+import { useTranslation } from '@/lib/i18n';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 interface CalendarViewProps {
@@ -13,14 +14,16 @@ interface CalendarViewProps {
 }
 
 export default function CalendarView({ entries, onSelectDate }: CalendarViewProps) {
+  const { t } = useTranslation();
   const [currentDate, setCurrentDate] = React.useState(new Date());
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = React.useState<string | null>(todayStr);
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
 
   const monthEntries = React.useMemo(() => {
     const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
@@ -35,7 +38,11 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
-  const goToday = () => setCurrentDate(new Date());
+  const goToday = () => {
+    const now = new Date();
+    setCurrentDate(now);
+    setSelectedDate(todayStr);
+  };
 
   const moodDotColor: Record<Mood, string> = {
     great: 'bg-mood-great',
@@ -71,11 +78,11 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-foreground">{year}年{month + 1}月</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">本月记录了 {monthEntries.length} 天</p>
+          <h2 className="text-xl font-bold text-foreground">{t('calendar.title', { year, month: month + 1 })}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('calendar.recordsThisMonth', { count: monthEntries.length })}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={goToday}>今天</Button>
+          <Button variant="outline" size="sm" onClick={goToday}>{t('calendar.today')}</Button>
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={prevMonth}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -90,7 +97,7 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
         <CardContent className="p-4">
           {/* Week headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
-            {['日', '一', '二', '三', '四', '五', '六'].map(d => (
+            {(t('calendar.weekDays', {}) as unknown as string[]).map((d: string) => (
               <div key={d} className="text-center text-xs font-medium text-muted-foreground py-2">
                 {d}
               </div>
@@ -105,14 +112,21 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
               const isToday = dateStr === todayStr;
               const isFuture = new Date(dateStr + 'T00:00:00') > today;
 
+              const isSelected = selectedDate === dateStr;
+
               return (
                 <button
                   key={dateStr}
-                  onClick={() => !isFuture && onSelectDate(dateStr)}
+                  onClick={() => {
+                    if (!isFuture) {
+                      setSelectedDate(dateStr);
+                      onSelectDate(dateStr);
+                    }
+                  }}
                   disabled={isFuture}
                   className={cn(
                     'relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm transition-all duration-200',
-                    isToday && 'ring-2 ring-primary',
+                    isSelected && 'ring-2 ring-primary',
                     entry && moodCellBg[entry.mood],
                     !isFuture && !entry && 'hover:bg-accent',
                     isFuture && 'opacity-30 cursor-not-allowed',
@@ -145,7 +159,7 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
               <span className="text-xl">{config.emoji}</span>
               <div>
                 <p className="text-lg font-bold text-foreground">{moodCounts[key as Mood]}</p>
-                <p className="text-[10px] text-muted-foreground">{config.label}</p>
+                <p className="text-[10px] text-muted-foreground">{t(`mood.${key}`)}</p>
               </div>
             </CardContent>
           </Card>
@@ -155,7 +169,7 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
       {/* Heatmap */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">最近三个月心情热图</CardTitle>
+          <CardTitle className="text-sm">{t('calendar.heatmap')}</CardTitle>
         </CardHeader>
         <CardContent>
           <HeatmapView entries={entries} />
@@ -203,6 +217,7 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
   if (currentWeek.length > 0) {
     weeks.push(currentWeek);
   }
+  const { t } = useTranslation();
 
   return (
     <div>
@@ -214,7 +229,7 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
               const entry = entryMap[d];
               const val = entry ? moodValue[entry.mood] : null;
               const dt = new Date(d + 'T00:00:00');
-              const tooltip = `${dt.getMonth() + 1}/${dt.getDate()} ${entry ? MOOD_CONFIG[entry.mood].label : '未记录'}`;
+              const tooltip = `${dt.getMonth() + 1}/${dt.getDate()} ${entry ? t(`mood.${entry.mood}`) : t('calendar.noRecord')}`;
               return (
                 <div
                   key={d}
@@ -227,7 +242,7 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
         ))}
       </div>
       <div className="flex items-center gap-3 mt-3 text-[10px] text-muted-foreground">
-        <span>少</span>
+        <span>{t('calendar.heatmapLess')}</span>
         <div className="flex gap-1">
           <div className="w-3 h-3 rounded-sm bg-muted" />
           <div className="w-3 h-3 rounded-sm bg-mood-angry opacity-80" />
@@ -236,7 +251,7 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
           <div className="w-3 h-3 rounded-sm bg-mood-good opacity-80" />
           <div className="w-3 h-3 rounded-sm bg-mood-great opacity-80" />
         </div>
-        <span>好</span>
+        <span>{t('calendar.heatmapMore')}</span>
       </div>
     </div>
   );

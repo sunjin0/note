@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mood, MoodEntry, MOOD_CONFIG, FACTOR_OPTIONS, MoodStats } from '@/lib/types';
 import { getStreak, getMoodStats } from '@/lib/storage';
+import { useTranslation } from '@/lib/i18n';
 import { Plus, Flame, BookOpen, TrendingUp, ChevronRight } from 'lucide-react';
 
 interface DashboardProps {
@@ -17,6 +18,7 @@ interface DashboardProps {
 const defaultStats: MoodStats = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
 
 export default function Dashboard({ onNewEntry, onViewJournal, entries }: DashboardProps) {
+  const { t } = useTranslation();
   const [streak, setStreak] = useState(0);
   const [stats, setStats] = useState<MoodStats>(defaultStats);
   const [mounted, setMounted] = useState(false);
@@ -37,6 +39,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
     setTodayStr(today);
     
     // Last 7 days mood data
+    const weekDays = t('calendar.weekDays', {}) as unknown as string[];
     const days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(now);
       d.setDate(d.getDate() - (6 - i));
@@ -44,13 +47,13 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
       const entry = entries.find(e => e.date === dateStr);
       return {
         date: d,
-        label: ['日', '一', '二', '三', '四', '五', '六'][d.getDay()],
+        label: weekDays[d.getDay()],
         dayNum: d.getDate(),
         entry,
       };
     });
     setLast7Days(days);
-  }, [entries]);
+  }, [entries, t]);
   
   const todayEntry = entries.find(e => e.date === todayStr);
   const recentEntries = entries.slice(0, 5);
@@ -73,21 +76,21 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
       <div className="relative rounded-2xl overflow-hidden h-48 md:h-56">
         <img
           src="/images/hero-banner.png"
-          alt="心情日记横幅"
+          alt={t('app.title')}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/60 to-foreground/20 flex items-center">
           <div className="px-8">
             <h1 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
-              {!mounted ? '加载中...' : (todayEntry ? `今天心情${MOOD_CONFIG[todayEntry.mood].label}` : '今天感觉怎么样？')}
+              {!mounted ? t('settings.privacy.loading') : (todayEntry ? `${t('dashboard.todayMood')}  ${t(`mood.${todayEntry.mood}`)}` : t('dashboard.howAreYou'))}
             </h1>
-            <p className="text-primary-foreground/80 text-sm mb-4">记录你的每一刻，发现心情的规律</p>
+            <p className="text-primary-foreground/80 text-sm mb-4">{t('app.description')}</p>
             <Button
               onClick={() => onNewEntry(todayStr)}
               className="shadow-medium"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {todayEntry ? '更新今日心情' : '记录今日心情'}
+              {todayEntry ? t('dashboard.updateMood') : t('dashboard.recordMood')}
             </Button>
           </div>
         </div>
@@ -102,7 +105,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{mounted ? streak : '—'}</p>
-              <p className="text-xs text-muted-foreground">连续天数</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.streak')}</p>
             </div>
           </CardContent>
         </Card>
@@ -113,7 +116,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{totalEntries}</p>
-              <p className="text-xs text-muted-foreground">总记录数</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.totalEntries')}</p>
             </div>
           </CardContent>
         </Card>
@@ -126,7 +129,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
               <p className="text-2xl font-bold text-foreground">
                 {mounted && topMood && topMood[1] > 0 ? MOOD_CONFIG[topMood[0]].emoji : '—'}
               </p>
-              <p className="text-xs text-muted-foreground">最多心情</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.commonMood')}</p>
             </div>
           </CardContent>
         </Card>
@@ -139,7 +142,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
               <p className="text-2xl font-bold text-foreground">
                 {mounted ? (totalEntries > 0 ? Math.round((stats.great + stats.good) / totalEntries * 100) : 0) : '—'}%
               </p>
-              <p className="text-xs text-muted-foreground">积极比例</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.last7Days')}</p>
             </div>
           </CardContent>
         </Card>
@@ -150,7 +153,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
         {/* Weekly Mood Chart */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">本周心情趋势</CardTitle>
+            <CardTitle className="text-sm">{t('dashboard.last7Days')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-end justify-between gap-2 h-32">
@@ -177,7 +180,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
         {/* Quick Mood Selection */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">快速签到</CardTitle>
+            <CardTitle className="text-sm">{t('dashboard.recordMood')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-5 gap-2">
@@ -195,14 +198,14 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                 >
                   <span className="text-3xl">{config.emoji}</span>
                   <span className={cn('text-[10px] font-medium', todayEntry?.mood === key ? config.color : 'text-muted-foreground')}>
-                    {config.label}
+                    {t(`mood.${key}`)}
                   </span>
                 </button>
               ))}
             </div>
             {todayEntry && (
               <p className="text-xs text-muted-foreground text-center mt-3">
-                今日已记录 · {MOOD_CONFIG[todayEntry.mood].emoji} {MOOD_CONFIG[todayEntry.mood].label}
+                {t('dashboard.todayMood')} · {MOOD_CONFIG[todayEntry.mood].emoji} {t(`mood.${todayEntry.mood}`)}
               </p>
             )}
           </CardContent>
@@ -212,23 +215,23 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
       {/* Recent Entries */}
       <Card>
         <CardHeader className="pb-2 flex-row items-center justify-between">
-          <CardTitle className="text-sm">最近记录</CardTitle>
+          <CardTitle className="text-sm">{t('dashboard.recentEntries')}</CardTitle>
           <button onClick={onViewJournal} className="text-xs text-primary hover:underline flex items-center gap-0.5">
-            查看全部 <ChevronRight className="h-3 w-3" />
+            {t('dashboard.viewAll')} <ChevronRight className="h-3 w-3" />
           </button>
         </CardHeader>
         <CardContent>
           {recentEntries.length === 0 ? (
             <div className="py-8 text-center">
               <p className="text-3xl mb-2">📝</p>
-              <p className="text-sm text-muted-foreground">还没有记录，开始你的第一条吧</p>
+              <p className="text-sm text-muted-foreground">{t('dashboard.noRecords')}</p>
             </div>
           ) : (
             <div className="space-y-2">
               {recentEntries.map(entry => {
                 const config = MOOD_CONFIG[entry.mood];
                 const d = new Date(entry.date + 'T00:00:00');
-                const dateLabel = `${d.getMonth() + 1}月${d.getDate()}日`;
+                const dateLabel = `${d.getMonth() + 1}/${d.getDate()}`;
                 const plainText = entry.journal.replace(/<[^>]*>/g, '');
                 const entryFactors = entry.factors.map(f => FACTOR_OPTIONS.find(o => o.id === f)).filter(Boolean);
                 return (
@@ -241,7 +244,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-xs font-semibold text-foreground">{dateLabel}</span>
-                        <span className={cn('text-xs font-medium', config.color)}>{config.label}</span>
+                        <span className={cn('text-xs font-medium', config.color)}>{t(`mood.${entry.mood}`)}</span>
                       </div>
                       {plainText && (
                         <p className="text-xs text-muted-foreground truncate">{plainText}</p>
@@ -250,7 +253,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                         <div className="flex gap-1 mt-1.5">
                           {entryFactors.slice(0, 3).map(f => (
                             <span key={f!.id} className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-secondary-foreground">
-                              {f!.emoji} {f!.label}
+                              {f!.emoji} {t(`factors.${f!.id}`)}
                             </span>
                           ))}
                           {entryFactors.length > 3 && (

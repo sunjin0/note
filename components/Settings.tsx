@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getSettings, saveSettings, exportData, clearAllData, AppSettings } from '@/lib/storage';
-import { Shield, Download, Trash2, Info } from 'lucide-react';
+import { useTranslation, Locale } from '@/lib/i18n';
+import { Shield, Download, Trash2, Info, Languages } from 'lucide-react';
 
 interface SettingsProps {
   onDataChange: () => void;
@@ -13,6 +14,7 @@ interface SettingsProps {
 const defaultSettings: AppSettings = { encrypted: false, createdAt: '' };
 
 export default function SettingsView({ onDataChange }: SettingsProps) {
+  const { t, locale, setLocale } = useTranslation();
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [mounted, setMounted] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -51,25 +53,53 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
   return (
     <div className="space-y-4 max-w-lg animate-fade-in">
       <div>
-        <h2 className="text-xl font-bold text-foreground">设置</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">管理你的数据和隐私</p>
+        <h2 className="text-xl font-bold text-foreground">{t('settings.title')}</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">{t('settings.subtitle')}</p>
       </div>
+
+      {/* Language */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Languages className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm">{t('settings.language.title')}</CardTitle>
+          </div>
+          <CardDescription>{t('settings.language.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            {(['zh-CN', 'en-US'] as Locale[]).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setLocale(lang)}
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                  locale === lang
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                }`}
+              >
+                {t(`settings.language.${lang.replace('-', '')}`)}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Privacy */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Shield className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm">隐私保护</CardTitle>
+            <CardTitle className="text-sm">{t('settings.privacy.title')}</CardTitle>
           </div>
-          <CardDescription>开启数据加密保护你的日记内容</CardDescription>
+          <CardDescription>{t('settings.privacy.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-foreground">本地数据加密</p>
+              <p className="text-sm font-medium text-foreground">{t('settings.privacy.encryption')}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {!mounted ? '加载中...' : (settings.encrypted ? '数据已加密存储' : '数据以明文存储')}
+                {!mounted ? t('settings.privacy.loading') : (settings.encrypted ? t('settings.privacy.encrypted') : t('settings.privacy.notEncrypted'))}
               </p>
             </div>
             <button
@@ -88,14 +118,14 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Download className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm">导出数据</CardTitle>
+            <CardTitle className="text-sm">{t('settings.export.title')}</CardTitle>
           </div>
-          <CardDescription>将所有记录导出为 JSON 文件</CardDescription>
+          <CardDescription>{t('settings.export.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button variant="outline" onClick={handleExport} className="w-full">
             <Download className="h-4 w-4 mr-2" />
-            {showExportDone ? '导出成功 ✓' : '导出所有数据'}
+            {showExportDone ? t('settings.export.success') : t('settings.export.button')}
           </Button>
         </CardContent>
       </Card>
@@ -105,27 +135,27 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Trash2 className="h-4 w-4 text-destructive" />
-            <CardTitle className="text-sm">清除数据</CardTitle>
+            <CardTitle className="text-sm">{t('settings.clear.title')}</CardTitle>
           </div>
-          <CardDescription>此操作不可逆，请谨慎操作</CardDescription>
+          <CardDescription>{t('settings.clear.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           {confirmClear ? (
             <div className="space-y-2">
-              <p className="text-sm text-destructive font-medium">确定要删除所有数据吗？</p>
+              <p className="text-sm text-destructive font-medium">{t('settings.clear.confirm')}</p>
               <div className="flex gap-2">
                 <Button variant="destructive" onClick={handleClear} className="flex-1">
-                  确认删除
+                  {t('settings.clear.confirmButton')}
                 </Button>
                 <Button variant="outline" onClick={() => setConfirmClear(false)} className="flex-1">
-                  取消
+                  {t('settings.clear.cancelButton')}
                 </Button>
               </div>
             </div>
           ) : (
             <Button variant="outline" onClick={() => setConfirmClear(true)} className="w-full text-destructive hover:text-destructive">
               <Trash2 className="h-4 w-4 mr-2" />
-              清除所有数据
+              {t('settings.clear.button')}
             </Button>
           )}
         </CardContent>
@@ -136,14 +166,14 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Info className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm">关于</CardTitle>
+            <CardTitle className="text-sm">{t('settings.about.title')}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>心情日记 v1.0</p>
-            <p>一个简洁的心情追踪和日记应用。所有数据安全存储在你的本地设备上，不会上传到任何服务器。</p>
-            <p className="text-xs">所有数据仅保存在浏览器 localStorage 中</p>
+            <p>{t('settings.about.appName')}</p>
+            <p>{t('settings.about.description')}</p>
+            <p className="text-xs">{t('settings.about.storageNote')}</p>
           </div>
         </CardContent>
       </Card>
