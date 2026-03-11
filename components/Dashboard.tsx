@@ -10,7 +10,7 @@ import { useTranslation } from '@/lib/i18n';
 import { Plus, Flame, BookOpen, TrendingUp, ChevronRight } from 'lucide-react';
 
 interface DashboardProps {
-  onNewEntry: (date?: string) => void;
+  onNewEntry: (date?: string, mood?: Mood) => void;
   onViewJournal: () => void;
   entries: MoodEntry[];
 }
@@ -187,7 +187,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
               {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
                 <button
                   key={key}
-                  onClick={() => todayStr && onNewEntry(todayStr)}
+                  onClick={() => todayStr && onNewEntry(todayStr, key)}
                   disabled={!todayStr}
                   className={cn(
                     'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 disabled:opacity-50',

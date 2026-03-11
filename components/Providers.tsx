@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { I18nProvider } from '@/lib/i18n';
 import PasswordLock from './PasswordLock';
 import { isPasswordEnabled, isSessionValid } from '@/lib/storage';

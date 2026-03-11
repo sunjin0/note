@@ -15,6 +15,7 @@ export default function Home() {
   const [entries, setEntries] = React.useState<MoodEntry[]>([]);
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editDate, setEditDate] = React.useState<string>(new Date().toISOString().split('T')[0]);
+  const [initialMood, setInitialMood] = React.useState<Mood | undefined>(undefined);
 
   const refreshEntries = React.useCallback(() => {
     setEntries(getEntries());
@@ -24,8 +25,9 @@ export default function Home() {
     refreshEntries();
   }, [refreshEntries]);
 
-  const openEditor = (date?: string) => {
+  const openEditor = (date?: string, mood?: Mood) => {
     setEditDate(date || new Date().toISOString().split('T')[0]);
+    setInitialMood(mood);
     setEditorOpen(true);
   };
 
@@ -83,7 +85,7 @@ export default function Home() {
         isOpen={editorOpen}
         onClose={() => setEditorOpen(false)}
         date={editDate}
-        initialMood={existingEntry?.mood}
+        initialMood={existingEntry?.mood ?? initialMood}
         initialJournal={existingEntry?.journal || ''}
         initialFactors={existingEntry?.factors || []}
         initialPhotos={existingEntry?.photos || []}
