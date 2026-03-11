@@ -4,7 +4,12 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Mood, MOOD_CONFIG, FACTOR_OPTIONS } from '@/lib/types';
 import { useTranslation } from '@/lib/i18n';
-import { X, Camera, Bold, Italic, Underline, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { 
+  X, Camera, Bold, Italic, Underline, ChevronLeft, ChevronRight, Eye,
+  AlignLeft, AlignCenter, AlignRight,
+  Minus, Undo, Redo, Type,
+  Eraser, GripHorizontal
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MoodEditorProps {
@@ -27,8 +32,17 @@ export default function MoodEditor({
   const [factors, setFactors] = React.useState<string[]>(initialFactors ?? []);
   const [photos, setPhotos] = React.useState<string[]>(initialPhotos ?? []);
   const [previewIndex, setPreviewIndex] = React.useState<number | null>(null);
+  const [charCount, setCharCount] = React.useState(0);
+  const [editorHeight, setEditorHeight] = React.useState(120);
+  const MIN_HEIGHT = 80;
+  const MAX_HEIGHT = 500;
+  const MAX_CHARS = 5000;
   const editorRef = React.useRef<HTMLDivElement>(null);
   const fileRef = React.useRef<HTMLInputElement>(null);
+  const isResizingRef = React.useRef(false);
+  const startYRef = React.useRef(0);
+  const startHeightRef = React.useRef(0);
+  const lastValidContentRef = React.useRef('');
 
   // Reset state when editor opens with a different date
   React.useEffect(() => {
@@ -44,6 +58,9 @@ export default function MoodEditor({
   React.useEffect(() => {
     if (editorRef.current && isOpen) {
       editorRef.current.innerHTML = initialJournal;
+      lastValidContentRef.current = initialJournal;
+      // Update character count after content is set
+      setTimeout(() => updateCharCount(), 0);
     }
   }, [initialJournal, isOpen]);
 
@@ -92,9 +109,95 @@ export default function MoodEditor({
     }
   };
 
-  const execCommand = (command: string) => {
-    document.execCommand(command, false);
-    editorRef.current?.focus();
+  // Ensure editor has a valid selection/cursor
+  const ensureSelection = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || !editorRef.current?.contains(selection.anchorNode)) {
+      // Create a new range at the end of editor content
+      const range = document.createRange();
+      if (editorRef.current) {
+        if (editorRef.current.childNodes.length > 0) {
+          const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+          range.selectNodeContents(lastNode);
+          range.collapse(false);
+        } else {
+          range.selectNodeContents(editorRef.current);
+          range.collapse(false);
+        }
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+    }
+  };
+
+  const execCommand = (command: string, value: string | undefined = undefined) => {
+    // Focus editor first
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+    // Ensure there's a valid selection
+    ensureSelection();
+    // Execute command
+    document.execCommand(command, false, value);
+    // Update state
+    setJournal(editorRef.current?.innerHTML || '');
+    updateCharCount();
+  };
+
+  const updateCharCount = () => {
+    const text = editorRef.current?.innerText || '';
+    setCharCount(text.length);
+    return text.length;
+  };
+
+  // Handle editor input with character limit
+  const handleEditorInput = () => {
+    const textLength = updateCharCount();
+    if (textLength > MAX_CHARS) {
+      // Restore to last valid content
+      if (editorRef.current) {
+        editorRef.current.innerHTML = lastValidContentRef.current;
+        // Place cursor at the end
+        const range = document.createRange();
+        const selection = window.getSelection();
+        if (editorRef.current.childNodes.length > 0) {
+          range.selectNodeContents(editorRef.current);
+          range.collapse(false);
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
+      }
+      updateCharCount();
+    } else {
+      // Save valid content
+      lastValidContentRef.current = editorRef.current?.innerHTML || '';
+      setJournal(lastValidContentRef.current);
+    }
+  };
+
+  // Handle resize start
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    startYRef.current = e.clientY;
+    startHeightRef.current = editorHeight;
+    document.addEventListener('mousemove', handleResizeMove);
+    document.addEventListener('mouseup', handleResizeEnd);
+  };
+
+  // Handle resize move
+  const handleResizeMove = (e: MouseEvent) => {
+    if (!isResizingRef.current) return;
+    const delta = e.clientY - startYRef.current;
+    const newHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, startHeightRef.current + delta));
+    setEditorHeight(newHeight);
+  };
+
+  // Handle resize end
+  const handleResizeEnd = () => {
+    isResizingRef.current = false;
+    document.removeEventListener('mousemove', handleResizeMove);
+    document.removeEventListener('mouseup', handleResizeEnd);
   };
 
   const handleSave = () => {
@@ -114,7 +217,7 @@ export default function MoodEditor({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto scrollbar-thin bg-card rounded-2xl shadow-elevated border border-border animate-scale-in">
+      <div className={`relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto scrollbar-thin bg-card rounded-2xl shadow-elevated border border-border animate-scale-in`}>
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-card rounded-t-2xl">
           <div>
@@ -175,26 +278,88 @@ export default function MoodEditor({
 
           {/* Rich Text Editor */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-3 block">{t('editor.writeSomething')}</label>
-            <div className="border border-input rounded-xl overflow-hidden bg-background">
-              <div className="flex items-center gap-1 px-3 py-2 border-b border-border bg-secondary/30">
-                <button onClick={() => execCommand('bold')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.bold')}>
-                  <Bold className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
-                <button onClick={() => execCommand('italic')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.italic')}>
-                  <Italic className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
-                <button onClick={() => execCommand('underline')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.underline')}>
-                  <Underline className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium text-foreground">{t('editor.writeSomething')}</label>
+              <span className={`text-xs ${charCount > MAX_CHARS ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {charCount}/{MAX_CHARS}
+              </span>
+            </div>
+            <div 
+              className="border border-input rounded-xl overflow-hidden bg-background"
+            >
+              {/* Toolbar */}
+              <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-border bg-secondary/30">
+                {/* History */}
+                <div className="flex items-center gap-0.5 pr-2 border-r border-border mr-1">
+                  <button onClick={() => execCommand('undo')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.undo')}>
+                    <Undo className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                  <button onClick={() => execCommand('redo')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.redo')}>
+                    <Redo className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                </div>
+                
+                {/* Text Style */}
+                <div className="flex items-center gap-0.5 pr-2 border-r border-border mr-1">
+                  <button onClick={() => execCommand('bold')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.bold')}>
+                    <Bold className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                  <button onClick={() => execCommand('italic')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.italic')}>
+                    <Italic className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                  <button onClick={() => execCommand('underline')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.underline')}>
+                    <Underline className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                  <button onClick={() => execCommand('strikeThrough')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.strikethrough')}>
+                    <Type className="h-3.5 w-3.5 text-muted-foreground line-through" />
+                  </button>
+                </div>
+
+                {/* Alignment */}
+                <div className="flex items-center gap-0.5 pr-2 border-r border-border mr-1">
+                  <button onClick={() => execCommand('justifyLeft')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.alignLeft')}>
+                    <AlignLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                  <button onClick={() => execCommand('justifyCenter')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.alignCenter')}>
+                    <AlignCenter className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                  <button onClick={() => execCommand('justifyRight')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.alignRight')}>
+                    <AlignRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                </div>
+
+                {/* Insert Divider */}
+                <div className="flex items-center gap-0.5 pr-2 border-r border-border mr-1">
+                  <button onClick={() => execCommand('insertHorizontalRule')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.insertDivider')}>
+                    <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                </div>
+
+                {/* Clear Format */}
+                <div className="flex items-center gap-0.5">
+                  <button onClick={() => execCommand('removeFormat')} className="p-1.5 rounded-md hover:bg-accent transition-colors" title={t('editor.clearFormat')}>
+                    <Eraser className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                </div>
               </div>
+
+              {/* Editor Content */}
               <div
                 ref={editorRef}
                 contentEditable
-                className="min-h-[120px] max-h-[200px] overflow-y-auto p-4 text-sm text-foreground focus:outline-none scrollbar-thin"
-                onInput={() => setJournal(editorRef.current?.innerHTML || '')}
+                style={{ minHeight: `${editorHeight}px`, maxHeight: `${MAX_HEIGHT}px` }}
+                className="overflow-y-auto p-4 text-sm text-foreground focus:outline-none scrollbar-thin"
+                onInput={handleEditorInput}
                 suppressContentEditableWarning
               />
+              
+              {/* Resize Handle */}
+              <div 
+                className="flex items-center justify-center h-6 border-t border-border bg-secondary/30 cursor-ns-resize hover:bg-secondary/50 transition-colors"
+                onMouseDown={handleResizeStart}
+              >
+                <GripHorizontal className="h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
           </div>
 
