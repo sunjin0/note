@@ -59,7 +59,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
 
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4 animate-fade-in max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -71,7 +71,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
   const topMood = (Object.entries(stats) as [Mood, number][]).sort((a, b) => b[1] - a[1])[0];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in max-w-5xl">
       {/* Hero Banner */}
       <div className="relative rounded-2xl overflow-hidden h-48 md:h-56">
         <img

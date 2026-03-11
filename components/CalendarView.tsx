@@ -74,7 +74,7 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
   }
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4 animate-fade-in max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -180,9 +180,12 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
 }
 
 function HeatmapView({ entries }: { entries: MoodEntry[] }) {
+  const { t } = useTranslation();
+  
   const moodValue: Record<Mood, number> = { great: 4, good: 3, okay: 2, sad: 1, angry: 0 };
+  
   const valueColor = (v: number | null) => {
-    if (v === null) return 'bg-muted';
+    if (v === null) return 'bg-muted/40';
     if (v >= 4) return 'bg-mood-great';
     if (v >= 3) return 'bg-mood-good';
     if (v >= 2) return 'bg-mood-okay';
@@ -217,41 +220,111 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
   if (currentWeek.length > 0) {
     weeks.push(currentWeek);
   }
-  const { t } = useTranslation();
+
+  // Get month labels for the heatmap
+  const getMonthLabel = (weekIndex: number) => {
+    const week = weeks[weekIndex];
+    if (!week) return null;
+    const firstValidDay = week.find(d => d !== null);
+    if (!firstValidDay) return null;
+    const dt = new Date(firstValidDay + 'T00:00:00');
+    const dayOfMonth = dt.getDate();
+    // Only show month label on first week of each month or first week
+    if (weekIndex === 0 || dayOfMonth <= 7) {
+      return dt.getMonth() + 1;
+    }
+    return null;
+  };
+
+  // Week day labels
+  const weekDayLabels = t('calendar.weekDaysShort', {}) as unknown as string[] || ['日', '一', '二', '三', '四', '五', '六'];
 
   return (
-    <div>
-      <div className="flex gap-[3px] overflow-x-auto pb-2 scrollbar-thin">
-        {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-[3px]">
-            {week.map((d, di) => {
-              if (!d) return <div key={`null-${di}`} className="w-3 h-3 md:w-3.5 md:h-3.5" />;
-              const entry = entryMap[d];
-              const val = entry ? moodValue[entry.mood] : null;
-              const dt = new Date(d + 'T00:00:00');
-              const tooltip = `${dt.getMonth() + 1}/${dt.getDate()} ${entry ? t(`mood.${entry.mood}`) : t('calendar.noRecord')}`;
-              return (
-                <div
-                  key={d}
-                  className={cn('w-3 h-3 md:w-3.5 md:h-3.5 rounded-sm transition-colors', valueColor(val), val !== null && 'opacity-80')}
-                  title={tooltip}
-                />
-              );
-            })}
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-3 mt-3 text-[10px] text-muted-foreground">
-        <span>{t('calendar.heatmapLess')}</span>
-        <div className="flex gap-1">
-          <div className="w-3 h-3 rounded-sm bg-muted" />
-          <div className="w-3 h-3 rounded-sm bg-mood-angry opacity-80" />
-          <div className="w-3 h-3 rounded-sm bg-mood-sad opacity-80" />
-          <div className="w-3 h-3 rounded-sm bg-mood-okay opacity-80" />
-          <div className="w-3 h-3 rounded-sm bg-mood-good opacity-80" />
-          <div className="w-3 h-3 rounded-sm bg-mood-great opacity-80" />
+    <div className="space-y-3">
+      {/* Month labels row */}
+      <div className="flex gap-1">
+        <div className="w-6 md:w-8 flex-shrink-0" /> {/* Space for weekday labels */}
+        <div className="flex gap-1 flex-1 overflow-x-auto scrollbar-thin pb-1">
+          {weeks.map((_, wi) => {
+            const monthLabel = getMonthLabel(wi);
+            return (
+              <div key={wi} className="flex-shrink-0 w-4 md:w-5 flex items-center justify-center">
+                {monthLabel && (
+                  <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">
+                    {monthLabel}{t('calendar.monthSuffix') || '月'}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
-        <span>{t('calendar.heatmapMore')}</span>
+      </div>
+
+      {/* Heatmap grid with weekday labels */}
+      <div className="flex gap-1">
+        {/* Weekday labels */}
+        <div className="flex flex-col gap-1 w-6 md:w-8 flex-shrink-0">
+          {[0, 1, 2, 3, 4, 5, 6].map(dayIndex => (
+            <div 
+              key={dayIndex} 
+              className="h-4 md:h-5 flex items-center justify-end pr-1 text-[10px] md:text-xs text-muted-foreground"
+            >
+              {weekDayLabels[dayIndex]}
+            </div>
+          ))}
+        </div>
+
+        {/* Heatmap cells */}
+        <div className="flex gap-1 flex-1 overflow-x-auto scrollbar-thin py-1">
+          {weeks.map((week, wi) => (
+            <div key={wi} className="flex flex-col gap-1">
+              {week.map((d, di) => {
+                if (!d) return <div key={`null-${di}`} className="w-4 h-4 md:w-5 md:h-5" />;
+                const entry = entryMap[d];
+                const val = entry ? moodValue[entry.mood] : null;
+                const dt = new Date(d + 'T00:00:00');
+                const tooltip = `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()} ${entry ? t(`mood.${entry.mood}`) : t('calendar.noRecord')}`;
+                
+                return (
+                  <div
+                    key={d}
+                    className={cn(
+                      'w-4 h-4 md:w-5 md:h-5 rounded transition-all duration-200 cursor-pointer',
+                      valueColor(val),
+                      val !== null ? 'hover:ring-2 hover:ring-foreground/30 hover:scale-110' : 'hover:bg-muted/60'
+                    )}
+                    title={tooltip}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center justify-between pt-2 border-t border-border">
+        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+          <span>{t('calendar.heatmapLess')}</span>
+          <div className="flex gap-1">
+            <div className="w-4 h-4 md:w-5 md:h-5 rounded bg-muted/40" />
+            <div className="w-4 h-4 md:w-5 md:h-5 rounded bg-mood-angry" />
+            <div className="w-4 h-4 md:w-5 md:h-5 rounded bg-mood-sad" />
+            <div className="w-4 h-4 md:w-5 md:h-5 rounded bg-mood-okay" />
+            <div className="w-4 h-4 md:w-5 md:h-5 rounded bg-mood-good" />
+            <div className="w-4 h-4 md:w-5 md:h-5 rounded bg-mood-great" />
+          </div>
+          <span>{t('calendar.heatmapMore')}</span>
+        </div>
+        
+        {/* Date range indicator */}
+        <div className="text-[10px] text-muted-foreground">
+          {(() => {
+            const startDate = new Date(days[0] + 'T00:00:00');
+            const endDate = new Date(days[days.length - 1] + 'T00:00:00');
+            return `${startDate.getMonth() + 1}/${startDate.getDate()} - ${endDate.getMonth() + 1}/${endDate.getDate()}`;
+          })()}
+        </div>
       </div>
     </div>
   );

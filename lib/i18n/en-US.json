@@ -31,6 +31,8 @@
     "recordsThisMonth": "{count} days recorded this month",
     "today": "Today",
     "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "weekDaysShort": ["S", "M", "T", "W", "T", "F", "S"],
+    "monthSuffix": "",
     "monthSummary": "Monthly Summary",
     "heatmap": "Last 3 Months Heatmap",
     "heatmapLess": "Less",

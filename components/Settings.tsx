@@ -229,7 +229,7 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
   };
 
   return (
-    <div className="space-y-4 max-w-lg animate-fade-in">
+    <div className="space-y-4 max-w-2xl animate-fade-in">
       <div>
         <h2 className="text-xl font-bold text-foreground">{t('settings.title')}</h2>
         <p className="text-xs text-muted-foreground mt-0.5">{t('settings.subtitle')}</p>
