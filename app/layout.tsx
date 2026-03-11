@@ -8,6 +8,8 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: '心情日记 - 记录每一天的心情',
+  icons: '/favicon.ico',
+  manifest: '/manifest.json',
   description: '一个简洁的心情追踪和日记应用，帮助你了解随时间变化的情绪模式。记录心情、写日记、添加照片，发现情绪规律。',
 }
 
