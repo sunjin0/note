@@ -86,9 +86,9 @@ export default function Home() {
         onClose={() => setEditorOpen(false)}
         date={editDate}
         initialMood={existingEntry?.mood ?? initialMood}
-        initialJournal={existingEntry?.journal || ''}
-        initialFactors={existingEntry?.factors || []}
-        initialPhotos={existingEntry?.photos || []}
+        initialJournal={existingEntry?.journal}
+        initialFactors={existingEntry?.factors}
+        initialPhotos={existingEntry?.photos}
         onSave={handleSave}
       />
     </div>

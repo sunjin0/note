@@ -4,7 +4,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Mood, MOOD_CONFIG, FACTOR_OPTIONS } from '@/lib/types';
 import { useTranslation } from '@/lib/i18n';
-import { X, Camera, Bold, Italic, Underline } from 'lucide-react';
+import { X, Camera, Bold, Italic, Underline, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MoodEditorProps {
@@ -23,18 +23,22 @@ export default function MoodEditor({
 }: MoodEditorProps) {
   const { t } = useTranslation();
   const [mood, setMood] = React.useState<Mood | undefined>(initialMood);
-  const [journal, setJournal] = React.useState(initialJournal);
-  const [factors, setFactors] = React.useState<string[]>(initialFactors);
-  const [photos, setPhotos] = React.useState<string[]>(initialPhotos);
+  const [journal, setJournal] = React.useState(initialJournal ?? '');
+  const [factors, setFactors] = React.useState<string[]>(initialFactors ?? []);
+  const [photos, setPhotos] = React.useState<string[]>(initialPhotos ?? []);
+  const [previewIndex, setPreviewIndex] = React.useState<number | null>(null);
   const editorRef = React.useRef<HTMLDivElement>(null);
   const fileRef = React.useRef<HTMLInputElement>(null);
 
+  // Reset state when editor opens with a different date
   React.useEffect(() => {
-    setMood(initialMood);
-    setJournal(initialJournal);
-    setFactors(initialFactors);
-    setPhotos(initialPhotos);
-  }, [initialMood, initialJournal, initialFactors, initialPhotos, date]);
+    if (isOpen) {
+      setMood(initialMood);
+      setJournal(initialJournal ?? '');
+      setFactors(initialFactors ?? []);
+      setPhotos(initialPhotos ?? []);
+    }
+  }, [isOpen, date]);
 
   // Separate effect to handle editor content update
   React.useEffect(() => {
@@ -64,6 +68,28 @@ export default function MoodEditor({
 
   const removePhoto = (index: number) => {
     setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const openPreview = (index: number) => {
+    setPreviewIndex(index);
+  };
+
+  const closePreview = () => {
+    setPreviewIndex(null);
+  };
+
+  const goToPrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (previewIndex !== null && previewIndex > 0) {
+      setPreviewIndex(previewIndex - 1);
+    }
+  };
+
+  const goToNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (previewIndex !== null && previewIndex < photos.length - 1) {
+      setPreviewIndex(previewIndex + 1);
+    }
   };
 
   const execCommand = (command: string) => {
@@ -179,13 +205,28 @@ export default function MoodEditor({
             <div className="flex flex-wrap gap-2">
               {photos.map((photo, i) => (
                 <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-border group">
-                  <img src={photo} alt="" className="w-full h-full object-cover" />
-                  <button
-                    onClick={() => removePhoto(i)}
-                    className="absolute inset-0 bg-foreground/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="h-4 w-4 text-primary-foreground" />
-                  </button>
+                  <img 
+                    src={photo} 
+                    alt="" 
+                    className="w-full h-full object-cover" 
+                  />
+                  {/* Hover overlay with preview button in center and delete button in top-right */}
+                  <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Preview button - center */}
+                    <button
+                      onClick={() => openPreview(i)}
+                      className="absolute inset-0 m-auto w-5 h-5 rounded-full bg-background/80 hover:bg-background flex items-center justify-center"
+                    >
+                      <Eye className="h-3 w-3 text-foreground" />
+                    </button>
+                    {/* Delete button - top right */}
+                    <button
+                      onClick={() => removePhoto(i)}
+                      className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-background/80 hover:bg-background flex items-center justify-center"
+                    >
+                      <X className="h-2.5 w-2.5 text-foreground" />
+                    </button>
+                  </div>
                 </div>
               ))}
               <button
@@ -204,6 +245,55 @@ export default function MoodEditor({
           <Button onClick={handleSave} disabled={!mood}>{t('editor.save')}</Button>
         </div>
       </div>
+
+      {/* Image Preview Modal */}
+      {previewIndex !== null && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={closePreview}>
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
+          <div className="relative z-10 flex items-center justify-center w-full h-full">
+            {/* Close button */}
+            <button
+              onClick={closePreview}
+              className="absolute top-4 right-4 rounded-full p-2 bg-black/50 hover:bg-black/70 transition-colors"
+            >
+              <X className="h-6 w-6 text-white" />
+            </button>
+
+            {/* Prev button */}
+            {previewIndex > 0 && (
+              <button
+                onClick={goToPrev}
+                className="absolute left-4 rounded-full p-2 bg-black/50 hover:bg-black/70 transition-colors"
+              >
+                <ChevronLeft className="h-6 w-6 text-white" />
+              </button>
+            )}
+
+            {/* Image */}
+            <img
+              src={photos[previewIndex]}
+              alt=""
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Next button */}
+            {previewIndex < photos.length - 1 && (
+              <button
+                onClick={goToNext}
+                className="absolute right-4 rounded-full p-2 bg-black/50 hover:bg-black/70 transition-colors"
+              >
+                <ChevronRight className="h-6 w-6 text-white" />
+              </button>
+            )}
+
+            {/* Counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/50 text-white text-sm">
+              {previewIndex + 1} / {photos.length}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
