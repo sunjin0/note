@@ -8,7 +8,8 @@ import { Mood, MoodEntry, MoodStats, FactorOption } from '@/lib/types';
 import { MOOD_CONFIG, FACTOR_OPTIONS, DASHBOARD_CHART } from '@/lib/mood-config';
 import { getStreak, getMoodStats, getCustomFactors } from '@/lib/storage';
 import { useTranslation } from '@/lib/i18n';
-import { Plus, Flame, BookOpen, TrendingUp, ChevronRight } from 'lucide-react';
+import { Plus, Flame, BookOpen, TrendingUp, ChevronRight, PieChart } from 'lucide-react';
+import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 interface DashboardProps {
   onNewEntry: (date?: string, mood?: Mood) => void;
@@ -145,7 +146,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
         </Card>
       </div>
 
-      {/* Weekly Chart + Quick Mood */}
+      {/* Weekly Chart + Mood Distribution */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Weekly Mood Chart */}
         <Card>
@@ -174,40 +175,105 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
           </CardContent>
         </Card>
 
-        {/* Quick Mood Selection */}
+        {/* Mood Distribution Pie Chart */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">{t('dashboard.recordMood')}</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <PieChart className="h-4 w-4" />
+              {t('dashboard.moodDistribution')}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-5 gap-2">
-              {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
-                <button
-                  key={key}
-                  onClick={() => todayStr && onNewEntry(todayStr, key)}
-                  disabled={!todayStr}
-                  className={cn(
-                    'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 disabled:opacity-50',
-                    todayEntry?.mood === key
-                      ? `${config.bgClass} ${config.ringClass} border-transparent`
-                      : 'border-transparent hover:bg-accent'
-                  )}
-                >
-                  <span className="text-3xl">{config.emoji}</span>
-                  <span className={cn('text-[10px] font-medium', todayEntry?.mood === key ? config.color : 'text-muted-foreground')}>
-                    {t(`mood.${key}`)}
-                  </span>
-                </button>
-              ))}
-            </div>
-            {todayEntry && (
-              <p className="text-xs text-muted-foreground text-center mt-3">
-                {t('dashboard.todayMood')} · {MOOD_CONFIG[todayEntry.mood].emoji} {t(`mood.${todayEntry.mood}`)}
-              </p>
+            {totalEntries === 0 ? (
+              <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                {t('dashboard.noDataYet')}
+              </div>
+            ) : (
+              <div className="h-40">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RePieChart>
+                    <Pie
+                      data={[
+                        { name: t('mood.great'), value: stats.great, color: MOOD_CONFIG.great.color.replace('text-', '') },
+                        { name: t('mood.good'), value: stats.good, color: MOOD_CONFIG.good.color.replace('text-', '') },
+                        { name: t('mood.okay'), value: stats.okay, color: MOOD_CONFIG.okay.color.replace('text-', '') },
+                        { name: t('mood.sad'), value: stats.sad, color: MOOD_CONFIG.sad.color.replace('text-', '') },
+                        { name: t('mood.angry'), value: stats.angry, color: MOOD_CONFIG.angry.color.replace('text-', '') },
+                      ].filter(d => d.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={30}
+                      outerRadius={55}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {[
+                        { value: stats.great, fill: '#22c55e' },
+                        { value: stats.good, fill: '#3b82f6' },
+                        { value: stats.okay, fill: '#eab308' },
+                        { value: stats.sad, fill: '#6b7280' },
+                        { value: stats.angry, fill: '#ef4444' },
+                      ].filter(d => d.value > 0).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number, name: string) => [`${value} ${t('journal.entries')}`, name]}
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="middle" 
+                      align="right" 
+                      layout="vertical"
+                      iconSize={8}
+                      wrapperStyle={{ fontSize: '11px' }}
+                    />
+                  </RePieChart>
+                </ResponsiveContainer>
+              </div>
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Mood Selection */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">{t('dashboard.recordMood')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-5 gap-2">
+            {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
+              <button
+                key={key}
+                onClick={() => todayStr && onNewEntry(todayStr, key)}
+                disabled={!todayStr}
+                className={cn(
+                  'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 disabled:opacity-50',
+                  todayEntry?.mood === key
+                    ? `${config.bgClass} ${config.ringClass} border-transparent`
+                    : 'border-transparent hover:bg-accent'
+                )}
+              >
+                <span className="text-3xl">{config.emoji}</span>
+                <span className={cn('text-[10px] font-medium', todayEntry?.mood === key ? config.color : 'text-muted-foreground')}>
+                  {t(`mood.${key}`)}
+                </span>
+              </button>
+            ))}
+          </div>
+          {todayEntry && (
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              {t('dashboard.todayMood')} · {MOOD_CONFIG[todayEntry.mood].emoji} {t(`mood.${todayEntry.mood}`)}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Recent Entries */}
       <Card>
