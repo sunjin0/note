@@ -166,6 +166,19 @@
       "confirmButton": "Confirm Delete",
       "cancelButton": "Cancel"
     },
+    "clearDraft": {
+      "title": "Clear Draft Data",
+      "description": "Clear auto-saved draft data when creating new entries (drafts are not created in edit mode)",
+      "button": "Clear Draft Data",
+      "draftSize": "Draft Data Size",
+      "draftCount": "Draft Entries",
+      "countUnit": "entries",
+      "success": "Cleared Successfully ✓",
+      "confirmTitle": "Confirm Clear Draft Data",
+      "confirm": "Are you sure you want to clear all draft data? This will delete unsaved drafts from the editor.",
+      "confirmButton": "Confirm Clear",
+      "cancelButton": "Cancel"
+    },
     "customFactors": {
       "title": "Custom Factors",
       "description": "Add, edit and manage custom factor tags",

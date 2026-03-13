@@ -166,6 +166,19 @@
       "confirmButton": "确认删除",
       "cancelButton": "取消"
     },
+    "clearDraft": {
+      "title": "清除暂存数据",
+      "description": "清除新增记录时自动保存的草稿数据（编辑模式下不生成暂存）",
+      "button": "清除暂存数据",
+      "draftSize": "暂存数据大小",
+      "draftCount": "暂存条目数",
+      "countUnit": "条",
+      "success": "清除成功 ✓",
+      "confirmTitle": "确认清除暂存数据",
+      "confirm": "确定要清除所有暂存数据吗？这将删除编辑器中未保存的草稿。",
+      "confirmButton": "确认清除",
+      "cancelButton": "取消"
+    },
     "customFactors": {
       "title": "自定义影响因数",
       "description": "添加、编辑和管理自定义的影响因数标签",

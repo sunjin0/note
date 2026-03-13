@@ -7,11 +7,12 @@ import {
   getSettings, saveSettings, exportData, clearAllData, getEntries, AppSettings,
   getSecuritySettings, setPassword, disablePassword, verifyPassword, resetPassword, verifySecurityAnswers,
   reEncryptAllEntries, getCustomFactors, saveCustomFactors, deleteCustomFactor,
+  getDraftDataInfo, clearAllDraftData, DraftDataInfo,
   DEFAULT_SECURITY_QUESTIONS, MIN_SECURITY_QUESTIONS, MAX_SECURITY_QUESTIONS, SecuritySettings
 } from '@/lib/storage';
 import { FactorOption } from '@/lib/types';
 import { useTranslation, Locale } from '@/lib/i18n';
-import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2, GripVertical, Tag, X, Edit2, Sun, Moon, Monitor, ChevronDown } from 'lucide-react';
+import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2, GripVertical, Tag, X, Edit2, Sun, Moon, Monitor, ChevronDown, FileX } from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
 import EmojiPicker from './EmojiPicker';
 import { useTheme } from './Providers';
@@ -62,6 +63,11 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
   const [factorDeleteDialogOpen, setFactorDeleteDialogOpen] = useState(false);
   const [factorToDelete, setFactorToDelete] = useState<string | null>(null);
 
+  // Draft data state
+  const [draftInfo, setDraftInfo] = useState<DraftDataInfo>({ size: 0, formattedSize: '0 KB', count: 0 });
+  const [clearDraftDialogOpen, setClearDraftDialogOpen] = useState(false);
+  const [showDraftClearSuccess, setShowDraftClearSuccess] = useState(false);
+
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState<{
     security: boolean;
@@ -86,6 +92,7 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
     setSettings(getSettings());
     setSecuritySettings(getSecuritySettings());
     setCustomFactors(getCustomFactors());
+    setDraftInfo(getDraftDataInfo());
   }, []);
 
   const resetSecurityForm = () => {
@@ -264,6 +271,14 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
     clearAllData();
     setClearDialogOpen(false);
     onDataChange();
+  };
+
+  const handleClearDraftData = () => {
+    clearAllDraftData();
+    setDraftInfo(getDraftDataInfo());
+    setClearDraftDialogOpen(false);
+    setShowDraftClearSuccess(true);
+    setTimeout(() => setShowDraftClearSuccess(false), 3000);
   };
 
   // Custom Factors Handlers
@@ -980,6 +995,38 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
             </Button>
           </CardContent>
         </Card>
+
+        {/* 清除暂存数据 */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <FileX className="h-4 w-4 text-orange-500" />
+              <CardTitle className="text-sm">{t('settings.clearDraft.title')}</CardTitle>
+            </div>
+            <CardDescription>{t('settings.clearDraft.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{t('settings.clearDraft.draftSize')}</span>
+                <span className="font-medium">{draftInfo.formattedSize}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{t('settings.clearDraft.draftCount')}</span>
+                <span className="font-medium">{draftInfo.count} {t('settings.clearDraft.countUnit')}</span>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setClearDraftDialogOpen(true)}
+                disabled={draftInfo.size === 0}
+                className="w-full text-orange-500 hover:text-orange-600"
+              >
+                <FileX className="h-4 w-4 mr-2" />
+                {showDraftClearSuccess ? t('settings.clearDraft.success') : t('settings.clearDraft.button')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Clear Data Confirmation Dialog */}
@@ -992,6 +1039,18 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
         confirmVariant="destructive"
         onConfirm={handleClear}
         onCancel={() => setClearDialogOpen(false)}
+      />
+
+      {/* Clear Draft Data Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={clearDraftDialogOpen}
+        title={t('settings.clearDraft.confirmTitle')}
+        message={t('settings.clearDraft.confirm')}
+        confirmText={t('settings.clearDraft.confirmButton')}
+        cancelText={t('settings.clearDraft.cancelButton')}
+        confirmVariant="destructive"
+        onConfirm={handleClearDraftData}
+        onCancel={() => setClearDraftDialogOpen(false)}
       />
         </>
       )}

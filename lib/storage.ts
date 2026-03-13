@@ -513,3 +513,68 @@ export function getAllFactors(): FactorOption[] {
   const customFactors = getCustomFactors();
   return [...FACTOR_OPTIONS, ...customFactors];
 }
+
+// Draft data management
+const DRAFT_KEY_PREFIX = 'mood_draft_';
+
+export interface DraftDataInfo {
+  size: number;
+  formattedSize: string;
+  count: number;
+}
+
+export function getDraftDataInfo(): DraftDataInfo {
+  if (typeof window === 'undefined') {
+    return { size: 0, formattedSize: '0 KB', count: 0 };
+  }
+  
+  try {
+    let totalSize = 0;
+    let count = 0;
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(DRAFT_KEY_PREFIX)) {
+        const value = localStorage.getItem(key) || '';
+        totalSize += new Blob([value]).size;
+        count++;
+      }
+    }
+    
+    return {
+      size: totalSize,
+      formattedSize: formatBytes(totalSize),
+      count,
+    };
+  } catch {
+    return { size: 0, formattedSize: '0 KB', count: 0 };
+  }
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 KB';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const size = bytes / Math.pow(k, i);
+  return `${size.toFixed(i === 0 ? 0 : 2)} ${sizes[i]}`;
+}
+
+export function clearAllDraftData(): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const keysToRemove: string[] = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(DRAFT_KEY_PREFIX)) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  } catch (error) {
+    console.error('Failed to clear draft data:', error);
+  }
+}

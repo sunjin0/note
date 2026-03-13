@@ -322,9 +322,9 @@ export default function MoodEditor({
     }
   }, [isOpen, date, initialMood]);
 
-  // Auto-save draft
+  // Auto-save draft (only for new entries)
   React.useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || initialMood) return;
     
     const timer = setInterval(() => {
       if (mood || journal || factors.length > 0 || photos.length > 0) {
@@ -341,11 +341,11 @@ export default function MoodEditor({
     }, DRAFT_AUTO_SAVE_INTERVAL);
 
     return () => clearInterval(timer);
-  }, [isOpen, mood, journal, factors, photos, date]);
+  }, [isOpen, mood, journal, factors, photos, date, initialMood]);
 
-  // Save draft on input (debounced)
+  // Save draft on input (debounced, only for new entries)
   React.useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || initialMood) return;
     
     const timer = setTimeout(() => {
       if (mood || journal || factors.length > 0 || photos.length > 0) {
@@ -362,7 +362,7 @@ export default function MoodEditor({
     }, 2000); // 2 seconds debounce
 
     return () => clearTimeout(timer);
-  }, [mood, journal, factors, photos, isOpen, date]);
+  }, [mood, journal, factors, photos, isOpen, date, initialMood]);
 
   // Format draft saved time
   const formatDraftTime = (savedAt: string): string => {
@@ -381,8 +381,8 @@ export default function MoodEditor({
   };
 
   const handleClose = () => {
-    // Save final draft before closing
-    if (mood || journal || factors.length > 0 || photos.length > 0) {
+    // Save final draft before closing (only for new entries)
+    if (!initialMood && (mood || journal || factors.length > 0 || photos.length > 0)) {
       const draft = {
         mood,
         journal: editorRef.current?.innerHTML || journal,
