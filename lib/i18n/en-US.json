@@ -85,7 +85,12 @@
     "clearFormat": "Clear Format",
     "addPhoto": "Add Photo",
     "cancel": "Cancel",
-    "save": "Save Record"
+    "save": "Save Record",
+    "draftSaved": "Draft saved",
+    "draftJustNow": "just now",
+    "draftMinutesAgo": "{minutes}m ago",
+    "draftHoursAgo": "{hours}h ago",
+    "draftDaysAgo": "{days}d ago"
   },
   "mood": {
     "great": "Great",

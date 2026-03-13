@@ -35,6 +35,7 @@ export default function MoodEditor({
   const [previewIndex, setPreviewIndex] = React.useState<number | null>(null);
   const [charCount, setCharCount] = React.useState(0);
   const [editorHeight, setEditorHeight] = React.useState(120);
+  const [draftSavedAt, setDraftSavedAt] = React.useState<string | null>(null);
   const MIN_HEIGHT = 80;
   const MAX_HEIGHT = 500;
   const MAX_CHARS = 5000;
@@ -212,6 +213,110 @@ export default function MoodEditor({
     if (!mood) return;
     const content = editorRef.current?.innerHTML || journal;
     onSave({ mood, journal: content, factors, photos });
+    // Clear draft after successful save
+    clearDraft();
+    onClose();
+  };
+
+  // Draft auto-save functionality
+  const DRAFT_KEY = `mood_draft_${date}`;
+  const DRAFT_AUTO_SAVE_INTERVAL = 30000; // 30 seconds
+
+  // Load draft on open
+  React.useEffect(() => {
+    if (isOpen && !initialMood) {
+      // Only load draft for new entries (not editing existing ones)
+      try {
+        const draft = localStorage.getItem(DRAFT_KEY);
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          if (parsed.mood) setMood(parsed.mood);
+          if (parsed.factors?.length) setFactors(parsed.factors);
+          if (parsed.photos?.length) setPhotos(parsed.photos);
+          if (parsed.journal) {
+            setJournal(parsed.journal);
+            if (editorRef.current) {
+              editorRef.current.innerHTML = parsed.journal;
+              lastValidContentRef.current = parsed.journal;
+            }
+          }
+        }
+      } catch {
+        // Ignore draft load errors
+      }
+    }
+  }, [isOpen, date, initialMood]);
+
+  // Auto-save draft
+  React.useEffect(() => {
+    if (!isOpen) return;
+    
+    const timer = setInterval(() => {
+      if (mood || journal || factors.length > 0 || photos.length > 0) {
+        const draft = {
+          mood,
+          journal: editorRef.current?.innerHTML || journal,
+          factors,
+          photos,
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        setDraftSavedAt(draft.savedAt);
+      }
+    }, DRAFT_AUTO_SAVE_INTERVAL);
+
+    return () => clearInterval(timer);
+  }, [isOpen, mood, journal, factors, photos, date]);
+
+  // Save draft on input (debounced)
+  React.useEffect(() => {
+    if (!isOpen) return;
+    
+    const timer = setTimeout(() => {
+      if (mood || journal || factors.length > 0 || photos.length > 0) {
+        const draft = {
+          mood,
+          journal: editorRef.current?.innerHTML || journal,
+          factors,
+          photos,
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        setDraftSavedAt(draft.savedAt);
+      }
+    }, 2000); // 2 seconds debounce
+
+    return () => clearTimeout(timer);
+  }, [mood, journal, factors, photos, isOpen, date]);
+
+  // Format draft saved time
+  const formatDraftTime = (savedAt: string): string => {
+    const saved = new Date(savedAt);
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - saved.getTime()) / 1000);
+    
+    if (diff < 60) return t('editor.draftJustNow');
+    if (diff < 3600) return t('editor.draftMinutesAgo', { minutes: Math.floor(diff / 60) });
+    if (diff < 86400) return t('editor.draftHoursAgo', { hours: Math.floor(diff / 3600) });
+    return t('editor.draftDaysAgo', { days: Math.floor(diff / 86400) });
+  };
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+  };
+
+  const handleClose = () => {
+    // Save final draft before closing
+    if (mood || journal || factors.length > 0 || photos.length > 0) {
+      const draft = {
+        mood,
+        journal: editorRef.current?.innerHTML || journal,
+        factors,
+        photos,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }
     onClose();
   };
 
@@ -224,7 +329,7 @@ export default function MoodEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={handleClose} />
       <div className={`relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto scrollbar-thin bg-card rounded-2xl shadow-elevated border border-border animate-scale-in`}>
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-card rounded-t-2xl">
@@ -413,9 +518,21 @@ export default function MoodEditor({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 flex justify-end gap-3 p-5 border-t border-border bg-card rounded-b-2xl">
-          <Button variant="outline" onClick={onClose}>{t('editor.cancel')}</Button>
-          <Button onClick={handleSave} disabled={!mood}>{t('editor.save')}</Button>
+        <div className="sticky bottom-0 flex items-center justify-between p-5 border-t border-border bg-card rounded-b-2xl">
+          {/* Draft Status */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {draftSavedAt && (
+              <>
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span>{t('editor.draftSaved')} · {formatDraftTime(draftSavedAt)}</span>
+              </>
+            )}
+          </div>
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={handleClose}>{t('editor.cancel')}</Button>
+            <Button onClick={handleSave} disabled={!mood}>{t('editor.save')}</Button>
+          </div>
         </div>
       </div>
 

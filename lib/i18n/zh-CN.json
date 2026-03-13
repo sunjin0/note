@@ -85,7 +85,12 @@
     "clearFormat": "清除格式",
     "addPhoto": "添加照片",
     "cancel": "取消",
-    "save": "保存记录"
+    "save": "保存记录",
+    "draftSaved": "草稿已保存",
+    "draftJustNow": "刚刚",
+    "draftMinutesAgo": "{minutes}分钟前",
+    "draftHoursAgo": "{hours}小时前",
+    "draftDaysAgo": "{days}天前"
   },
   "mood": {
     "great": "很棒",
