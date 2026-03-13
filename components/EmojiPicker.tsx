@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, Clock, X } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { Search, Clock, X, Sparkles, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 
@@ -859,19 +859,36 @@ interface EmojiPickerProps {
   selectedEmoji?: string;
 }
 
+// 获取搜索匹配的标签（用于显示提示）
+function getMatchingTags(emoji: string, query: string): string[] {
+  const tags = EMOJI_TAGS[emoji] || [];
+  const queryLower = query.toLowerCase().trim();
+  return tags.filter(tag => matchesPinyin(tag, queryLower)).slice(0, 2);
+}
+
 export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }: EmojiPickerProps) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('recent');
   const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [showKeyboardHint, setShowKeyboardHint] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const emojiButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // 加载最近使用的 emoji
   useEffect(() => {
     if (isOpen) {
       setRecentEmojis(getRecentEmojis());
-      // 聚焦搜索框
+      setFocusedIndex(-1);
+      setSearchQuery('');
       setTimeout(() => searchInputRef.current?.focus(), 100);
+      const timer = setTimeout(() => setShowKeyboardHint(true), 500);
+      const hideTimer = setTimeout(() => setShowKeyboardHint(false), 4000);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(hideTimer);
+      };
     }
   }, [isOpen]);
 
@@ -883,7 +900,6 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
     const results: string[] = [];
     
     Object.entries(EMOJI_TAGS).forEach(([emoji, tags]) => {
-      // 检查是否匹配（支持拼音）
       if (tags.some(tag => matchesPinyin(tag, query))) {
         results.push(emoji);
       }
@@ -892,27 +908,81 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
     return results;
   }, [searchQuery]);
 
-  // 获取当前显示的 emoji 列表
-  const getCurrentEmojis = () => {
+  const currentEmojis = useMemo(() => {
     if (filteredEmojis) return filteredEmojis;
-    
     if (activeCategory === 'recent') {
       return recentEmojis.length > 0 ? recentEmojis : EMOJI_CATEGORIES[1].emojis.slice(0, 32);
     }
-    
     const category = EMOJI_CATEGORIES.find(c => c.id === activeCategory);
     return category?.emojis || [];
-  };
+  }, [filteredEmojis, activeCategory, recentEmojis]);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!isOpen) return;
+    const cols = window.innerWidth < 640 ? 8 : 10;
+    const total = currentEmojis.length;
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex(prev => {
+          const next = prev + cols;
+          return next < total ? next : prev;
+        });
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex(prev => {
+          const next = prev - cols;
+          return next >= 0 ? next : -1;
+        });
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        setFocusedIndex(prev => (prev > 0 ? prev - 1 : prev));
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        setFocusedIndex(prev => (prev < total - 1 ? prev + 1 : prev));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex < total) {
+          handleSelect(currentEmojis[focusedIndex]);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        onClose();
+        break;
+      case '/':
+        if (document.activeElement !== searchInputRef.current) {
+          e.preventDefault();
+          searchInputRef.current?.focus();
+        }
+        break;
+    }
+  }, [isOpen, currentEmojis, focusedIndex, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, handleKeyDown]);
+
+  useEffect(() => {
+    if (focusedIndex >= 0 && emojiButtonRefs.current[focusedIndex]) {
+      emojiButtonRefs.current[focusedIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [focusedIndex]);
 
   const handleSelect = (emoji: string) => {
     saveRecentEmoji(emoji);
-    // 立即更新最近使用列表，实现实时同步
     setRecentEmojis(getRecentEmojis());
     onSelect(emoji);
     onClose();
   };
-
-  const currentEmojis = getCurrentEmojis();
 
   if (!isOpen) return null;
 
@@ -945,11 +1015,23 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
               ref={searchInputRef}
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setFocusedIndex(-1);
+              }}
               placeholder={`${t('emojiPicker.search')} (${t('emojiPicker.searchHint')})`}
-              className="w-full pl-11 pr-4 py-3 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
+              className="w-full pl-11 pr-10 py-3 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
             />
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-mono bg-muted rounded border">
+              /
+            </kbd>
           </div>
+          {searchQuery && filteredEmojis && filteredEmojis.length > 0 && (
+            <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+              <Sparkles className="h-3 w-3 text-primary" />
+              <span>{t('emojiPicker.foundResults', { count: filteredEmojis.length })}</span>
+            </div>
+          )}
         </div>
 
         {/* Category Tabs */}
@@ -980,18 +1062,23 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
               <p className="text-xs mt-1">{t('emojiPicker.tryOther')}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-10 gap-2">
+            <div className="grid grid-cols-8 sm:grid-cols-10 gap-2">
               {currentEmojis.map((emoji, index) => (
                 <button
                   key={`${emoji}-${index}`}
+                  ref={el => { emojiButtonRefs.current[index] = el; }}
                   onClick={() => handleSelect(emoji)}
+                  onMouseEnter={() => setFocusedIndex(index)}
                   className={cn(
-                    'w-11 h-11 rounded-xl flex items-center justify-center text-2xl transition-all hover:scale-110',
+                    'w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-xl sm:text-2xl transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary',
                     selectedEmoji === emoji
                       ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
+                      : focusedIndex === index
+                      ? 'bg-accent ring-2 ring-primary/50'
                       : 'hover:bg-accent'
                   )}
                   title={EMOJI_TAGS[emoji]?.[0] || emoji}
+                  tabIndex={-1}
                 >
                   {emoji}
                 </button>
@@ -999,6 +1086,26 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
             </div>
           )}
         </div>
+
+        {/* 键盘导航提示 */}
+        {showKeyboardHint && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-popover border border-border rounded-lg px-3 py-2 shadow-lg animate-in fade-in slide-in-from-bottom-2">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-muted rounded border">↑↓←→</kbd>
+                <span>{t('emojiPicker.navigate')}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-muted rounded border">Enter</kbd>
+                <span>{t('emojiPicker.select')}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-muted rounded border">ESC</kbd>
+                <span>{t('emojiPicker.close')}</span>
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="p-4 border-t border-border bg-secondary/30">
