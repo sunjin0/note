@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Mood, MoodEntry } from '@/lib/types';
 import { MOOD_CONFIG, CALENDAR_COLORS, HEATMAP_VALUE } from '@/lib/mood-config';
 import { useTranslation } from '@/lib/i18n';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Grid3X3 } from 'lucide-react';
 
 interface CalendarViewProps {
   entries: MoodEntry[];
@@ -20,6 +20,7 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = React.useState<string | null>(todayStr);
+  const [viewMode, setViewMode] = React.useState<'month' | 'year'>('month');
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -65,10 +66,47 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-foreground">{t('calendar.title', { year, month: month + 1 })}</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">{t('calendar.recordsThisMonth', { count: monthEntries.length })}</p>
+          <h2 className="text-xl font-bold text-foreground">
+            {viewMode === 'month' 
+              ? t('calendar.title', { year, month: month + 1 })
+              : `${year}${t('calendar.yearSuffix') || '年'}`
+            }
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {viewMode === 'month' 
+              ? t('calendar.recordsThisMonth', { count: monthEntries.length })
+              : t('calendar.recordsThisYear', { count: entries.filter(e => e.date.startsWith(String(year))).length })
+            }
+          </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* View Mode Toggle */}
+          <div className="flex items-center bg-muted rounded-lg p-0.5">
+            <button
+              onClick={() => setViewMode('month')}
+              className={cn(
+                'flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                viewMode === 'month' 
+                  ? 'bg-card text-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <CalendarIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('calendar.monthView') || '月'}</span>
+            </button>
+            <button
+              onClick={() => setViewMode('year')}
+              className={cn(
+                'flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                viewMode === 'year' 
+                  ? 'bg-card text-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Grid3X3 className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('calendar.yearView') || '年'}</span>
+            </button>
+          </div>
           <Button variant="outline" size="sm" onClick={goToday}>{t('calendar.today')}</Button>
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={prevMonth}>
             <ChevronLeft className="h-4 w-4" />
@@ -78,6 +116,20 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
           </Button>
         </div>
       </div>
+
+      {viewMode === 'year' ? (
+        <YearView 
+          year={year} 
+          entries={entries} 
+          onSelectDate={onSelectDate}
+          onMonthClick={(m) => {
+            setCurrentDate(new Date(year, m, 1));
+            setViewMode('month');
+          }}
+        />
+      ) : (
+        <>
+          {/* Month View Content */}
 
       {/* Calendar Grid */}
       <Card>
@@ -138,20 +190,22 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
         </CardContent>
       </Card>
 
-      {/* Month Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-        {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
-          <Card key={key} className={cn('border-none', config.bgClass)}>
-            <CardContent className="p-3 flex items-center gap-2">
-              <span className="text-xl">{config.emoji}</span>
-              <div>
-                <p className="text-lg font-bold text-foreground">{moodCounts[key as Mood]}</p>
-                <p className="text-[10px] text-muted-foreground">{t(`mood.${key}`)}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+          {/* Month Summary */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
+              <Card key={key} className={cn('border-none', config.bgClass)}>
+                <CardContent className="p-3 flex items-center gap-2">
+                  <span className="text-xl">{config.emoji}</span>
+                  <div>
+                    <p className="text-lg font-bold text-foreground">{moodCounts[key as Mood]}</p>
+                    <p className="text-[10px] text-muted-foreground">{t(`mood.${key}`)}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Heatmap */}
       <Card>
@@ -162,6 +216,128 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
           <HeatmapView entries={entries} />
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// 年度视图组件
+function YearView({ 
+  year, 
+  entries, 
+  onSelectDate,
+  onMonthClick 
+}: { 
+  year: number; 
+  entries: MoodEntry[]; 
+  onSelectDate: (date: string) => void;
+  onMonthClick: (month: number) => void;
+}) {
+  const { t } = useTranslation();
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  
+  // 获取年度数据
+  const yearEntries = entries.filter(e => e.date.startsWith(String(year)));
+  const entryMap: Record<string, MoodEntry> = {};
+  yearEntries.forEach(e => { entryMap[e.date] = e; });
+
+  // 生成12个月的迷你日历
+  const months = Array.from({ length: 12 }, (_, i) => i);
+  const weekDays = (t('calendar.weekDaysShort', {}) as unknown as string[]) || ['日', '一', '二', '三', '四', '五', '六'];
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {months.map(month => {
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const days: (number | null)[] = [];
+        for (let i = 0; i < firstDay; i++) days.push(null);
+        for (let d = 1; d <= daysInMonth; d++) days.push(d);
+        
+        // 计算该月的心情统计
+        const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+        const monthData = yearEntries.filter(e => e.date.startsWith(monthPrefix));
+        const moodCount = monthData.length;
+        const avgMood = moodCount > 0 
+          ? monthData.reduce((sum, e) => {
+              const values: Record<Mood, number> = { great: 5, good: 4, okay: 3, sad: 2, angry: 1 };
+              return sum + values[e.mood];
+            }, 0) / moodCount 
+          : 0;
+
+        return (
+          <Card 
+            key={month} 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => onMonthClick(month)}
+          >
+            <CardContent className="p-3">
+              {/* 月份标题 */}
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-foreground">
+                  {month + 1}{t('calendar.monthSuffix') || '月'}
+                </h3>
+                {moodCount > 0 && (
+                  <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                    {moodCount}
+                  </span>
+                )}
+              </div>
+              
+              {/* 迷你日历网格 */}
+              <div className="grid grid-cols-7 gap-0.5">
+                {/* 星期标题 */}
+                {weekDays.map((d, i) => (
+                  <div key={i} className="text-center text-[8px] text-muted-foreground py-0.5">
+                    {d}
+                  </div>
+                ))}
+                {/* 日期单元格 */}
+                {days.map((day, i) => {
+                  if (day === null) return <div key={`blank-${i}`} className="aspect-square" />;
+                  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const entry = entryMap[dateStr];
+                  const isToday = dateStr === todayStr;
+                  
+                  return (
+                    <div
+                      key={dateStr}
+                      className={cn(
+                        'aspect-square flex items-center justify-center rounded text-[10px]',
+                        entry && CALENDAR_COLORS.moodCellBg[entry.mood],
+                        isToday && 'ring-1 ring-primary font-bold',
+                        !entry && 'text-muted-foreground'
+                      )}
+                      title={entry ? `${month + 1}/${day} ${t(`mood.${entry.mood}`)}` : `${month + 1}/${day}`}
+                    >
+                      {day}
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* 心情指示条 */}
+              {moodCount > 0 && (
+                <div className="mt-2 h-1 rounded-full overflow-hidden bg-muted flex">
+                  {(['great', 'good', 'okay', 'sad', 'angry'] as Mood[]).map(mood => {
+                    const count = monthData.filter(e => e.mood === mood).length;
+                    const percentage = (count / moodCount) * 100;
+                    if (percentage === 0) return null;
+                    return (
+                      <div
+                        key={mood}
+                        className={cn('h-full', CALENDAR_COLORS.moodDotColor[mood].replace('bg-', 'bg-mood-'))}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
