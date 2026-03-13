@@ -613,7 +613,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
           )}
 
           {/* Archived Entries (Grouped by Year/Month/Week) */}
-          {!hasFilters && (groupedEntries.archived as Map<string, Map<string, Map<string, MoodEntry[]>>>).entries().map(([year, months]) => (
+          {!hasFilters && Array.from((groupedEntries.archived as Map<string, Map<string, Map<string, MoodEntry[]>>>).entries()).map(([year, months]) => (
             <div key={year} className="space-y-2">
               {/* Year Header */}
               <button
