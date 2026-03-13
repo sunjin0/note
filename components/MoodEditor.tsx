@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Mood, MOOD_CONFIG, FACTOR_OPTIONS, FactorOption } from '@/lib/types';
+import { Mood, FactorOption } from '@/lib/types';
+import { MOOD_CONFIG, FACTOR_OPTIONS } from '@/lib/mood-config';
 import { getCustomFactors } from '@/lib/storage';
 import { useTranslation } from '@/lib/i18n';
 import { 

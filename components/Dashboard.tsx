@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mood, MoodEntry, MOOD_CONFIG, FACTOR_OPTIONS, MoodStats, FactorOption } from '@/lib/types';
+import { Mood, MoodEntry, MoodStats, FactorOption } from '@/lib/types';
+import { MOOD_CONFIG, FACTOR_OPTIONS, DASHBOARD_CHART } from '@/lib/mood-config';
 import { getStreak, getMoodStats, getCustomFactors } from '@/lib/storage';
 import { useTranslation } from '@/lib/i18n';
 import { Plus, Flame, BookOpen, TrendingUp, ChevronRight } from 'lucide-react';
@@ -61,14 +62,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
   const todayEntry = entries.find(e => e.date === todayStr);
   const recentEntries = entries.slice(0, 5);
 
-  const moodToHeight: Record<Mood, number> = { great: 100, good: 75, okay: 50, sad: 30, angry: 15 };
-  const moodBarColor: Record<Mood, string> = {
-    great: 'bg-mood-great',
-    good: 'bg-mood-good',
-    okay: 'bg-mood-okay',
-    sad: 'bg-mood-sad',
-    angry: 'bg-mood-angry',
-  };
+  const { moodToHeight, moodBarColor } = DASHBOARD_CHART;
 
   // Most common mood
   const topMood = (Object.entries(stats) as [Mood, number][]).sort((a, b) => b[1] - a[1])[0];

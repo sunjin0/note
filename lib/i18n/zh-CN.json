@@ -224,7 +224,7 @@
   "emojiPicker": {
     "title": "选择图标",
     "search": "搜索图标...",
-    "searchHint": "如: 猫, 汽车, 开心",
+    "searchHint": "如: 猫 mao, 汽车 qiche, 开心 kaixin",
     "noResults": "未找到匹配的图标",
     "tryOther": "尝试其他关键词",
     "currentSelection": "当前选择",

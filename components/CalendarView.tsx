@@ -4,7 +4,8 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mood, MoodEntry, MOOD_CONFIG } from '@/lib/types';
+import { Mood, MoodEntry } from '@/lib/types';
+import { MOOD_CONFIG, CALENDAR_COLORS, HEATMAP_VALUE } from '@/lib/mood-config';
 import { useTranslation } from '@/lib/i18n';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
@@ -44,21 +45,7 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
     setSelectedDate(todayStr);
   };
 
-  const moodDotColor: Record<Mood, string> = {
-    great: 'bg-mood-great',
-    good: 'bg-mood-good',
-    okay: 'bg-mood-okay',
-    sad: 'bg-mood-sad',
-    angry: 'bg-mood-angry',
-  };
-
-  const moodCellBg: Record<Mood, string> = {
-    great: 'mood-bg-great',
-    good: 'mood-bg-good',
-    okay: 'mood-bg-okay',
-    sad: 'mood-bg-sad',
-    angry: 'mood-bg-angry',
-  };
+  const { moodDotColor, moodCellBg } = CALENDAR_COLORS;
 
   // Mood stats for this month
   const moodCounts: Record<Mood, number> = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
@@ -182,7 +169,7 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
 function HeatmapView({ entries }: { entries: MoodEntry[] }) {
   const { t } = useTranslation();
   
-  const moodValue: Record<Mood, number> = { great: 4, good: 3, okay: 2, sad: 1, angry: 0 };
+  const moodValue = HEATMAP_VALUE;
   
   const valueColor = (v: number | null) => {
     if (v === null) return 'bg-muted/40';

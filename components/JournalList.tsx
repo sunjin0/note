@@ -4,7 +4,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mood, MoodEntry, MOOD_CONFIG, FACTOR_OPTIONS, FactorOption } from '@/lib/types';
+import { Mood, MoodEntry, FactorOption } from '@/lib/types';
+import { MOOD_CONFIG, FACTOR_OPTIONS } from '@/lib/mood-config';
 import { deleteEntry, getCustomFactors } from '@/lib/storage';
 import { useTranslation } from '@/lib/i18n';
 import { 

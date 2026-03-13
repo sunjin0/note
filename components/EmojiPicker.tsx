@@ -13,6 +13,32 @@ export interface EmojiCategory {
   emojis: string[];
 }
 
+import { PINYIN_MAP } from '@/lib/pinyin-map';
+
+// 获取拼音（支持多音字简单处理）
+function getPinyin(char: string): string {
+  return PINYIN_MAP[char] || '';
+}
+
+// 检查搜索词是否匹配拼音
+function matchesPinyin(tag: string, query: string): boolean {
+  // 直接包含
+  if (tag.toLowerCase().includes(query.toLowerCase())) return true;
+  
+  // 拼音匹配
+  let pinyinStr = '';
+  for (const char of tag) {
+    const py = getPinyin(char);
+    if (py) {
+      pinyinStr += py;
+    } else {
+      pinyinStr += char;
+    }
+  }
+  
+  return pinyinStr.toLowerCase().includes(query.toLowerCase());
+}
+
 // 简化的 Emoji 搜索标签映射（中英文）
 export const EMOJI_TAGS: Record<string, string[]> = {
   // 工作学习
@@ -849,15 +875,16 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
     }
   }, [isOpen]);
 
-  // 搜索过滤
+  // 搜索过滤（支持中文、拼音、英文）
   const filteredEmojis = useMemo(() => {
     if (!searchQuery.trim()) return null;
     
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase().trim();
     const results: string[] = [];
     
     Object.entries(EMOJI_TAGS).forEach(([emoji, tags]) => {
-      if (tags.some(tag => tag.toLowerCase().includes(query))) {
+      // 检查是否匹配（支持拼音）
+      if (tags.some(tag => matchesPinyin(tag, query))) {
         results.push(emoji);
       }
     });
