@@ -192,12 +192,15 @@ export function saveSettings(settings: AppSettings): void {
 export function exportData(): string {
   const entries = getEntries();
   const settings = getSettings();
-  return JSON.stringify({ entries, settings, exportedAt: new Date().toISOString() }, null, 2);
+  const securitySettings = getSecuritySettings();
+  return JSON.stringify({ entries, settings, securitySettings, exportedAt: new Date().toISOString() }, null, 2);
 }
 
 export function clearAllData(): void {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(SETTINGS_KEY);
+  localStorage.removeItem(SECURITY_KEY);
+  clearSession();
 }
 
 export function reEncryptAllEntries(enableEncryption: boolean, onProgress?: (current: number, total: number) => void): void {
