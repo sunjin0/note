@@ -264,11 +264,31 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
   const hasActiveFilters = filters.search || filters.startDate || filters.endDate || 
     filters.selectedMoods.length > 0 || filters.selectedFactors.length > 0;
 
+  // 高亮搜索关键词
+  const highlightText = (text: string, query: string) => {
+    if (!query.trim()) return text;
+    
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, i) => 
+      regex.test(part) ? (
+        <mark key={i} className="bg-yellow-200 dark:bg-yellow-700 text-foreground rounded px-0.5">
+          {part}
+        </mark>
+      ) : (
+        <span key={i}>{part}</span>
+      )
+    );
+  };
+
   const renderEntryCard = (entry: MoodEntry) => {
     const config = MOOD_CONFIG[entry.mood];
     const plainText = entry.journal.replace(/<[^>]*>/g, '');
     const isExpanded = expandedId === entry.id;
     const entryFactors = entry.factors.map(f => allFactors.find(o => o.id === f)).filter(Boolean);
+    const searchQuery = filters.search;
 
     return (
       <Card
@@ -293,10 +313,19 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
                 isExpanded ? (
                   <div
                     className="text-sm text-foreground leading-relaxed mb-2 prose-sm"
-                    dangerouslySetInnerHTML={{ __html: entry.journal }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: searchQuery 
+                        ? entry.journal.replace(
+                            new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
+                            '<mark style="background-color: hsl(48 100% 50% / 0.4); border-radius: 2px; padding: 0 2px;">$1</mark>'
+                          )
+                        : entry.journal 
+                    }}
                   />
                 ) : (
-                  <p className="text-xs text-muted-foreground truncate">{plainText}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {searchQuery ? highlightText(plainText, searchQuery) : plainText}
+                  </p>
                 )
               )}
 
