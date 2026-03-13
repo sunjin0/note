@@ -248,7 +248,9 @@
       "next": "Next",
       "back": "Back",
       "lockoutMessage": "Too many failed attempts. Please try again in {minutes} minutes",
-      "sessionExpired": "Session expired, please login again"
+      "sessionExpired": "Session expired, please login again",
+      "passwordChangeFailed": "Password change failed, please try again",
+      "passwordResetFailed": "Password reset failed, please try again"
     }
   },
   "reminder": {

@@ -7,7 +7,7 @@ import {
   getSettings, saveSettings, exportData, clearAllData, getEntries, AppSettings,
   getSecuritySettings, setPassword, disablePassword, verifyPassword, resetPassword, verifySecurityAnswers,
   reEncryptAllEntries, getCustomFactors, saveCustomFactors, deleteCustomFactor,
-  getDraftDataInfo, clearAllDraftData, DraftDataInfo,
+  getDraftDataInfo, clearAllDraftData, DraftDataInfo, changePasswordWithDataPreservation,
   DEFAULT_SECURITY_QUESTIONS, MIN_SECURITY_QUESTIONS, MAX_SECURITY_QUESTIONS, SecuritySettings
 } from '@/lib/storage';
 import { FactorOption } from '@/lib/types';
@@ -159,7 +159,25 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
       return;
     }
     
-    setPassword(newPassword, selectedQuestions);
+    // Check if this is a password change (password already enabled)
+    if (securitySettings?.passwordEnabled) {
+      // Use data preservation flow for password change
+      // Current password was already verified in previous step
+      const result = changePasswordWithDataPreservation(
+        currentPassword,
+        newPassword,
+        selectedQuestions
+      );
+      
+      if (!result.success) {
+        setPasswordError(result.error || t('settings.security.passwordChangeFailed'));
+        return;
+      }
+    } else {
+      // First time setting password - no existing data to decrypt
+      setPassword(newPassword, selectedQuestions);
+    }
+    
     setSecuritySettings(getSecuritySettings());
     resetSecurityForm();
     onDataChange();
@@ -210,7 +228,12 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
       return;
     }
     
-    resetPassword(newPassword);
+    const result = resetPassword(newPassword);
+    if (!result.success) {
+      setPasswordError(result.error || t('settings.security.passwordResetFailed'));
+      return;
+    }
+    
     setSecuritySettings(getSecuritySettings());
     resetSecurityForm();
   };
