@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mood, MoodEntry, MOOD_CONFIG, FACTOR_OPTIONS, MoodStats } from '@/lib/types';
-import { getStreak, getMoodStats } from '@/lib/storage';
+import { Mood, MoodEntry, MOOD_CONFIG, FACTOR_OPTIONS, MoodStats, FactorOption } from '@/lib/types';
+import { getStreak, getMoodStats, getCustomFactors } from '@/lib/storage';
 import { useTranslation } from '@/lib/i18n';
 import { Plus, Flame, BookOpen, TrendingUp, ChevronRight } from 'lucide-react';
 
@@ -22,11 +22,14 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
   const [streak, setStreak] = useState(0);
   const [stats, setStats] = useState<MoodStats>(defaultStats);
   const [mounted, setMounted] = useState(false);
+  const [allFactors, setAllFactors] = useState<FactorOption[]>(FACTOR_OPTIONS);
   
   useEffect(() => {
     setMounted(true);
     setStreak(getStreak());
     setStats(getMoodStats());
+    const customFactors = getCustomFactors();
+    setAllFactors([...FACTOR_OPTIONS, ...customFactors]);
   }, [entries]);
   
   const totalEntries = entries.length;
@@ -233,7 +236,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                 const d = new Date(entry.date + 'T00:00:00');
                 const dateLabel = `${d.getMonth() + 1}/${d.getDate()}`;
                 const plainText = entry.journal.replace(/<[^>]*>/g, '');
-                const entryFactors = entry.factors.map(f => FACTOR_OPTIONS.find(o => o.id === f)).filter(Boolean);
+                const entryFactors = entry.factors.map(f => allFactors.find(o => o.id === f)).filter(Boolean);
                 return (
                   <div
                     key={entry.id}
@@ -253,7 +256,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                         <div className="flex gap-1 mt-1.5">
                           {entryFactors.slice(0, 3).map(f => (
                             <span key={f!.id} className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-secondary-foreground">
-                              {f!.emoji} {t(`factors.${f!.id}`)}
+                              {f!.emoji} {f!.isCustom ? f!.label : t(`factors.${f!.id}`)}
                             </span>
                           ))}
                           {entryFactors.length > 3 && (

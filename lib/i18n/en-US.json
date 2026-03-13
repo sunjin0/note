@@ -52,6 +52,7 @@
     "edit": "Edit",
     "delete": "Delete",
     "confirmDelete": "Confirm Delete",
+    "deleteConfirmMessage": "Are you sure you want to delete this entry? This action cannot be undone.",
     "cancel": "Cancel",
     "filters": "Filters",
     "clearFilters": "Clear Filters",
@@ -143,6 +144,25 @@
       "confirmButton": "Confirm Delete",
       "cancelButton": "Cancel"
     },
+    "customFactors": {
+      "title": "Custom Factors",
+      "description": "Add, edit and manage custom factor tags",
+      "addFactor": "Add Factor",
+      "editFactor": "Edit Factor",
+      "factorName": "Factor Name",
+      "factorNamePlaceholder": "Enter factor name, e.g., Pet, Music",
+      "selectIcon": "Select Icon",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete this factor?",
+      "empty": "No custom factors yet",
+      "dragToReorder": "Drag to reorder",
+      "presetFactors": "Preset Factors",
+      "customFactors": "Custom Factors",
+      "nameRequired": "Please enter a factor name",
+      "duplicateName": "This factor name already exists"
+    },
     "about": {
       "title": "About",
       "appName": "Mood Journal v1.0",
@@ -194,6 +214,29 @@
       "back": "Back",
       "lockoutMessage": "Too many failed attempts. Please try again in {minutes} minutes",
       "sessionExpired": "Session expired, please login again"
+    }
+  },
+  "emojiPicker": {
+    "title": "Select Icon",
+    "search": "Search icons...",
+    "searchHint": "e.g., cat, car, happy",
+    "noResults": "No matching icons found",
+    "tryOther": "Try other keywords",
+    "currentSelection": "Current Selection",
+    "notSelected": "Not selected",
+    "autoSave": "Auto-save recent",
+    "categories": {
+      "recent": "Recent",
+      "work": "Work & Study",
+      "family": "Family & Love",
+      "health": "Health & Sport",
+      "weather": "Weather & Nature",
+      "food": "Food & Drink",
+      "entertainment": "Entertainment",
+      "animals": "Animals",
+      "transport": "Transport",
+      "emotion": "Emotions",
+      "objects": "Objects & Gestures"
     }
   }
 }

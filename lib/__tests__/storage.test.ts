@@ -41,7 +41,8 @@ describe('Storage Utilities', () => {
       ]
       localStorage.setItem('mood_journal_entries', JSON.stringify(mockEntries))
       const entries = getEntries()
-      expect(entries).toEqual(mockEntries)
+      // decryptEntry adds journalEncrypted: false field
+      expect(entries).toEqual(mockEntries.map(e => ({ ...e, journalEncrypted: false })))
     })
   })
 

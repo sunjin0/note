@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Mood, MOOD_CONFIG, FACTOR_OPTIONS } from '@/lib/types';
+import { Mood, MOOD_CONFIG, FACTOR_OPTIONS, FactorOption } from '@/lib/types';
+import { getCustomFactors } from '@/lib/storage';
 import { useTranslation } from '@/lib/i18n';
 import { 
   X, Camera, Bold, Italic, Underline, ChevronLeft, ChevronRight, Eye,
@@ -43,10 +44,17 @@ export default function MoodEditor({
   const startYRef = React.useRef(0);
   const startHeightRef = React.useRef(0);
   const lastValidContentRef = React.useRef('');
+  
+  // Get all factors (preset + custom)
+  const [allFactors, setAllFactors] = React.useState<FactorOption[]>(FACTOR_OPTIONS);
 
-  // Reset state when editor opens with a different date
+  // Reset state and reload custom factors when editor opens
   React.useEffect(() => {
     if (isOpen) {
+      // Reload custom factors to ensure real-time sync with settings
+      const customFactors = getCustomFactors();
+      setAllFactors([...FACTOR_OPTIONS, ...customFactors]);
+      
       setMood(initialMood);
       setJournal(initialJournal ?? '');
       setFactors(initialFactors ?? []);
@@ -258,7 +266,7 @@ export default function MoodEditor({
           <div>
             <label className="text-sm font-medium text-foreground mb-3 block">{t('editor.factors')}</label>
             <div className="flex flex-wrap gap-2">
-              {FACTOR_OPTIONS.map(factor => (
+              {allFactors.map(factor => (
                 <button
                   key={factor.id}
                   onClick={() => toggleFactor(factor.id)}
@@ -270,7 +278,7 @@ export default function MoodEditor({
                   )}
                 >
                   <span>{factor.emoji}</span>
-                  {t(`factors.${factor.id}`)}
+                  {factor.isCustom ? factor.label : t(`factors.${factor.id}`)}
                 </button>
               ))}
             </div>

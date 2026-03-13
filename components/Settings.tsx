@@ -6,11 +6,14 @@ import { Button } from '@/components/ui/button';
 import { 
   getSettings, saveSettings, exportData, clearAllData, getEntries, AppSettings,
   getSecuritySettings, setPassword, disablePassword, verifyPassword, resetPassword, verifySecurityAnswers,
-  reEncryptAllEntries,
+  reEncryptAllEntries, getCustomFactors, saveCustomFactors, deleteCustomFactor,
   DEFAULT_SECURITY_QUESTIONS, MIN_SECURITY_QUESTIONS, MAX_SECURITY_QUESTIONS, SecuritySettings
 } from '@/lib/storage';
+import { FactorOption } from '@/lib/types';
 import { useTranslation, Locale } from '@/lib/i18n';
-import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2 } from 'lucide-react';
+import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2, GripVertical, Tag, X, Edit2 } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
+import EmojiPicker from './EmojiPicker';
 
 interface SettingsProps {
   onDataChange: () => void;
@@ -27,6 +30,7 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
   const [mounted, setMounted] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [showExportDone, setShowExportDone] = useState(false);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
   
   const [securityStep, setSecurityStep] = useState<SecurityStep>('main');
   const [newPassword, setNewPassword] = useState('');
@@ -44,10 +48,23 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
   const [reEncryptProgress, setReEncryptProgress] = useState({ current: 0, total: 0 });
   const [reEncryptStatus, setReEncryptStatus] = useState<'idle' | 'encrypting' | 'decrypting' | 'success'>('idle');
 
+  // Custom Factors State
+  const [customFactors, setCustomFactors] = useState<FactorOption[]>([]);
+  const [isAddingFactor, setIsAddingFactor] = useState(false);
+  const [editingFactor, setEditingFactor] = useState<FactorOption | null>(null);
+  const [newFactorName, setNewFactorName] = useState('');
+  const [newFactorEmoji, setNewFactorEmoji] = useState('🏷️');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [factorError, setFactorError] = useState('');
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [factorDeleteDialogOpen, setFactorDeleteDialogOpen] = useState(false);
+  const [factorToDelete, setFactorToDelete] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
     setSettings(getSettings());
     setSecuritySettings(getSecuritySettings());
+    setCustomFactors(getCustomFactors());
   }, []);
 
   const resetSecurityForm = () => {
@@ -224,8 +241,114 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
 
   const handleClear = () => {
     clearAllData();
-    setConfirmClear(false);
+    setClearDialogOpen(false);
     onDataChange();
+  };
+
+  // Custom Factors Handlers
+  const resetFactorForm = () => {
+    setNewFactorName('');
+    setNewFactorEmoji('🏷️');
+    setFactorError('');
+    setIsAddingFactor(false);
+    setEditingFactor(null);
+    setShowEmojiPicker(false);
+  };
+
+  const validateFactorName = (name: string, excludeId?: string): boolean => {
+    if (!name.trim()) {
+      setFactorError(t('settings.customFactors.nameRequired'));
+      return false;
+    }
+    const trimmedName = name.trim();
+    // Check for duplicates in custom factors
+    const duplicateInCustom = customFactors.some(f => 
+      f.label.toLowerCase() === trimmedName.toLowerCase() && f.id !== excludeId
+    );
+    if (duplicateInCustom) {
+      setFactorError(t('settings.customFactors.duplicateName'));
+      return false;
+    }
+    setFactorError('');
+    return true;
+  };
+
+  const handleSaveFactor = () => {
+    const isEditing = editingFactor !== null;
+    const excludeId = isEditing ? editingFactor.id : undefined;
+    
+    if (!validateFactorName(newFactorName, excludeId)) return;
+
+    const factorData: FactorOption = {
+      id: isEditing ? editingFactor.id : `custom_${Date.now()}`,
+      label: newFactorName.trim(),
+      emoji: newFactorEmoji,
+      isCustom: true,
+    };
+
+    let updatedFactors: FactorOption[];
+    if (isEditing) {
+      updatedFactors = customFactors.map(f => f.id === editingFactor.id ? factorData : f);
+    } else {
+      updatedFactors = [...customFactors, factorData];
+    }
+
+    saveCustomFactors(updatedFactors);
+    setCustomFactors(updatedFactors);
+    resetFactorForm();
+    onDataChange();
+  };
+
+  const handleDeleteFactor = (id: string) => {
+    setFactorToDelete(id);
+    setFactorDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteFactor = () => {
+    if (factorToDelete) {
+      deleteCustomFactor(factorToDelete);
+      setCustomFactors(getCustomFactors());
+      onDataChange();
+    }
+    setFactorDeleteDialogOpen(false);
+    setFactorToDelete(null);
+  };
+
+  const cancelDeleteFactor = () => {
+    setFactorDeleteDialogOpen(false);
+    setFactorToDelete(null);
+  };
+
+  const handleEditFactor = (factor: FactorOption) => {
+    setEditingFactor(factor);
+    setNewFactorName(factor.label);
+    setNewFactorEmoji(factor.emoji);
+    setIsAddingFactor(true);
+  };
+
+  // Drag and Drop Handlers
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newFactors = [...customFactors];
+    const draggedItem = newFactors[draggedIndex];
+    newFactors.splice(draggedIndex, 1);
+    newFactors.splice(index, 0, draggedItem);
+    
+    setDraggedIndex(index);
+    setCustomFactors(newFactors);
+  };
+
+  const handleDragEnd = () => {
+    if (draggedIndex !== null) {
+      saveCustomFactors(customFactors);
+    }
+    setDraggedIndex(null);
   };
 
   return (
@@ -716,6 +839,138 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
         </CardContent>
       </Card>
 
+      {/* Custom Factors */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Tag className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm">{t('settings.customFactors.title')}</CardTitle>
+          </div>
+          <CardDescription>{t('settings.customFactors.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Add/Edit Factor Form */}
+            {isAddingFactor ? (
+              <div className="space-y-3 p-3 rounded-lg bg-secondary/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {editingFactor ? t('settings.customFactors.editFactor') : t('settings.customFactors.addFactor')}
+                  </span>
+                  <button
+                    onClick={resetFactorForm}
+                    className="p-1 rounded hover:bg-accent text-muted-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                
+                {/* Factor Name Input */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">{t('settings.customFactors.factorName')}</label>
+                  <input
+                    type="text"
+                    value={newFactorName}
+                    onChange={(e) => setNewFactorName(e.target.value)}
+                    placeholder={t('settings.customFactors.factorNamePlaceholder')}
+                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+                    maxLength={20}
+                  />
+                </div>
+
+                {/* Emoji Selector */}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">{t('settings.customFactors.selectIcon')}</label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowEmojiPicker(true)}
+                      className="w-10 h-10 rounded-lg border border-input bg-background flex items-center justify-center text-xl hover:bg-accent transition-colors"
+                    >
+                      {newFactorEmoji}
+                    </button>
+                    <span className="text-sm text-muted-foreground">{newFactorEmoji}</span>
+                  </div>
+                </div>
+
+                {/* Emoji Picker Modal */}
+                <EmojiPicker
+                  isOpen={showEmojiPicker}
+                  onClose={() => setShowEmojiPicker(false)}
+                  onSelect={setNewFactorEmoji}
+                  selectedEmoji={newFactorEmoji}
+                />
+
+                {factorError && <p className="text-sm text-destructive">{factorError}</p>}
+
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={resetFactorForm} className="flex-1">
+                    {t('settings.customFactors.cancel')}
+                  </Button>
+                  <Button size="sm" onClick={handleSaveFactor} className="flex-1">
+                    {t('settings.customFactors.save')}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAddingFactor(true)}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {t('settings.customFactors.addFactor')}
+              </Button>
+            )}
+
+            {/* Custom Factors List */}
+            {customFactors.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">{t('settings.customFactors.dragToReorder')}</p>
+                <div className="space-y-1">
+                  {customFactors.map((factor, index) => (
+                    <div
+                      key={factor.id}
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`flex items-center gap-2 p-2 rounded-lg bg-secondary/30 cursor-move hover:bg-secondary/50 transition-colors ${
+                        draggedIndex === index ? 'opacity-50' : ''
+                      }`}
+                    >
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-lg">{factor.emoji}</span>
+                      <span className="flex-1 text-sm">{factor.label}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleEditFactor(factor)}
+                          className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                          title={t('settings.customFactors.editFactor')}
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFactor(factor.id)}
+                          className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          title={t('settings.customFactors.delete')}
+                        >
+                          <TrashIcon className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {t('settings.customFactors.empty')}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Export */}
       <Card>
         <CardHeader className="pb-3">
@@ -743,26 +998,40 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
           <CardDescription>{t('settings.clear.description')}</CardDescription>
         </CardHeader>
         <CardContent>
-          {confirmClear ? (
-            <div className="space-y-2">
-              <p className="text-sm text-destructive font-medium">{t('settings.clear.confirm')}</p>
-              <div className="flex gap-2">
-                <Button variant="destructive" onClick={handleClear} className="flex-1">
-                  {t('settings.clear.confirmButton')}
-                </Button>
-                <Button variant="outline" onClick={() => setConfirmClear(false)} className="flex-1">
-                  {t('settings.clear.cancelButton')}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <Button variant="outline" onClick={() => setConfirmClear(true)} className="w-full text-destructive hover:text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
-              {t('settings.clear.button')}
-            </Button>
-          )}
+          <Button 
+            variant="outline" 
+            onClick={() => setClearDialogOpen(true)} 
+            className="w-full text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {t('settings.clear.button')}
+          </Button>
         </CardContent>
       </Card>
+
+      {/* Clear Data Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={clearDialogOpen}
+        title={t('settings.clear.title')}
+        message={t('settings.clear.confirm')}
+        confirmText={t('settings.clear.confirmButton')}
+        cancelText={t('settings.clear.cancelButton')}
+        confirmVariant="destructive"
+        onConfirm={handleClear}
+        onCancel={() => setClearDialogOpen(false)}
+      />
+
+      {/* Delete Custom Factor Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={factorDeleteDialogOpen}
+        title={t('settings.customFactors.delete')}
+        message={t('settings.customFactors.deleteConfirm')}
+        confirmText={t('settings.customFactors.delete')}
+        cancelText={t('settings.customFactors.cancel')}
+        confirmVariant="destructive"
+        onConfirm={confirmDeleteFactor}
+        onCancel={cancelDeleteFactor}
+      />
 
       {/* About */}
       <Card>

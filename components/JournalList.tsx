@@ -1,17 +1,18 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mood, MoodEntry, MOOD_CONFIG, FACTOR_OPTIONS } from '@/lib/types';
-import { deleteEntry } from '@/lib/storage';
+import { Mood, MoodEntry, MOOD_CONFIG, FACTOR_OPTIONS, FactorOption } from '@/lib/types';
+import { deleteEntry, getCustomFactors } from '@/lib/storage';
 import { useTranslation } from '@/lib/i18n';
 import { 
   Search, Plus, Trash2, Edit3, X, Image as ImageIcon, 
   Calendar, Filter, ChevronDown, ChevronRight, CalendarDays,
   ChevronLeft, ChevronLast, ChevronFirst
 } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
 
 interface JournalListProps {
   entries: MoodEntry[];
@@ -64,8 +65,19 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  
+  // Get all factors (preset + custom)
+  const [allFactors, setAllFactors] = useState<FactorOption[]>(FACTOR_OPTIONS);
+
+  // Reload custom factors when entries change (for real-time sync with settings)
+  useEffect(() => {
+    const customFactors = getCustomFactors();
+    setAllFactors([...FACTOR_OPTIONS, ...customFactors]);
+  }, [entries]);
   
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -88,7 +100,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
         const q = filters.search.toLowerCase();
         const plainText = entry.journal.replace(/<[^>]*>/g, '').toLowerCase();
         const moodLabel = MOOD_CONFIG[entry.mood].label;
-        const factorLabels = entry.factors.map(f => FACTOR_OPTIONS.find(o => o.id === f)?.label || '').join(' ');
+        const factorLabels = entry.factors.map(f => allFactors.find(o => o.id === f)?.label || '').join(' ');
         if (!plainText.includes(q) && !moodLabel.includes(q) && !factorLabels.includes(q) && !entry.date.includes(q)) {
           return false;
         }
@@ -183,9 +195,20 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
 
   const handleDelete = (id: string) => {
     deleteEntry(id);
-    setConfirmDelete(null);
+    setDeleteDialogOpen(false);
+    setEntryToDelete(null);
     setExpandedId(null);
     onDataChange();
+  };
+
+  const openDeleteDialog = (id: string) => {
+    setEntryToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setEntryToDelete(null);
   };
 
   const formatDate = (dateStr: string, showFullDate?: string | boolean) => {
@@ -244,7 +267,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
     const config = MOOD_CONFIG[entry.mood];
     const plainText = entry.journal.replace(/<[^>]*>/g, '');
     const isExpanded = expandedId === entry.id;
-    const entryFactors = entry.factors.map(f => FACTOR_OPTIONS.find(o => o.id === f)).filter(Boolean);
+    const entryFactors = entry.factors.map(f => allFactors.find(o => o.id === f)).filter(Boolean);
 
     return (
       <Card
@@ -280,7 +303,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
                 <div className="flex flex-wrap gap-1 mt-2">
                   {entryFactors.map(f => (
                     <span key={f!.id} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-secondary-foreground">
-                      {f!.emoji} {t(`factors.${f!.id}`)}
+                      {f!.emoji} {f!.isCustom ? f!.label : t(`factors.${f!.id}`)}
                     </span>
                   ))}
                 </div>
@@ -306,26 +329,15 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
                     <Edit3 className="h-3.5 w-3.5 mr-1.5" />
                     {t('journal.edit')}
                   </Button>
-                  {confirmDelete === entry.id ? (
-                    <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
-                      <Button variant="destructive" size="sm" onClick={() => handleDelete(entry.id)}>
-                        {t('journal.confirmDelete')}
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => setConfirmDelete(null)}>
-                        {t('journal.cancel')}
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(entry.id); }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                      {t('journal.delete')}
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={(e) => { e.stopPropagation(); openDeleteDialog(entry.id); }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                    {t('journal.delete')}
+                  </Button>
                 </div>
               )}
             </div>
@@ -459,7 +471,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
               <div className="space-y-2">
                 <label className="text-sm font-medium">{t('journal.filterByFactor')}</label>
                 <div className="flex flex-wrap gap-2">
-                  {FACTOR_OPTIONS.map(factor => (
+                  {allFactors.map(factor => (
                     <button
                       key={factor.id}
                       onClick={() => {
@@ -476,7 +488,7 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
                       )}
                     >
                       <span>{factor.emoji}</span>
-                      <span>{t(`factors.${factor.id}`)}</span>
+                      <span>{factor.isCustom ? factor.label : t(`factors.${factor.id}`)}</span>
                     </button>
                   ))}
                 </div>
@@ -717,6 +729,18 @@ export default function JournalList({ entries, onNewEntry, onEditEntry, onDataCh
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteDialogOpen}
+        title={t('journal.confirmDelete')}
+        message={t('journal.deleteConfirmMessage') || '确定要删除这条日记吗？此操作无法撤销。'}
+        confirmText={t('journal.delete')}
+        cancelText={t('journal.cancel')}
+        confirmVariant="destructive"
+        onConfirm={() => entryToDelete && handleDelete(entryToDelete)}
+        onCancel={closeDeleteDialog}
+      />
     </div>
   );
 }

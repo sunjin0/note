@@ -52,6 +52,7 @@
     "edit": "编辑",
     "delete": "删除",
     "confirmDelete": "确认删除",
+    "deleteConfirmMessage": "确定要删除这条日记吗？此操作无法撤销。",
     "cancel": "取消",
     "filters": "筛选",
     "clearFilters": "清除筛选",
@@ -143,6 +144,25 @@
       "confirmButton": "确认删除",
       "cancelButton": "取消"
     },
+    "customFactors": {
+      "title": "自定义影响因数",
+      "description": "添加、编辑和管理自定义的影响因数标签",
+      "addFactor": "添加因数",
+      "editFactor": "编辑因数",
+      "factorName": "因数名称",
+      "factorNamePlaceholder": "输入因数名称，如：宠物、音乐",
+      "selectIcon": "选择图标",
+      "save": "保存",
+      "cancel": "取消",
+      "delete": "删除",
+      "deleteConfirm": "确定要删除这个因数吗？",
+      "empty": "暂无自定义因数",
+      "dragToReorder": "拖拽调整顺序",
+      "presetFactors": "预设因数",
+      "customFactors": "自定义因数",
+      "nameRequired": "请输入因数名称",
+      "duplicateName": "该因数名称已存在"
+    },
     "about": {
       "title": "关于",
       "appName": "心情日记 v1.0",
@@ -194,6 +214,29 @@
       "back": "返回",
       "lockoutMessage": "密码错误次数过多，请 {minutes} 分钟后再试",
       "sessionExpired": "会话已过期，请重新登录"
+    }
+  },
+  "emojiPicker": {
+    "title": "选择图标",
+    "search": "搜索图标...",
+    "searchHint": "如: 猫, 汽车, 开心",
+    "noResults": "未找到匹配的图标",
+    "tryOther": "尝试其他关键词",
+    "currentSelection": "当前选择",
+    "notSelected": "未选择",
+    "autoSave": "自动保存最近使用",
+    "categories": {
+      "recent": "最近使用",
+      "work": "工作学习",
+      "family": "家庭关系",
+      "health": "健康运动",
+      "weather": "天气自然",
+      "food": "饮食",
+      "entertainment": "娱乐爱好",
+      "animals": "动物",
+      "transport": "交通出行",
+      "emotion": "情感心情",
+      "objects": "物品手势"
     }
   }
 }

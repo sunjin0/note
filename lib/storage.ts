@@ -1,9 +1,10 @@
-import { MoodEntry, MoodStats } from './types';
+import { MoodEntry, MoodStats, FactorOption } from './types';
 
 const STORAGE_KEY = 'mood_journal_entries';
 const SETTINGS_KEY = 'mood_journal_settings';
 const SECURITY_KEY = 'mood_journal_security';
 const SESSION_KEY = 'mood_journal_session';
+const CUSTOM_FACTORS_KEY = 'mood_journal_custom_factors';
 
 export interface AppSettings {
   encrypted: boolean;
@@ -51,26 +52,53 @@ function getEncryptionKey(): string {
   return security.passwordHash || 'default-key';
 }
 
+// Convert string to Uint8Array using TextEncoder
+function stringToBytes(str: string): Uint8Array {
+  return new TextEncoder().encode(str);
+}
+
+// Convert Uint8Array to string using TextDecoder
+function bytesToString(bytes: Uint8Array): string {
+  return new TextDecoder().decode(bytes);
+}
+
+// Convert Uint8Array to Base64 string
+function bytesToBase64(bytes: Uint8Array): string {
+  const binString = Array.from(bytes, (byte) => String.fromCharCode(byte)).join('');
+  return btoa(binString);
+}
+
+// Convert Base64 string to Uint8Array
+function base64ToBytes(base64: string): Uint8Array {
+  const binString = atob(base64);
+  return Uint8Array.from(binString, (char) => char.charCodeAt(0));
+}
+
+// XOR encrypt/decrypt bytes with key
+function xorBytes(data: Uint8Array, key: string): Uint8Array {
+  const keyBytes = stringToBytes(key);
+  const result = new Uint8Array(data.length);
+  for (let i = 0; i < data.length; i++) {
+    result[i] = data[i] ^ keyBytes[i % keyBytes.length];
+  }
+  return result;
+}
+
 function encryptData(data: string): string {
   const key = getEncryptionKey();
-  let result = '';
-  for (let i = 0; i < data.length; i++) {
-    result += String.fromCharCode(data.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  }
-  // Use encodeURIComponent + btoa for Unicode support
-  return btoa(encodeURIComponent(result));
+  // Convert string to bytes (UTF-8), XOR encrypt, then encode to Base64
+  const dataBytes = stringToBytes(data);
+  const encryptedBytes = xorBytes(dataBytes, key);
+  return bytesToBase64(encryptedBytes);
 }
 
 function decryptData(encryptedData: string): string {
   try {
     const key = getEncryptionKey();
-    // Use decodeURIComponent + atob for Unicode support
-    const data = decodeURIComponent(atob(encryptedData));
-    let result = '';
-    for (let i = 0; i < data.length; i++) {
-      result += String.fromCharCode(data.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-    }
-    return result;
+    // Decode Base64, XOR decrypt, then convert bytes to string (UTF-8)
+    const encryptedBytes = base64ToBytes(encryptedData);
+    const decryptedBytes = xorBytes(encryptedBytes, key);
+    return bytesToString(decryptedBytes);
   } catch {
     return encryptedData;
   }
@@ -427,4 +455,61 @@ export function getLockoutStatus(): { isLocked: boolean; remainingMinutes: numbe
   }
   
   return { isLocked: true, remainingMinutes: remaining };
+}
+
+// Custom Factors Management
+export function getCustomFactors(): FactorOption[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const data = localStorage.getItem(CUSTOM_FACTORS_KEY);
+    if (!data) return [];
+    return JSON.parse(data) as FactorOption[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomFactors(factors: FactorOption[]): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(CUSTOM_FACTORS_KEY, JSON.stringify(factors));
+}
+
+export function addCustomFactor(factor: Omit<FactorOption, 'isCustom'>): FactorOption {
+  const customFactors = getCustomFactors();
+  const newFactor: FactorOption = {
+    ...factor,
+    isCustom: true,
+  };
+  customFactors.push(newFactor);
+  saveCustomFactors(customFactors);
+  return newFactor;
+}
+
+export function updateCustomFactor(id: string, updates: Partial<FactorOption>): FactorOption | null {
+  const customFactors = getCustomFactors();
+  const index = customFactors.findIndex(f => f.id === id);
+  if (index < 0) return null;
+  
+  customFactors[index] = { ...customFactors[index], ...updates };
+  saveCustomFactors(customFactors);
+  return customFactors[index];
+}
+
+export function deleteCustomFactor(id: string): boolean {
+  const customFactors = getCustomFactors();
+  const filtered = customFactors.filter(f => f.id !== id);
+  if (filtered.length === customFactors.length) return false;
+  saveCustomFactors(filtered);
+  return true;
+}
+
+export function reorderCustomFactors(factors: FactorOption[]): void {
+  saveCustomFactors(factors);
+}
+
+// Get all factors (preset + custom)
+export function getAllFactors(): FactorOption[] {
+  const { FACTOR_OPTIONS } = require('./types');
+  const customFactors = getCustomFactors();
+  return [...FACTOR_OPTIONS, ...customFactors];
 }

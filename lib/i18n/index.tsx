@@ -104,7 +104,11 @@ export function useMoodLabel(mood: string): string {
   return t(`mood.${mood}`);
 }
 
-export function useFactorLabel(factorId: string): string {
+export function useFactorLabel(factorId: string, customLabel?: string): string {
   const { t } = useTranslation();
+  // If customLabel is provided (for custom factors), use it directly
+  if (customLabel) {
+    return customLabel;
+  }
   return t(`factors.${factorId}`);
 }
