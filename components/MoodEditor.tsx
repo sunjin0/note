@@ -78,18 +78,92 @@ export default function MoodEditor({
     setFactors(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    Array.from(files).forEach(file => {
+  // 图片压缩函数
+  const compressImage = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        if (ev.target?.result) {
-          setPhotos(prev => [...prev, ev.target!.result as string]);
-        }
+      
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
       };
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+
+        // 计算压缩后尺寸 (最大 1920px)
+        const maxSize = 1920;
+        let { width, height } = img;
+        
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          } else {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        // 使用更好的图像质量
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // 转换为 JPEG，质量 0.8
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(compressedDataUrl);
+      };
+      
+      img.onerror = () => reject(new Error('Failed to load image'));
       reader.readAsDataURL(file);
     });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    // 显示压缩中提示
+    const compressingFiles = Array.from(files);
+    
+    for (const file of compressingFiles) {
+      try {
+        // 如果文件小于 500KB 且是 JPEG/PNG，直接使用原图
+        if (file.size < 500 * 1024 && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            if (ev.target?.result) {
+              setPhotos(prev => [...prev, ev.target!.result as string]);
+            }
+          };
+          reader.readAsDataURL(file);
+        } else {
+          // 压缩图片
+          const compressed = await compressImage(file);
+          setPhotos(prev => [...prev, compressed]);
+        }
+      } catch (error) {
+        console.error('Image compression failed:', error);
+        // 压缩失败时使用原图
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          if (ev.target?.result) {
+            setPhotos(prev => [...prev, ev.target!.result as string]);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
     e.target.value = '';
   };
 
@@ -355,11 +429,11 @@ export default function MoodEditor({
                   className={cn(
                     'flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all duration-200',
                     mood === key
-                      ? `${config.bgClass} ${config.ringClass} border-transparent`
-                      : 'border-transparent hover:bg-accent'
+                      ? `${config.bgClass} ${config.ringClass} border-transparent scale-105 shadow-md`
+                      : 'border-transparent hover:bg-accent hover:scale-102'
                   )}
                 >
-                  <span className="text-2xl">{config.emoji}</span>
+                  <span className={cn('text-2xl transition-transform duration-200', mood === key && 'scale-110')}>{config.emoji}</span>
                   <span className={cn('text-xs font-medium', mood === key ? config.color : 'text-muted-foreground')}>
                     {t(`mood.${key}`)}
                   </span>
@@ -379,11 +453,11 @@ export default function MoodEditor({
                   className={cn(
                     'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200',
                     factors.includes(factor.id)
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-secondary text-secondary-foreground border-transparent hover:border-border'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-105'
+                      : 'bg-secondary text-secondary-foreground border-transparent hover:border-border hover:bg-accent'
                   )}
                 >
-                  <span>{factor.emoji}</span>
+                  <span className={cn('transition-transform duration-200', factors.includes(factor.id) && 'scale-110')}>{factor.emoji}</span>
                   {factor.isCustom ? factor.label : t(`factors.${factor.id}`)}
                 </button>
               ))}
@@ -394,8 +468,17 @@ export default function MoodEditor({
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="text-sm font-medium text-foreground">{t('editor.writeSomething')}</label>
-              <span className={`text-xs ${charCount > MAX_CHARS ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <span className={cn(
+                'text-xs transition-colors',
+                charCount > MAX_CHARS * 0.95 ? 'text-destructive font-medium' :
+                charCount > MAX_CHARS * 0.8 ? 'text-orange-500' :
+                charCount > MAX_CHARS * 0.5 ? 'text-yellow-600 dark:text-yellow-400' :
+                'text-muted-foreground'
+              )}>
                 {charCount}/{MAX_CHARS}
+                {charCount > MAX_CHARS * 0.9 && (
+                  <span className="ml-1 text-[10px]">({Math.round((MAX_CHARS - charCount) / MAX_CHARS * 100)}%)</span>
+                )}
               </span>
             </div>
             <div 
