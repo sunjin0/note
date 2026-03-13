@@ -37,25 +37,32 @@
   }
 
   .dark {
-    --background: 263 30% 8%;
-    --foreground: 263 10% 92%;
-    --card: 263 25% 12%;
-    --card-foreground: 263 10% 92%;
-    --popover: 263 25% 12%;
-    --popover-foreground: 263 10% 92%;
+    --background: 240 10% 8%;
+    --foreground: 240 10% 95%;
+    --card: 240 10% 12%;
+    --card-foreground: 240 10% 95%;
+    --popover: 240 10% 12%;
+    --popover-foreground: 240 10% 95%;
     --primary: 263 70% 65%;
-    --primary-foreground: 263 30% 8%;
-    --secondary: 263 25% 18%;
-    --secondary-foreground: 263 15% 80%;
-    --muted: 263 20% 16%;
-    --muted-foreground: 263 10% 55%;
-    --accent: 280 30% 20%;
-    --accent-foreground: 263 15% 80%;
-    --destructive: 0 62% 40%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 263 20% 18%;
-    --input: 263 20% 18%;
+    --primary-foreground: 240 10% 8%;
+    --secondary: 240 10% 18%;
+    --secondary-foreground: 240 10% 85%;
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 10% 60%;
+    --accent: 280 30% 25%;
+    --accent-foreground: 240 10% 90%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 10% 20%;
+    --input: 240 10% 20%;
     --ring: 263 70% 65%;
+
+    /* Mood palette - Dark mode (brighter for visibility on dark backgrounds) */
+    --mood-great: 38 95% 60%;
+    --mood-good: 152 70% 50%;
+    --mood-okay: 199 90% 58%;
+    --mood-sad: 234 70% 65%;
+    --mood-angry: 350 85% 68%;
   }
 }
 
@@ -81,16 +88,42 @@
   .gradient-sidebar {
     background: linear-gradient(180deg, hsl(263 40% 97%), hsl(280 30% 96%));
   }
-  .mood-bg-great { background-color: hsl(38 92% 50% / 0.15); }
-  .mood-bg-good { background-color: hsl(152 69% 40% / 0.15); }
-  .mood-bg-okay { background-color: hsl(199 89% 48% / 0.15); }
-  .mood-bg-sad { background-color: hsl(234 65% 55% / 0.15); }
-  .mood-bg-angry { background-color: hsl(350 80% 58% / 0.15); }
-  .mood-ring-great { box-shadow: 0 0 0 2px hsl(38 92% 50% / 0.3); }
-  .mood-ring-good { box-shadow: 0 0 0 2px hsl(152 69% 40% / 0.3); }
-  .mood-ring-okay { box-shadow: 0 0 0 2px hsl(199 89% 48% / 0.3); }
-  .mood-ring-sad { box-shadow: 0 0 0 2px hsl(234 65% 55% / 0.3); }
-  .mood-ring-angry { box-shadow: 0 0 0 2px hsl(350 80% 58% / 0.3); }
+
+  /* Dark mode gradients */
+  .dark .gradient-warm {
+    background: linear-gradient(135deg, hsl(240 10% 12%), hsl(263 30% 15%));
+  }
+  .dark .gradient-hero {
+    background: linear-gradient(135deg, hsl(263 70% 50% / 0.15), hsl(280 65% 60% / 0.10), hsl(38 92% 50% / 0.05));
+  }
+  .dark .gradient-sidebar {
+    background: linear-gradient(180deg, hsl(240 10% 15%), hsl(280 30% 12%));
+  }
+  /* Light mode - 25% opacity for good visibility on light backgrounds */
+  .mood-bg-great { background-color: hsl(var(--mood-great) / 0.25); }
+  .mood-bg-good { background-color: hsl(var(--mood-good) / 0.25); }
+  .mood-bg-okay { background-color: hsl(var(--mood-okay) / 0.25); }
+  .mood-bg-sad { background-color: hsl(var(--mood-sad) / 0.25); }
+  .mood-bg-angry { background-color: hsl(var(--mood-angry) / 0.25); }
+
+  /* Dark mode - 35% opacity for visibility on dark backgrounds */
+  .dark .mood-bg-great { background-color: hsl(var(--mood-great) / 0.35); }
+  .dark .mood-bg-good { background-color: hsl(var(--mood-good) / 0.35); }
+  .dark .mood-bg-okay { background-color: hsl(var(--mood-okay) / 0.35); }
+  .dark .mood-bg-sad { background-color: hsl(var(--mood-sad) / 0.35); }
+  .dark .mood-bg-angry { background-color: hsl(var(--mood-angry) / 0.35); }
+  .mood-ring-great { box-shadow: 0 0 0 2px hsl(var(--mood-great) / 0.3); }
+  .mood-ring-good { box-shadow: 0 0 0 2px hsl(var(--mood-good) / 0.3); }
+  .mood-ring-okay { box-shadow: 0 0 0 2px hsl(var(--mood-okay) / 0.3); }
+  .mood-ring-sad { box-shadow: 0 0 0 2px hsl(var(--mood-sad) / 0.3); }
+  .mood-ring-angry { box-shadow: 0 0 0 2px hsl(var(--mood-angry) / 0.3); }
+
+  /* Dark mode - stronger ring for visibility */
+  .dark .mood-ring-great { box-shadow: 0 0 0 2px hsl(var(--mood-great) / 0.5); }
+  .dark .mood-ring-good { box-shadow: 0 0 0 2px hsl(var(--mood-good) / 0.5); }
+  .dark .mood-ring-okay { box-shadow: 0 0 0 2px hsl(var(--mood-okay) / 0.5); }
+  .dark .mood-ring-sad { box-shadow: 0 0 0 2px hsl(var(--mood-sad) / 0.5); }
+  .dark .mood-ring-angry { box-shadow: 0 0 0 2px hsl(var(--mood-angry) / 0.5); }
 
   .scrollbar-thin {
     scrollbar-width: thin;
@@ -105,5 +138,13 @@
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: hsl(263 20% 85%);
     border-radius: 3px;
+  }
+
+  /* Dark mode scrollbar */
+  .dark .scrollbar-thin {
+    scrollbar-color: hsl(240 10% 30%) transparent;
+  }
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(240 10% 30%);
   }
 }

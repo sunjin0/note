@@ -423,17 +423,17 @@ export default function MoodEditor({
             <label className="text-sm font-medium text-foreground mb-3 block">{t('editor.howAreYou')}</label>
             <div className="flex gap-2">
               {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
-                <button
-                  key={key}
-                  onClick={() => setMood(key)}
-                  className={cn(
-                    'flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all duration-200',
-                    mood === key
-                      ? `${config.bgClass} ${config.ringClass} border-transparent scale-105 shadow-md`
-                      : 'border-transparent hover:bg-accent hover:scale-102'
-                  )}
-                >
-                  <span className={cn('text-2xl transition-transform duration-200', mood === key && 'scale-110')}>{config.emoji}</span>
+                  <button
+                      key={key}
+                      onClick={() => setMood(key)}
+                      className={cn(
+                          'flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all duration-200',
+                          mood === key
+                              ? `${config.bgClass} ${config.ringClass} border-transparent`
+                              : 'border-transparent hover:bg-accent'
+                      )}
+                  >
+                    <span className="text-2xl">{config.emoji}</span>
                   <span className={cn('text-xs font-medium', mood === key ? config.color : 'text-muted-foreground')}>
                     {t(`mood.${key}`)}
                   </span>

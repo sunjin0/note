@@ -218,7 +218,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number, name: string) => [`${value} ${t('journal.entries')}`, name]}
+                      formatter={(value, name) => [`${value} ${t('journal.entries')}`, name]}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',

@@ -8,6 +8,18 @@ const config: Config = {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
   ],
+  safelist: [
+    'mood-bg-great',
+    'mood-bg-good',
+    'mood-bg-okay',
+    'mood-bg-sad',
+    'mood-bg-angry',
+    'mood-ring-great',
+    'mood-ring-good',
+    'mood-ring-okay',
+    'mood-ring-sad',
+    'mood-ring-angry',
+  ],
   prefix: "",
   theme: {
     container: {
