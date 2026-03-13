@@ -122,6 +122,13 @@
   "settings": {
     "title": "设置",
     "subtitle": "管理你的数据和隐私",
+    "sections": {
+      "security": "安全与隐私",
+      "appearance": "外观与体验",
+      "data": "数据管理",
+      "customization": "自定义配置",
+      "about": "关于应用"
+    },
     "theme": {
       "title": "主题",
       "description": "选择应用外观主题"

@@ -11,7 +11,7 @@ import {
 } from '@/lib/storage';
 import { FactorOption } from '@/lib/types';
 import { useTranslation, Locale } from '@/lib/i18n';
-import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2, GripVertical, Tag, X, Edit2, Sun, Moon, Monitor } from 'lucide-react';
+import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2, GripVertical, Tag, X, Edit2, Sun, Moon, Monitor, ChevronDown } from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
 import EmojiPicker from './EmojiPicker';
 import { useTheme } from './Providers';
@@ -61,6 +61,25 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [factorDeleteDialogOpen, setFactorDeleteDialogOpen] = useState(false);
   const [factorToDelete, setFactorToDelete] = useState<string | null>(null);
+
+  // Collapsible sections state
+  const [collapsedSections, setCollapsedSections] = useState<{
+    security: boolean;
+    appearance: boolean;
+    data: boolean;
+    customization: boolean;
+    about: boolean;
+  }>({
+    security: false,
+    appearance: false,
+    data: false,
+    customization: false,
+    about: false,
+  });
+
+  const toggleSection = (section: keyof typeof collapsedSections) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -353,15 +372,26 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
     setDraggedIndex(null);
   };
 
-  return (
-    <div className="space-y-4 max-w-2xl animate-fade-in">
-      <div>
-        <h2 className="text-xl font-bold text-foreground">{t('settings.title')}</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">{t('settings.subtitle')}</p>
-      </div>
-
-      {/* Security */}
-      <Card>
+  // ==================== 渲染辅助函数 ====================
+  
+  // 安全与隐私区
+  const renderSecuritySection = () => (
+    <div className="space-y-3">
+      <button
+        onClick={() => toggleSection('security')}
+        className="flex items-center justify-between w-full px-1 py-2 rounded-lg hover:bg-accent/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Shield className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">{t('settings.sections.security')}</h3>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${collapsedSections.security ? '-rotate-90' : ''}`} />
+      </button>
+      
+      {!collapsedSections.security && (
+        <>
+          {/* 密码保护 */}
+          <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-primary" />
@@ -743,66 +773,7 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
         </CardContent>
       </Card>
 
-      {/* Theme */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            {theme === 'dark' ? <Moon className="h-4 w-4 text-primary" /> : <Sun className="h-4 w-4 text-primary" />}
-            <CardTitle className="text-sm">{t('settings.theme.title')}</CardTitle>
-          </div>
-          <CardDescription>{t('settings.theme.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            {(['light', 'dark', 'system'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTheme(t)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                  theme === t
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground hover:bg-accent'
-                }`}
-              >
-                {t === 'light' && <Sun className="h-4 w-4" />}
-                {t === 'dark' && <Moon className="h-4 w-4" />}
-                {t === 'system' && <Monitor className="h-4 w-4" />}
-                {t === 'light' ? '亮色' : t === 'dark' ? '暗色' : '跟随系统'}
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Language */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Languages className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm">{t('settings.language.title')}</CardTitle>
-          </div>
-          <CardDescription>{t('settings.language.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            {(['zh-CN', 'en-US'] as Locale[]).map((lang) => (
-              <button
-                key={lang}
-                onClick={() => setLocale(lang)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                  locale === lang
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground hover:bg-accent'
-                }`}
-              >
-                {t(`settings.language.${lang.replace('-', '')}`)}
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Privacy */}
+      {/* 数据加密 */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
@@ -871,176 +842,145 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
           </div>
         </CardContent>
       </Card>
+        </>
+      )}
+    </div>
+  );
 
-      {/* Custom Factors */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Tag className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm">{t('settings.customFactors.title')}</CardTitle>
-          </div>
-          <CardDescription>{t('settings.customFactors.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Add/Edit Factor Form */}
-            {isAddingFactor ? (
-              <div className="space-y-3 p-3 rounded-lg bg-secondary/50">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    {editingFactor ? t('settings.customFactors.editFactor') : t('settings.customFactors.addFactor')}
-                  </span>
-                  <button
-                    onClick={resetFactorForm}
-                    className="p-1 rounded hover:bg-accent text-muted-foreground"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                
-                {/* Factor Name Input */}
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground">{t('settings.customFactors.factorName')}</label>
-                  <input
-                    type="text"
-                    value={newFactorName}
-                    onChange={(e) => setNewFactorName(e.target.value)}
-                    placeholder={t('settings.customFactors.factorNamePlaceholder')}
-                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
-                    maxLength={20}
-                  />
-                </div>
+  // 外观与体验区
+  const renderAppearanceSection = () => (
+    <div className="space-y-3">
+      <button
+        onClick={() => toggleSection('appearance')}
+        className="flex items-center justify-between w-full px-1 py-2 rounded-lg hover:bg-accent/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Sun className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">{t('settings.sections.appearance')}</h3>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${collapsedSections.appearance ? '-rotate-90' : ''}`} />
+      </button>
+      
+      {!collapsedSections.appearance && (
+        <div className="space-y-3">
+          {/* 主题 */}
+          <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              {theme === 'dark' ? <Moon className="h-4 w-4 text-primary" /> : <Sun className="h-4 w-4 text-primary" />}
+              <CardTitle className="text-sm">{t('settings.theme.title')}</CardTitle>
+            </div>
+            <CardDescription>{t('settings.theme.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              {(['light', 'dark', 'system'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                    theme === t
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                  }`}
+                >
+                  {t === 'light' && <Sun className="h-4 w-4" />}
+                  {t === 'dark' && <Moon className="h-4 w-4" />}
+                  {t === 'system' && <Monitor className="h-4 w-4" />}
+                  {t === 'light' ? '亮色' : t === 'dark' ? '暗色' : '跟随系统'}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-                {/* Emoji Selector */}
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground">{t('settings.customFactors.selectIcon')}</label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setShowEmojiPicker(true)}
-                      className="w-10 h-10 rounded-lg border border-input bg-background flex items-center justify-center text-xl hover:bg-accent transition-colors"
-                    >
-                      {newFactorEmoji}
-                    </button>
-                    <span className="text-sm text-muted-foreground">{newFactorEmoji}</span>
-                  </div>
-                </div>
+        {/* 语言 */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Languages className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm">{t('settings.language.title')}</CardTitle>
+            </div>
+            <CardDescription>{t('settings.language.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              {(['zh-CN', 'en-US'] as Locale[]).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLocale(lang)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    locale === lang
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                  }`}
+                >
+                  {t(`settings.language.${lang.replace('-', '')}`)}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      )}
+    </div>
+  );
 
-                {/* Emoji Picker Modal */}
-                <EmojiPicker
-                  isOpen={showEmojiPicker}
-                  onClose={() => setShowEmojiPicker(false)}
-                  onSelect={setNewFactorEmoji}
-                  selectedEmoji={newFactorEmoji}
-                />
+  // 数据管理区
+  const renderDataSection = () => (
+    <div className="space-y-3">
+      <button
+        onClick={() => toggleSection('data')}
+        className="flex items-center justify-between w-full px-1 py-2 rounded-lg hover:bg-accent/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Download className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">{t('settings.sections.data')}</h3>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${collapsedSections.data ? '-rotate-90' : ''}`} />
+      </button>
+      
+      {!collapsedSections.data && (
+        <>
+          <div className="space-y-3">
+            {/* 导出 */}
+            <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Download className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm">{t('settings.export.title')}</CardTitle>
+            </div>
+            <CardDescription>{t('settings.export.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" onClick={handleExport} className="w-full">
+              <Download className="h-4 w-4 mr-2" />
+              {showExportDone ? t('settings.export.success') : t('settings.export.button')}
+            </Button>
+          </CardContent>
+        </Card>
 
-                {factorError && <p className="text-sm text-destructive">{factorError}</p>}
-
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={resetFactorForm} className="flex-1">
-                    {t('settings.customFactors.cancel')}
-                  </Button>
-                  <Button size="sm" onClick={handleSaveFactor} className="flex-1">
-                    {t('settings.customFactors.save')}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAddingFactor(true)}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {t('settings.customFactors.addFactor')}
-              </Button>
-            )}
-
-            {/* Custom Factors List */}
-            {customFactors.length > 0 ? (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">{t('settings.customFactors.dragToReorder')}</p>
-                <div className="space-y-1">
-                  {customFactors.map((factor, index) => (
-                    <div
-                      key={factor.id}
-                      draggable
-                      onDragStart={() => handleDragStart(index)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDragEnd={handleDragEnd}
-                      className={`flex items-center gap-2 p-2 rounded-lg bg-secondary/30 cursor-move hover:bg-secondary/50 transition-colors ${
-                        draggedIndex === index ? 'opacity-50' : ''
-                      }`}
-                    >
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-lg">{factor.emoji}</span>
-                      <span className="flex-1 text-sm">{factor.label}</span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleEditFactor(factor)}
-                          className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                          title={t('settings.customFactors.editFactor')}
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteFactor(factor.id)}
-                          className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                          title={t('settings.customFactors.delete')}
-                        >
-                          <TrashIcon className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                {t('settings.customFactors.empty')}
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Export */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Download className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm">{t('settings.export.title')}</CardTitle>
-          </div>
-          <CardDescription>{t('settings.export.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" onClick={handleExport} className="w-full">
-            <Download className="h-4 w-4 mr-2" />
-            {showExportDone ? t('settings.export.success') : t('settings.export.button')}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Clear */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Trash2 className="h-4 w-4 text-destructive" />
-            <CardTitle className="text-sm">{t('settings.clear.title')}</CardTitle>
-          </div>
-          <CardDescription>{t('settings.clear.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button 
-            variant="outline" 
-            onClick={() => setClearDialogOpen(true)} 
-            className="w-full text-destructive hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            {t('settings.clear.button')}
-          </Button>
-        </CardContent>
-      </Card>
+        {/* 清除 */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Trash2 className="h-4 w-4 text-destructive" />
+              <CardTitle className="text-sm">{t('settings.clear.title')}</CardTitle>
+            </div>
+            <CardDescription>{t('settings.clear.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline" 
+              onClick={() => setClearDialogOpen(true)} 
+              className="w-full text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {t('settings.clear.button')}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Clear Data Confirmation Dialog */}
       <ConfirmDialog
@@ -1053,21 +993,190 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
         onConfirm={handleClear}
         onCancel={() => setClearDialogOpen(false)}
       />
+        </>
+      )}
+    </div>
+  );
 
-      {/* Delete Custom Factor Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={factorDeleteDialogOpen}
-        title={t('settings.customFactors.delete')}
-        message={t('settings.customFactors.deleteConfirm')}
-        confirmText={t('settings.customFactors.delete')}
-        cancelText={t('settings.customFactors.cancel')}
-        confirmVariant="destructive"
-        onConfirm={confirmDeleteFactor}
-        onCancel={cancelDeleteFactor}
-      />
+  // 自定义配置区
+  const renderCustomizationSection = () => (
+    <div className="space-y-3">
+      <button
+        onClick={() => toggleSection('customization')}
+        className="flex items-center justify-between w-full px-1 py-2 rounded-lg hover:bg-accent/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Tag className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">{t('settings.sections.customization')}</h3>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${collapsedSections.customization ? '-rotate-90' : ''}`} />
+      </button>
+      
+      {!collapsedSections.customization && (
+        <>
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-primary" />
+                <CardTitle className="text-sm">{t('settings.customFactors.title')}</CardTitle>
+              </div>
+              <CardDescription>{t('settings.customFactors.description')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Add/Edit Factor Form */}
+                {isAddingFactor ? (
+                  <div className="space-y-3 p-3 rounded-lg bg-secondary/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        {editingFactor ? t('settings.customFactors.editFactor') : t('settings.customFactors.addFactor')}
+                      </span>
+                      <button
+                        onClick={resetFactorForm}
+                        className="p-1 rounded hover:bg-accent text-muted-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    
+                    {/* Factor Name Input */}
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">{t('settings.customFactors.factorName')}</label>
+                      <input
+                        type="text"
+                        value={newFactorName}
+                        onChange={(e) => setNewFactorName(e.target.value)}
+                        placeholder={t('settings.customFactors.factorNamePlaceholder')}
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+                        maxLength={20}
+                      />
+                    </div>
 
-      {/* About */}
-      <Card>
+                    {/* Emoji Selector */}
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">{t('settings.customFactors.selectIcon')}</label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setShowEmojiPicker(true)}
+                          className="w-10 h-10 rounded-lg border border-input bg-background flex items-center justify-center text-xl hover:bg-accent transition-colors"
+                        >
+                          {newFactorEmoji}
+                        </button>
+                        <span className="text-sm text-muted-foreground">{newFactorEmoji}</span>
+                      </div>
+                    </div>
+
+                    {/* Emoji Picker Modal */}
+                    <EmojiPicker
+                      isOpen={showEmojiPicker}
+                      onClose={() => setShowEmojiPicker(false)}
+                      onSelect={setNewFactorEmoji}
+                      selectedEmoji={newFactorEmoji}
+                    />
+
+                    {factorError && <p className="text-sm text-destructive">{factorError}</p>}
+
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={resetFactorForm} className="flex-1">
+                        {t('settings.customFactors.cancel')}
+                      </Button>
+                      <Button size="sm" onClick={handleSaveFactor} className="flex-1">
+                        {t('settings.customFactors.save')}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAddingFactor(true)}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('settings.customFactors.addFactor')}
+                  </Button>
+                )}
+
+                {/* Custom Factors List */}
+                {customFactors.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">{t('settings.customFactors.dragToReorder')}</p>
+                    <div className="space-y-1">
+                      {customFactors.map((factor, index) => (
+                        <div
+                          key={factor.id}
+                          draggable
+                          onDragStart={() => handleDragStart(index)}
+                          onDragOver={(e) => handleDragOver(e, index)}
+                          onDragEnd={handleDragEnd}
+                          className={`flex items-center gap-2 p-2 rounded-lg bg-secondary/30 cursor-move hover:bg-secondary/50 transition-colors ${
+                            draggedIndex === index ? 'opacity-50' : ''
+                          }`}
+                        >
+                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-lg">{factor.emoji}</span>
+                          <span className="flex-1 text-sm">{factor.label}</span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleEditFactor(factor)}
+                              className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                              title={t('settings.customFactors.editFactor')}
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteFactor(factor.id)}
+                              className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                              title={t('settings.customFactors.delete')}
+                            >
+                              <TrashIcon className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t('settings.customFactors.empty')}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Delete Custom Factor Confirmation Dialog */}
+          <ConfirmDialog
+            isOpen={factorDeleteDialogOpen}
+            title={t('settings.customFactors.delete')}
+            message={t('settings.customFactors.deleteConfirm')}
+            confirmText={t('settings.customFactors.delete')}
+            cancelText={t('settings.customFactors.cancel')}
+            confirmVariant="destructive"
+            onConfirm={confirmDeleteFactor}
+            onCancel={cancelDeleteFactor}
+          />
+        </>
+      )}
+    </div>
+  );
+
+  // 关于应用区
+  const renderAboutSection = () => (
+    <div className="space-y-3">
+      <button
+        onClick={() => toggleSection('about')}
+        className="flex items-center justify-between w-full px-1 py-2 rounded-lg hover:bg-accent/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Info className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">{t('settings.sections.about')}</h3>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${collapsedSections.about ? '-rotate-90' : ''}`} />
+      </button>
+      
+      {!collapsedSections.about && (
+        <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Info className="h-4 w-4 text-primary" />
@@ -1082,6 +1191,34 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
           </div>
         </CardContent>
       </Card>
+      )}
+    </div>
+  );
+
+  // ==================== 主渲染 ====================
+  
+  return (
+    <div className="space-y-6 max-w-3xl animate-fade-in">
+      {/* 页面标题 */}
+      <div className="pb-2 border-b border-border">
+        <h2 className="text-xl font-bold text-foreground">{t('settings.title')}</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">{t('settings.subtitle')}</p>
+      </div>
+
+      {/* 安全与隐私区 */}
+      {renderSecuritySection()}
+
+      {/* 外观与体验区 */}
+      {renderAppearanceSection()}
+
+      {/* 数据管理区 */}
+      {renderDataSection()}
+
+      {/* 自定义配置区 */}
+      {renderCustomizationSection()}
+
+      {/* 关于应用区 */}
+      {renderAboutSection()}
     </div>
   );
 }

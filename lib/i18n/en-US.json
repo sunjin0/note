@@ -122,6 +122,13 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your data and privacy",
+    "sections": {
+      "security": "Security & Privacy",
+      "appearance": "Appearance & Experience",
+      "data": "Data Management",
+      "customization": "Customization",
+      "about": "About App"
+    },
     "theme": {
       "title": "Theme",
       "description": "Choose app appearance theme"
