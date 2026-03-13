@@ -9,6 +9,7 @@ import CalendarView from '@/components/CalendarView';
 import JournalList from '@/components/JournalList';
 import SettingsView from '@/components/Settings';
 import MoodEditor from '@/components/MoodEditor';
+import SmartReminder from '@/components/SmartReminder';
 
 export default function Home() {
   const [currentView, setCurrentView] = React.useState<ViewType>('dashboard');
@@ -48,6 +49,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Smart Reminder */}
+      <SmartReminder 
+        entries={entries} 
+        onRemind={() => openEditor()} 
+      />
+      
       <Sidebar currentView={currentView} onViewChange={setCurrentView} />
 
       {/* Main content */}

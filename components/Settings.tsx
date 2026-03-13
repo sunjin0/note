@@ -11,9 +11,10 @@ import {
 } from '@/lib/storage';
 import { FactorOption } from '@/lib/types';
 import { useTranslation, Locale } from '@/lib/i18n';
-import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2, GripVertical, Tag, X, Edit2 } from 'lucide-react';
+import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2, GripVertical, Tag, X, Edit2, Sun, Moon, Monitor } from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
 import EmojiPicker from './EmojiPicker';
+import { useTheme } from './Providers';
 
 interface SettingsProps {
   onDataChange: () => void;
@@ -25,6 +26,7 @@ type SecurityStep = 'main' | 'setPassword' | 'changePasswordWithQuestions' | 've
 
 export default function SettingsView({ onDataChange }: SettingsProps) {
   const { t, locale, setLocale } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [securitySettings, setSecuritySettings] = useState<SecuritySettings | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -738,6 +740,37 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Theme */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            {theme === 'dark' ? <Moon className="h-4 w-4 text-primary" /> : <Sun className="h-4 w-4 text-primary" />}
+            <CardTitle className="text-sm">{t('settings.theme.title')}</CardTitle>
+          </div>
+          <CardDescription>{t('settings.theme.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            {(['light', 'dark', 'system'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTheme(t)}
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                  theme === t
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                }`}
+              >
+                {t === 'light' && <Sun className="h-4 w-4" />}
+                {t === 'dark' && <Moon className="h-4 w-4" />}
+                {t === 'system' && <Monitor className="h-4 w-4" />}
+                {t === 'light' ? '亮色' : t === 'dark' ? '暗色' : '跟随系统'}
+              </button>
+            ))}
+          </div>
         </CardContent>
       </Card>
 

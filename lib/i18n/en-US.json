@@ -24,11 +24,17 @@
     "recentEntries": "Recent Entries",
     "viewAll": "View All",
     "noRecords": "No records yet. Start your first entry!",
-    "last7Days": "Last 7 Days Mood Trend"
+    "last7Days": "Last 7 Days Mood Trend",
+    "moodDistribution": "Mood Distribution",
+    "noDataYet": "No data yet"
   },
   "calendar": {
     "title": "{month}/{year}",
     "recordsThisMonth": "{count} days recorded this month",
+    "recordsThisYear": "{count} days recorded this year",
+    "monthView": "Month",
+    "yearView": "Year",
+    "yearSuffix": "",
     "today": "Today",
     "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "weekDaysShort": ["S", "M", "T", "W", "T", "F", "S"],
@@ -116,6 +122,10 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your data and privacy",
+    "theme": {
+      "title": "Theme",
+      "description": "Choose app appearance theme"
+    },
     "language": {
       "title": "Language",
       "description": "Choose app display language",
@@ -221,6 +231,13 @@
       "sessionExpired": "Session expired, please login again"
     }
   },
+  "reminder": {
+    "title": "Record Today's Mood",
+    "message": "You haven't recorded your mood today. Take a minute to record it!",
+    "recordNow": "Record Now",
+    "later": "Later",
+    "streakInfo": "{count} day streak"
+  },
   "emojiPicker": {
     "title": "Select Icon",
     "search": "Search icons...",
@@ -230,6 +247,10 @@
     "currentSelection": "Current Selection",
     "notSelected": "Not selected",
     "autoSave": "Auto-save recent",
+    "foundResults": "Found {count} results",
+    "navigate": "Navigate",
+    "select": "Select",
+    "close": "Close",
     "categories": {
       "recent": "Recent",
       "work": "Work & Study",

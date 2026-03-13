@@ -24,11 +24,17 @@
     "recentEntries": "最近记录",
     "viewAll": "查看全部",
     "noRecords": "还没有记录，开始你的第一条吧",
-    "last7Days": "最近7天心情趋势"
+    "last7Days": "最近7天心情趋势",
+    "moodDistribution": "心情分布",
+    "noDataYet": "暂无数据"
   },
   "calendar": {
     "title": "{year}年{month}月",
     "recordsThisMonth": "本月记录了 {count} 天",
+    "recordsThisYear": "今年记录了 {count} 天",
+    "monthView": "月视图",
+    "yearView": "年视图",
+    "yearSuffix": "年",
     "today": "今天",
     "weekDays": ["日", "一", "二", "三", "四", "五", "六"],
     "weekDaysShort": ["日", "一", "二", "三", "四", "五", "六"],
@@ -116,6 +122,10 @@
   "settings": {
     "title": "设置",
     "subtitle": "管理你的数据和隐私",
+    "theme": {
+      "title": "主题",
+      "description": "选择应用外观主题"
+    },
     "language": {
       "title": "语言",
       "description": "选择应用显示语言",
@@ -221,6 +231,13 @@
       "sessionExpired": "会话已过期，请重新登录"
     }
   },
+  "reminder": {
+    "title": "记录今天的心情",
+    "message": "今天还没有记录心情哦，花一分钟记录一下吧！",
+    "recordNow": "立即记录",
+    "later": "稍后再说",
+    "streakInfo": "已连续记录 {count} 天"
+  },
   "emojiPicker": {
     "title": "选择图标",
     "search": "搜索图标...",
@@ -230,6 +247,10 @@
     "currentSelection": "当前选择",
     "notSelected": "未选择",
     "autoSave": "自动保存最近使用",
+    "foundResults": "找到 {count} 个结果",
+    "navigate": "导航",
+    "select": "选择",
+    "close": "关闭",
     "categories": {
       "recent": "最近使用",
       "work": "工作学习",

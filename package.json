@@ -18,6 +18,7 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "recharts": "^3.8.0",
     "tailwind-merge": "latest",
     "tailwindcss-animate": "latest"
   },
