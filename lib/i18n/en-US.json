@@ -96,7 +96,9 @@
     "draftJustNow": "just now",
     "draftMinutesAgo": "{minutes}m ago",
     "draftHoursAgo": "{hours}h ago",
-    "draftDaysAgo": "{days}d ago"
+    "draftDaysAgo": "{days}d ago",
+    "template": "Template",
+    "useTemplate": "Use a journal template to start writing quickly"
   },
   "mood": {
     "great": "Great",
@@ -285,6 +287,121 @@
       "transport": "Transport",
       "emotion": "Emotions",
       "objects": "Objects & Gestures"
+    }
+  },
+  "templates": {
+    "title": "Choose Journal Template",
+    "subtitle": "Select a template to start writing quickly",
+    "categories": {
+      "work": "Work",
+      "study": "Study",
+      "travel": "Travel",
+      "health": "Health",
+      "life": "Life",
+      "custom": "Custom",
+      "favorites": "My Favorites",
+      "recent": "Recent"
+    },
+    "clickToApply": "Click a template to apply",
+    "close": "Close",
+    "noRecent": "No recently used templates",
+    "noFavorites": "No favorite templates yet, click the star to add",
+    "noCustom": "No custom templates yet",
+    "createCustom": "Create Custom Template",
+    "editCustom": "Edit Custom Template",
+    "customSubtitle": "Create your own journal template",
+    "templateTitle": "Template Title",
+    "titlePlaceholder": "Enter template title, e.g., Morning Journal",
+    "selectCategory": "Select Category",
+    "templateContent": "Template Content",
+    "contentPlaceholder": "Enter template content, you can use variables like {{date}}, {{weekday}}, etc.",
+    "supportsVariables": "Supports variable replacement",
+    "availableVariables": "Available Variables",
+    "save": "Save Template",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this custom template? This action cannot be undone.",
+    "deleteSuccess": "Deleted successfully",
+    "addFavorite": "Add to Favorites",
+    "removeFavorite": "Remove from Favorites",
+    "work": {
+      "daily": {
+        "title": "Work Daily",
+        "content": "<h3>📋 Today's Work</h3><ul><li></li></ul><h3>🎯 Key Achievements</h3><ul><li></li></ul><h3>⚠️ Challenges Faced</h3><p></p><h3>💡 Insights & Reflections</h3><p></p><h3>📅 Tomorrow's Plan</h3><ul><li></li></ul>"
+      },
+      "challenge": {
+        "title": "Project Challenge",
+        "content": "<h3>🎯 Project/Task Name</h3><p></p><h3>🚧 Difficulties Encountered</h3><p></p><h3>🔍 Problem Analysis</h3><p></p><h3>💡 Solution</h3><p></p><h3>✅ Execution Results</h3><p></p><h3>📚 Lessons Learned</h3><p></p>"
+      },
+      "summary": {
+        "title": "Weekly Summary",
+        "content": "<h3>📊 This Week's Accomplishments</h3><ul><li></li></ul><h3>⭐ Highlights & Achievements</h3><p></p><h3>❌ Areas for Improvement</h3><p></p><h3>📈 Next Week's Goals</h3><ul><li></li></ul><h3>💭 Overall Feelings</h3><p></p>"
+      }
+    },
+    "study": {
+      "daily": {
+        "title": "Study Record",
+        "content": "<h3>📚 Today's Study Content</h3><p></p><h3>🎯 Learning Goals</h3><p></p><h3>✅ Knowledge Points Mastered</h3><ul><li></li></ul><h3>❓ Questions Encountered</h3><p></p><h3>📝 Study Notes</h3><p></p><h3>🎓 Learning Insights</h3><p></p>"
+      },
+      "review": {
+        "title": "Review Summary",
+        "content": "<h3>📖 Review Topic</h3><p></p><h3>🔍 Key Review Points</h3><ul><li></li></ul><h3>✅ Mastered Content</h3><p></p><h3>⚠️ Areas Needing Improvement</h3><p></p><h3>📅 Next Review Plan</h3><p></p>"
+      },
+      "exam": {
+        "title": "Exam Review",
+        "content": "<h3>📝 Exam Subject</h3><p></p><h3>📊 Exam Performance</h3><p></p><h3>✅ Strong Points</h3><p></p><h3>❌ Mistakes & Weaknesses</h3><p></p><h3>📚 Improvement Plan</h3><ul><li></li></ul><h3>💭 Thoughts & Reflections</h3><p></p>"
+      }
+    },
+    "travel": {
+      "daily": {
+        "title": "Travel Journal",
+        "content": "<h3>📍 Destination</h3><p></p><h3>🚗 Transportation</h3><p></p><h3>🏨 Accommodation</h3><p></p><h3>🍜 Food Experiences</h3><p></p><h3>📸 Today's Experiences</h3><p></p><h3>💭 Feelings & Thoughts</h3><p></p>"
+      },
+      "sightseeing": {
+        "title": "Sightseeing",
+        "content": "<h3>🏛️ Attraction Name</h3><p></p><h3>⭐ Rating</h3><p>⭐⭐⭐⭐⭐</p><h3>📸 Sightseeing Experience</h3><p></p><h3>💡 Practical Information</h3><ul><li>Ticket:</li><li>Opening Hours:</li><li>Recommended Duration:</li></ul><h3>💭 Personal Impressions</h3><p></p>"
+      },
+      "food": {
+        "title": "Food Exploration",
+        "content": "<h3>🍽️ Restaurant/Shop Name</h3><p></p><h3>📍 Address</h3><p></p><h3>🍜 Dishes Tried</h3><ul><li></li></ul><h3>⭐ Taste Rating</h3><p>⭐⭐⭐⭐⭐</p><h3>💰 Average Cost</h3><p></p><h3>💭 Dining Experience</h3><p></p>"
+      }
+    },
+    "health": {
+      "daily": {
+        "title": "Health Daily",
+        "content": "<h3>😊 Physical Condition</h3><p></p><h3>💪 Exercise Record</h3><p></p><h3>🍎 Diet</h3><ul><li>Breakfast:</li><li>Lunch:</li><li>Dinner:</li><li>Snacks:</li></ul><h3>😴 Sleep Quality</h3><p></p><h3>💊 Medication/Supplements</h3><p></p><h3>💭 Health Insights</h3><p></p>"
+      },
+      "exercise": {
+        "title": "Exercise Record",
+        "content": "<h3>🏃 Exercise Type</h3><p></p><h3>⏱️ Duration</h3><p></p><h3>📊 Intensity</h3><p>Low/Medium/High</p><h3>🔥 Calories Burned</h3><p></p><h3>💪 Training Content</h3><p></p><h3>😅 Physical Feelings</h3><p></p><h3>🎯 Next Goal</h3><p></p>"
+      },
+      "diet": {
+        "title": "Diet Record",
+        "content": "<h3>🍳 Breakfast</h3><p></p><h3>🍱 Lunch</h3><p></p><h3>🍲 Dinner</h3><p></p><h3>🥤 Water Intake</h3><p></p><h3>🍬 Snacks</h3><p></p><h3>📊 Nutrition Assessment</h3><p></p><h3>💭 Diet Reflection</h3><p></p>"
+      },
+      "sleep": {
+        "title": "Sleep Record",
+        "content": "<h3>🌙 Bedtime</h3><p></p><h3>☀️ Wake-up Time</h3><p></p><h3>⏰ Sleep Duration</h3><p></p><h3>😴 Difficulty Falling Asleep</h3><p>Easy/Moderate/Difficult</p><h3>💤 Sleep Quality</h3><p>Good/Fair/Poor</p><h3>🌟 Wake-up Feeling</h3><p></p><h3>💭 Improvement Plan</h3><p></p>"
+      }
+    },
+    "life": {
+      "gratitude": {
+        "title": "Gratitude Journal",
+        "content": "<h3>📅 {{date}} {{weekday}}</h3><h3>🙏 3 Things I'm Grateful For Today</h3><p>1. </p><p>2. </p><p>3. </p><h3>😊 People/Things That Made Me Happy</h3><p></p><h3>💪 What I Did Well</h3><p></p><h3>🌟 Looking Forward to Tomorrow</h3><p></p>"
+      },
+      "reflection": {
+        "title": "Daily Reflection",
+        "content": "<h3>📅 {{date}} {{weekday}}</h3><h3>🎯 Today's Goal Progress</h3><p></p><h3>⭐ What I Did Well</h3><p></p><h3>📈 Areas for Improvement</h3><p></p><h3>💡 New Insights</h3><p></p><h3>🎯 Tomorrow's Focus</h3><p></p>"
+      },
+      "weekend": {
+        "title": "Weekend Record",
+        "content": "<h3>🎉 Weekend Activities</h3><p></p><h3>🏠 Time at Home</h3><p></p><h3>👥 Social Gatherings</h3><p></p><h3>🎨 Hobbies & Interests</h3><p></p><h3>📺 Entertainment</h3><p></p><h3>💭 Weekend Reflections</h3><p></p><h3>📅 Looking Ahead to Next Week</h3><p></p>"
+      },
+      "social": {
+        "title": "Social Record",
+        "content": "<h3>👥 People I Met Today</h3><p></p><h3>💬 Interesting Conversations</h3><p></p><h3>🎉 Events Attended</h3><p></p><h3>🤝 New Connections</h3><p></p><h3>💭 Social Feelings</h3><p></p><h3>🌟 Memorable Moments</h3><p></p>"
+      }
     }
   }
 }

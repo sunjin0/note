@@ -10,8 +10,9 @@ import {
   X, Camera, Bold, Italic, Underline, ChevronLeft, ChevronRight, Eye,
   AlignLeft, AlignCenter, AlignRight,
   Minus, Undo, Redo, Type,
-  Eraser, GripHorizontal
+  Eraser, GripHorizontal, FileText
 } from 'lucide-react';
+import TemplatePicker from './TemplatePicker';
 import { Button } from '@/components/ui/button';
 
 interface MoodEditorProps {
@@ -37,6 +38,7 @@ export default function MoodEditor({
   const [charCount, setCharCount] = React.useState(0);
   const [editorHeight, setEditorHeight] = React.useState(120);
   const [draftSavedAt, setDraftSavedAt] = React.useState<string | null>(null);
+  const [isTemplatePickerOpen, setIsTemplatePickerOpen] = React.useState(false);
   const MIN_HEIGHT = 80;
   const MAX_HEIGHT = 500;
   const MAX_CHARS = 5000;
@@ -395,6 +397,16 @@ export default function MoodEditor({
     onClose();
   };
 
+  // Apply template content to editor
+  const handleApplyTemplate = (content: string) => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = content;
+      lastValidContentRef.current = content;
+      setJournal(content);
+      updateCharCount();
+    }
+  };
+
   const formatDate = (d: string) => {
     const dt = new Date(d + 'T00:00:00');
     return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}`;
@@ -467,7 +479,18 @@ export default function MoodEditor({
           {/* Rich Text Editor */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium text-foreground">{t('editor.writeSomething')}</label>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-foreground">{t('editor.writeSomething')}</label>
+                {/* Template Button */}
+                <button
+                  onClick={() => setIsTemplatePickerOpen(true)}
+                  className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
+                  title={t('editor.useTemplate')}
+                >
+                  <FileText className="h-3 w-3" />
+                  {t('editor.template')}
+                </button>
+              </div>
               <span className={cn(
                 'text-xs transition-colors',
                 charCount > MAX_CHARS * 0.95 ? 'text-destructive font-medium' :
@@ -619,6 +642,14 @@ export default function MoodEditor({
           </div>
         </div>
       </div>
+
+      {/* Template Picker */}
+      <TemplatePicker
+        isOpen={isTemplatePickerOpen}
+        onClose={() => setIsTemplatePickerOpen(false)}
+        date={date}
+        onSelectTemplate={handleApplyTemplate}
+      />
 
       {/* Image Preview Modal */}
       {previewIndex !== null && (

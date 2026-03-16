@@ -28,3 +28,22 @@ export interface FactorOption {
   emoji: string;
   isCustom?: boolean;
 }
+
+// Journal Template Types
+export type TemplateCategory = 'work' | 'study' | 'travel' | 'health' | 'life' | 'custom' | 'favorites' | 'recent';
+
+export interface JournalTemplate {
+  id: string;
+  category: Exclude<TemplateCategory, 'favorites' | 'recent'>;
+  titleKey: string; // i18n key for title
+  contentKey: string; // i18n key for content
+  title?: string; // Actual title (resolved from i18n)
+  content?: string; // Actual content (resolved from i18n)
+  isCustom?: boolean;
+  createdAt?: string;
+}
+
+export interface CustomTemplate extends JournalTemplate {
+  isCustom: true;
+  createdAt: string;
+}
