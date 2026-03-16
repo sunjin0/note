@@ -299,20 +299,30 @@ function YearView({
                   const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                   const entry = entryMap[dateStr];
                   const isToday = dateStr === todayStr;
+                  const isFuture = new Date(dateStr + 'T00:00:00') > today;
                   
                   return (
-                    <div
+                    <button
                       key={dateStr}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isFuture) {
+                          onSelectDate(dateStr);
+                        }
+                      }}
+                      disabled={isFuture}
                       className={cn(
-                        'aspect-square flex items-center justify-center rounded text-[10px]',
+                        'aspect-square flex items-center justify-center rounded text-[10px] transition-colors',
                         entry && CALENDAR_COLORS.moodCellBg[entry.mood],
                         isToday && 'ring-1 ring-primary font-bold',
-                        !entry && 'text-muted-foreground'
+                        !entry && 'text-muted-foreground',
+                        !isFuture && 'hover:bg-accent cursor-pointer',
+                        isFuture && 'opacity-30 cursor-not-allowed'
                       )}
                       title={entry ? `${month + 1}/${day} ${t(`mood.${entry.mood}`)}` : `${month + 1}/${day}`}
                     >
                       {day}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
