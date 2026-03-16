@@ -829,4 +829,27 @@ npm run test:e2e -- --ui
 
 ## 📄 许可证
 
+本项目采用 [MIT License](LICENSE) 开源许可证。
+
+```
 MIT License
+
+Copyright (c) 2024 Mood Journal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
+
+### 许可证说明
+
+- **自由使用**：您可以自由使用、修改和分发本软件
+- **商业友好**：允许商业使用，无需开源衍生作品
+- **保留版权声明**：使用时需保留原始版权声明
+- **无担保**：软件按"原样"提供，不承担任何责任

@@ -768,4 +768,27 @@ npm run test:e2e -- --ui
 
 ## 📄 License
 
+This project is licensed under the [MIT License](LICENSE).
+
+```
 MIT License
+
+Copyright (c) 2024 Mood Journal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
+
+### License Summary
+
+- **Free to Use**: You are free to use, modify, and distribute this software
+- **Commercial Friendly**: Commercial use is allowed without requiring open-sourcing derivative works
+- **Attribution Required**: Original copyright notice must be preserved
+- **No Warranty**: Software is provided "as is" without any liability
