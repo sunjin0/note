@@ -1,15 +1,13 @@
 'use client';
 
 import React from 'react';
-import { ViewType, MoodEntry, Mood } from '@/lib/types';
-import { getEntries, saveEntry, getEntryByDate } from '@/lib/storage';
-import Sidebar from '@/components/Sidebar';
-import Dashboard from '@/components/Dashboard';
-import CalendarView from '@/components/CalendarView';
-import JournalList from '@/components/JournalList';
-import SettingsView from '@/components/Settings';
-import MoodEditor from '@/components/MoodEditor';
-import SmartReminder from '@/components/SmartReminder';
+import { ViewType, MoodEntry, Mood } from '@/types';
+import { getEntries, saveEntry, getEntryByDate } from '@/core/storage';
+import { Sidebar } from '@/modules/common/components';
+import { Dashboard } from '@/modules/dashboard';
+import { CalendarView } from '@/modules/calendar';
+import { JournalList, MoodEditor, SmartReminder } from '@/modules/journal';
+import { Settings as SettingsView } from '@/modules/settings';
 
 export default function Home() {
   const [currentView, setCurrentView] = React.useState<ViewType>('dashboard');
