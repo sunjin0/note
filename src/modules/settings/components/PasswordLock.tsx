@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff, HelpCircle, KeyRound } from 'lucide-react';
 import { Button } from '@/core/ui/button';
+import type { SecuritySettings } from '@/core/storage';
 import { 
   verifyPassword, 
   verifySecurityAnswers, 
   resetPassword, 
   getSecuritySettings,
   getLockoutStatus,
-  createSession,
-  SecuritySettings
+  createSession
 } from '@/core/storage';
 import { useTranslation } from '@/core/i18n';
 

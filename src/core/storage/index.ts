@@ -116,3 +116,85 @@ export {
   encryptData,
   decryptData,
 } from '@/core/storage/crypto';
+
+// 数据同步
+export {
+  // 类型
+  type SyncSettings,
+  type SyncState,
+  type SyncResult,
+  type SyncPayload,
+  type SyncResponse,
+  type ConflictStrategy,
+  // 常量
+  SYNC_SETTINGS_KEY,
+  SYNC_STATE_KEY,
+  DEFAULT_SYNC_SETTINGS,
+  DEFAULT_SYNC_STATE,
+  // 设置管理
+  getSyncSettings,
+  saveSyncSettings,
+  updateSyncSettings,
+  // 状态管理
+  getSyncState,
+  saveSyncState,
+  // 同步控制
+  enableSync,
+  disableSync,
+  isSyncEnabled,
+  setAuthToken,
+  // 网络检测
+  checkNetworkStatus,
+  canSync,
+  // 数据收集
+  collectSyncData,
+  // 冲突解决
+  resolveConflict,
+  // 同步操作
+  performSync,
+  forceSync,
+  clearSyncData,
+  // 自动同步
+  startAutoSync,
+  stopAutoSync,
+  reconfigureAutoSync,
+} from '@/core/storage/sync';
+
+// 用户认证
+export {
+  // 类型
+  type User,
+  type AuthCredentials,
+  type AuthState,
+  type LoginRequest,
+  type RegisterRequest,
+  type AuthResponse,
+  // 常量
+  AUTH_KEY,
+  AUTH_STATE_KEY,
+  DEFAULT_AUTH_STATE,
+  // 凭据管理
+  getAuthCredentials,
+  saveAuthCredentials,
+  clearAuthCredentials,
+  // 状态管理
+  getAuthState,
+  saveAuthState,
+  clearAuthState,
+  // 认证检查
+  isAuthenticated,
+  getCurrentUser,
+  getAuthToken,
+  isTokenExpiringSoon,
+  // 认证操作
+  register,
+  login,
+  logout,
+  refreshToken,
+  initAuth,
+  updateUserInfo,
+  changePassword,
+  // 验证工具
+  isValidEmail,
+  checkPasswordStrength,
+} from '@/core/storage/auth';

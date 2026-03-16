@@ -3,18 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/core/ui/card';
 import { Button } from '@/core/ui/button';
+import type { 
+  AppSettings,
+  DraftDataInfo,
+  SecuritySettings
+} from '@/core/storage';
 import { 
-  getSettings, saveSettings, exportData, clearAllData, getEntries, AppSettings,
+  getSettings, saveSettings, exportData, clearAllData, getEntries,
   getSecuritySettings, setPassword, disablePassword, verifyPassword, resetPassword, verifySecurityAnswers,
   reEncryptAllEntries, getCustomFactors, saveCustomFactors, deleteCustomFactor,
-  getDraftDataInfo, clearAllDraftData, DraftDataInfo, changePasswordWithDataPreservation,
-  DEFAULT_SECURITY_QUESTIONS, MIN_SECURITY_QUESTIONS, MAX_SECURITY_QUESTIONS, SecuritySettings
+  getDraftDataInfo, clearAllDraftData, changePasswordWithDataPreservation,
+  DEFAULT_SECURITY_QUESTIONS, MIN_SECURITY_QUESTIONS, MAX_SECURITY_QUESTIONS
 } from '@/core/storage';
 import { FactorOption } from '@/types';
 import { useTranslation, Locale } from '@/core/i18n';
-import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2, GripVertical, Tag, X, Edit2, Sun, Moon, Monitor, ChevronDown, FileX } from 'lucide-react';
+import { Shield, Download, Trash2, Info, Languages, Lock, Eye, EyeOff, KeyRound, HelpCircle, Plus, Trash2 as TrashIcon, Loader2, GripVertical, Tag, X, Edit2, Sun, Moon, Monitor, ChevronDown, FileX, Cloud } from 'lucide-react';
 import { ConfirmDialog, EmojiPicker } from '@/modules/common/components';
 import { useTheme } from '@/modules/common/components/Providers';
+import SyncSettings from './SyncSettings';
 
 interface SettingsProps {
   onDataChange: () => void;
@@ -73,12 +79,14 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
     appearance: boolean;
     data: boolean;
     customization: boolean;
+    sync: boolean;
     about: boolean;
   }>({
     security: false,
     appearance: false,
     data: false,
     customization: false,
+    sync: false,
     about: false,
   });
 
@@ -1242,6 +1250,39 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
     </div>
   );
 
+  // 数据同步区
+  const renderSyncSection = () => (
+    <div className="space-y-3">
+      <button
+        onClick={() => toggleSection('sync')}
+        className="flex items-center justify-between w-full px-1 py-2 rounded-lg hover:bg-accent/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Cloud className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">{t('settings.sections.sync')}</h3>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${collapsedSections.sync ? '-rotate-90' : ''}`} />
+      </button>
+      
+      {!collapsedSections.sync && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Cloud className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm">{t('settings.sync.title')}</CardTitle>
+            </div>
+            <CardDescription className="text-xs">
+              {t('settings.sync.description')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SyncSettings />
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+
   // 关于应用区
   const renderAboutSection = () => (
     <div className="space-y-3">
@@ -1297,6 +1338,9 @@ export default function SettingsView({ onDataChange }: SettingsProps) {
 
       {/* 自定义配置区 */}
       {renderCustomizationSection()}
+
+      {/* 数据同步区 */}
+      {renderSyncSection()}
 
       {/* 关于应用区 */}
       {renderAboutSection()}

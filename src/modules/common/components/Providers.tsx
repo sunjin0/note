@@ -3,7 +3,7 @@
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { I18nProvider } from '@/core/i18n';
 import PasswordLock from '@/modules/settings/components/PasswordLock';
-import { isPasswordEnabled, isSessionValid } from '@/core/storage';
+import { isPasswordEnabled, isSessionValid, initAuth } from '@/core/storage';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -95,13 +95,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const passwordEnabled = isPasswordEnabled();
-    const sessionValid = isSessionValid();
+    // 初始化认证状态
+    const initialize = async () => {
+      await initAuth();
+      
+      const passwordEnabled = isPasswordEnabled();
+      const sessionValid = isSessionValid();
+      
+      if (!passwordEnabled || sessionValid) {
+        setIsUnlocked(true);
+      }
+      setIsLoading(false);
+    };
     
-    if (!passwordEnabled || sessionValid) {
-      setIsUnlocked(true);
-    }
-    setIsLoading(false);
+    initialize();
   }, []);
 
   const handleUnlock = () => {
