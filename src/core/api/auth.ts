@@ -127,12 +127,12 @@ export async function apiLogout(): Promise<void> {
  */
 export async function apiGetCurrentUser(): Promise<User | null> {
   try {
-    const response = await apiClient.get<{ success: boolean; data: { user: User } }>(
+    const response = await apiClient.get<{ success: boolean; data: User  }>(
       API_ENDPOINTS.auth.me
     );
     
     if (response.success) {
-      return response.data.user;
+      return response.data;
     }
     return null;
   } catch {
