@@ -24,6 +24,8 @@
 - 📊 **数据统计** - 连续记录天数、心情分布统计、趋势分析
 - 🏷️ **影响因素标签** - 12个预设标签 + 支持自定义因素
 - 😀 **Emoji 选择器** - 11个分类、724+ emoji，支持搜索和最近使用
+- 📝 **日记模板** - 多分类预设模板 + 自定义模板，支持变量替换
+- 🔔 **智能提醒** - 根据记录习惯智能提醒写日记
 - 🔒 **密码保护** - 应用锁、安全问题找回
 - 🌍 **多语言支持** - 简体中文 / English
 - 📷 **照片上传** - 支持多图上传和预览
@@ -58,29 +60,79 @@ note/
 │   ├── layout.tsx                # 根布局（含 Providers）
 │   └── page.tsx                  # 主页面
 │
-├── components/                   # React 组件
-│   ├── ui/                       # 基础 UI 组件
-│   │   ├── button.tsx            # 按钮组件（支持变体）
-│   │   └── card.tsx              # 卡片组件
-│   ├── CalendarView.tsx          # 日历视图组件
-│   ├── ConfirmDialog.tsx         # 确认对话框组件
-│   ├── Dashboard.tsx             # 仪表盘首页
-│   ├── EmojiPicker.tsx           # Emoji 选择器
-│   ├── JournalList.tsx           # 日记列表（含筛选分页）
-│   ├── MoodEditor.tsx            # 心情编辑器（富文本）
-│   ├── PasswordLock.tsx          # 密码锁屏
-│   ├── Providers.tsx             # 全局 Provider（i18n + 密码保护）
-│   ├── Settings.tsx              # 设置页面
-│   └── Sidebar.tsx               # 侧边栏导航
-│
-├── lib/                          # 工具库
-│   ├── i18n/                     # 国际化
-│   │   ├── index.tsx             # i18n Provider + Hooks
-│   │   ├── zh-CN.json            # 中文翻译
-│   │   └── en-US.json            # 英文翻译
-│   ├── storage.ts                # 本地存储操作
-│   ├── types.ts                  # TypeScript 类型定义
-│   └── utils.ts                  # 通用工具函数（cn）
+├── src/                          # 源代码目录
+│   ├── types/                    # 全局类型定义
+│   │   └── index.ts              # Mood, MoodEntry, ViewType 等
+│   │
+│   ├── core/                     # 核心基础设施
+│   │   ├── ui/                   # 基础 UI 组件
+│   │   │   ├── button.tsx        # 按钮组件
+│   │   │   ├── card.tsx          # 卡片组件
+│   │   │   └── index.ts          # UI 组件统一导出
+│   │   │
+│   │   ├── utils/                # 通用工具函数
+│   │   │   ├── index.ts          # cn() 等工具函数
+│   │   │   └── pinyin.ts         # 拼音映射和搜索
+│   │   │
+│   │   ├── config/               # 配置文件
+│   │   │   ├── mood.ts           # 心情配置、因素选项
+│   │   │   ├── templates.ts      # 日记模板配置
+│   │   │   └── index.ts          # 配置统一导出
+│   │   │
+│   │   ├── storage/              # 存储管理
+│   │   │   ├── index.ts          # localStorage 操作
+│   │   │   ├── types.ts          # 存储相关类型
+│   │   │   └── __tests__/        # 存储模块测试
+│   │   │
+│   │   ├── i18n/                 # 国际化
+│   │   │   ├── index.ts          # i18n 统一导出
+│   │   │   ├── provider.tsx      # i18n Provider 组件
+│   │   │   ├── types.ts          # i18n 类型定义
+│   │   │   └── locales/          # 语言文件
+│   │   │       ├── zh-CN.json
+│   │   │       └── en-US.json
+│   │   │
+│   │   └── index.ts              # core 模块统一导出
+│   │
+│   └── modules/                  # 功能模块
+│       ├── common/               # 通用/共享模块
+│       │   ├── components/
+│       │   │   ├── Sidebar.tsx
+│       │   │   ├── ConfirmDialog.tsx
+│       │   │   ├── EmojiPicker.tsx
+│       │   │   ├── Providers.tsx
+│       │   │   └── index.ts
+│       │   └── hooks/
+│       │
+│       ├── journal/              # 日记编辑模块
+│       │   ├── components/
+│       │   │   ├── JournalList.tsx
+│       │   │   ├── MoodEditor.tsx
+│       │   │   ├── TemplatePicker.tsx
+│       │   │   ├── CustomTemplateEditor.tsx
+│       │   │   ├── SmartReminder.tsx
+│       │   │   └── index.ts
+│       │   ├── hooks/
+│       │   └── utils/
+│       │
+│       ├── dashboard/            # 仪表板模块
+│       │   ├── components/
+│       │   │   ├── Dashboard.tsx
+│       │   │   └── index.ts
+│       │   └── hooks/
+│       │
+│       ├── calendar/             # 日历模块
+│       │   ├── components/
+│       │   │   ├── CalendarView.tsx
+│       │   │   └── index.ts
+│       │   └── hooks/
+│       │
+│       └── settings/             # 设置模块
+│           ├── components/
+│           │   ├── Settings.tsx
+│           │   ├── PasswordLock.tsx
+│           │   └── index.ts
+│           └── hooks/
 │
 ├── test/                         # 测试配置
 │   └── setup.ts                  # Vitest 配置
@@ -98,7 +150,18 @@ note/
 
 ### 1. MoodEditor.tsx - 心情编辑器
 
+**路径**: `@/modules/journal/components/MoodEditor`
+
 功能丰富的模态弹窗，用于创建和编辑心情记录。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { MoodEditor } from '@/modules/journal';
+
+// 或直接导入
+import MoodEditor from '@/modules/journal/components/MoodEditor';
+```
 
 **功能特性：**
 - **心情选择**：5种心情等级，每种有 emoji、颜色、背景样式
@@ -137,7 +200,18 @@ interface MoodEditorProps {
 
 ### 2. EmojiPicker.tsx - Emoji 选择器
 
+**路径**: `@/modules/common/components/EmojiPicker`
+
 功能完整的 Emoji 选择组件。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { EmojiPicker } from '@/modules/common/components';
+
+// 或直接导入
+import EmojiPicker from '@/modules/common/components/EmojiPicker';
+```
 
 **功能特性：**
 - **11个分类**：最近使用、工作学习、家庭关系、健康运动、天气自然、饮食、娱乐爱好、动物、交通出行、情感心情、物品手势
@@ -169,7 +243,18 @@ export const EMOJI_TAGS: Record<string, string[]> = {
 
 ### 3. Dashboard.tsx - 仪表盘
 
+**路径**: `@/modules/dashboard/components/Dashboard`
+
 应用首页，展示关键统计数据。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { Dashboard } from '@/modules/dashboard';
+
+// 或直接导入
+import Dashboard from '@/modules/dashboard/components/Dashboard';
+```
 
 **功能特性：**
 - **Hero 横幅**：展示今日心情，快速记录入口
@@ -186,7 +271,18 @@ export const EMOJI_TAGS: Record<string, string[]> = {
 
 ### 4. CalendarView.tsx - 日历视图
 
+**路径**: `@/modules/calendar/components/CalendarView`
+
 月历形式展示心情记录。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { CalendarView } from '@/modules/calendar';
+
+// 或直接导入
+import CalendarView from '@/modules/calendar/components/CalendarView';
+```
 
 **功能特性：**
 - **月历网格**：展示整月日期，标记有记录的日期
@@ -200,7 +296,18 @@ export const EMOJI_TAGS: Record<string, string[]> = {
 
 ### 5. JournalList.tsx - 日记列表
 
+**路径**: `@/modules/journal/components/JournalList`
+
 完整的日记浏览和管理界面。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { JournalList } from '@/modules/journal';
+
+// 或直接导入
+import JournalList from '@/modules/journal/components/JournalList';
+```
 
 **功能特性：**
 - **搜索功能**：全文搜索（内容、心情、因素、日期）
@@ -221,7 +328,18 @@ export const EMOJI_TAGS: Record<string, string[]> = {
 
 ### 6. Settings.tsx - 设置页面
 
+**路径**: `@/modules/settings/components/Settings`
+
 应用配置和数据管理。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { Settings } from '@/modules/settings';
+
+// 或直接导入
+import Settings from '@/modules/settings/components/Settings';
+```
 
 **功能特性：**
 - **语言切换**：简体中文 / English，实时生效
@@ -244,7 +362,18 @@ export const EMOJI_TAGS: Record<string, string[]> = {
 
 ### 7. Sidebar.tsx - 侧边栏导航
 
+**路径**: `@/modules/common/components/Sidebar`
+
 响应式侧边栏导航组件。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { Sidebar } from '@/modules/common/components';
+
+// 或直接导入
+import Sidebar from '@/modules/common/components/Sidebar';
+```
 
 **功能特性：**
 - **导航菜单**：仪表盘、心情日历、日记本、设置
@@ -257,7 +386,18 @@ export const EMOJI_TAGS: Record<string, string[]> = {
 
 ### 8. ConfirmDialog.tsx - 确认对话框
 
+**路径**: `@/modules/common/components/ConfirmDialog`
+
 通用的二次确认对话框组件。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { ConfirmDialog } from '@/modules/common/components';
+
+// 或直接导入
+import ConfirmDialog from '@/modules/common/components/ConfirmDialog';
+```
 
 **Props 接口：**
 ```typescript
@@ -278,7 +418,18 @@ interface ConfirmDialogProps {
 
 ### 9. PasswordLock.tsx - 密码锁屏
 
+**路径**: `@/modules/settings/components/PasswordLock`
+
 应用密码保护组件。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { PasswordLock } from '@/modules/settings';
+
+// 或直接导入
+import PasswordLock from '@/modules/settings/components/PasswordLock';
+```
 
 **功能特性：**
 - 密码输入验证
@@ -290,8 +441,20 @@ interface ConfirmDialogProps {
 
 ### 10. Providers.tsx - 全局 Provider
 
+**路径**: `@/modules/common/components/Providers`
+
 组合所有全局 Provider。
 
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { Providers, useTheme } from '@/modules/common/components';
+
+// 或直接导入
+import { Providers, useTheme } from '@/modules/common/components/Providers';
+```
+
+**使用示例:**
 ```typescript
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -300,6 +463,105 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {isUnlocked && children}
     </I18nProvider>
   );
+}
+```
+
+---
+
+### 11. TemplatePicker.tsx - 模板选择器
+
+**路径**: `@/modules/journal/components/TemplatePicker`
+
+日记模板选择组件，提供丰富的预设模板和自定义模板功能。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { TemplatePicker } from '@/modules/journal';
+
+// 或直接导入
+import TemplatePicker from '@/modules/journal/components/TemplatePicker';
+```
+
+**功能特性：**
+- **多分类模板**：工作、学习、旅行、健康、生活等分类
+- **收藏功能**：支持收藏常用模板，快速访问
+- **最近使用**：自动记录最近使用的模板
+- **自定义模板**：创建、编辑、删除个人模板
+- **变量支持**：模板支持 `{{date}}`、`{{year}}`、`{{month}}` 等变量自动替换
+- **分类图标**：每个分类配有对应的 emoji 图标
+
+**Props 接口：**
+```typescript
+interface TemplatePickerProps {
+  isOpen: boolean;                    // 控制显示/隐藏
+  onClose: () => void;                // 关闭回调
+  date: string;                       // 当前日期，用于变量替换
+  onSelectTemplate: (content: string) => void;  // 选择模板回调
+}
+```
+
+---
+
+### 12. CustomTemplateEditor.tsx - 自定义模板编辑器
+
+**路径**: `@/modules/journal/components/CustomTemplateEditor`
+
+用于创建和编辑自定义日记模板。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { CustomTemplateEditor } from '@/modules/journal';
+
+// 或直接导入
+import CustomTemplateEditor from '@/modules/journal/components/CustomTemplateEditor';
+```
+
+**功能特性：**
+- **模板标题**：自定义模板名称
+- **分类选择**：选择模板所属分类（工作、学习、旅行、健康、生活）
+- **内容编辑**：支持多行文本编辑
+- **变量提示**：显示可用的模板变量
+- **编辑模式**：支持编辑已有自定义模板
+
+**支持的变量：**
+- `{{date}}` - 完整日期（YYYY-MM-DD）
+- `{{year}}` - 年份
+- `{{month}}` - 月份
+- `{{day}}` - 日期
+- `{{weekday}}` - 星期（英文）
+- `{{weekdayZh}}` - 星期（中文）
+
+---
+
+### 13. SmartReminder.tsx - 智能提醒
+
+**路径**: `@/modules/journal/components/SmartReminder`
+
+智能提醒组件，根据用户记录习惯提醒写日记。
+
+**导入方式:**
+```typescript
+// 推荐：通过模块索引导入
+import { SmartReminder } from '@/modules/journal';
+
+// 或直接导入
+import SmartReminder from '@/modules/journal/components/SmartReminder';
+```
+
+**功能特性：**
+- **智能提醒时间**：根据用户历史记录习惯分析最佳提醒时间
+- **连续记录保护**：提醒用户保持连续记录天数
+- **本地存储**：提醒设置保存在本地
+- **可关闭**：用户可以选择稍后提醒或立即记录
+- **自动检测**：每小时检查一次是否需要提醒
+
+**Props 接口：**
+```typescript
+interface SmartReminderProps {
+  entries: { date: string }[];        // 日记条目列表
+  onRemind: () => void;               // 提醒回调，打开编辑器
 }
 ```
 
@@ -370,10 +632,12 @@ interface MoodStats {
 }
 ```
 
-### 存储操作函数 (storage.ts)
+### 存储操作函数 (@/core/storage)
 
 ```typescript
 // 日记条目操作
+import { getEntries, saveEntry, deleteEntry, getEntryByDate } from '@/core/storage';
+
 function getEntries(): MoodEntry[];
 function saveEntry(entry: MoodEntry): void;
 function deleteEntry(id: string): void;
@@ -399,9 +663,9 @@ function clearAllData(): void;                   // 清除所有数据
 // 密码保护
 function isPasswordEnabled(): boolean;
 function isSessionValid(): boolean;
-function validatePassword(password: string): boolean;
-function resetPassword(newPassword: string): void;
-function checkLockoutStatus(): { isLocked: boolean; remainingMinutes: number };
+function verifyPassword(password: string): boolean;
+function resetPassword(newPassword: string): { success: boolean; error?: string };
+function getLockoutStatus(): { isLocked: boolean; remainingMinutes: number };
 ```
 
 ---
@@ -480,7 +744,7 @@ npm run dev
 ### 使用方式
 
 ```typescript
-import { useTranslation, useLocale } from '@/lib/i18n';
+import { useTranslation, useLocale } from '@/core/i18n';
 
 function MyComponent() {
   const { t } = useTranslation();
@@ -499,12 +763,26 @@ function MyComponent() {
 }
 ```
 
+### 数组类型翻译值
+
+当需要获取数组类型的翻译值（如 `weekDays`）时，使用泛型参数指定返回类型：
+
+```typescript
+// 正确：使用泛型参数获取数组类型
+const weekDays = t<string[]>('calendar.weekDays', {});
+weekDays.map(day => ...);  // ✅ 可以正常使用 .map()
+
+// 错误：不使用泛型会导致类型推断为 string
+const weekDays = t('calendar.weekDays', {});
+weekDays.map(day => ...);  // ❌ 编译错误
+```
+
 ### 支持的语言
 
 | 语言代码 | 语言 | 文件 |
 |----------|------|------|
-| `zh-CN` | 简体中文 | `lib/i18n/zh-CN.json` |
-| `en-US` | English | `lib/i18n/en-US.json` |
+| `zh-CN` | 简体中文 | `src/core/i18n/locales/zh-CN.json` |
+| `en-US` | English | `src/core/i18n/locales/en-US.json` |
 
 ### 翻译文件结构
 

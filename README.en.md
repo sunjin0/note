@@ -21,6 +21,8 @@
 - 📊 **Statistics** - Streak counter, mood distribution, trend analysis
 - 🏷️ **Factor Tags** - 12 preset tags + custom factors support
 - 😀 **Emoji Picker** - 11 categories, 724+ emojis, search & recent usage
+- 📝 **Journal Templates** - Multi-category preset templates + custom templates with variable support
+- 🔔 **Smart Reminder** - Intelligent reminders based on recording habits
 - 🔒 **Password Protection** - App lock, security questions recovery
 - 🌍 **Multi-language** - Simplified Chinese / English
 - 📷 **Photo Upload** - Multiple images support with preview
@@ -55,29 +57,79 @@ note/
 │   ├── layout.tsx                # Root layout (with Providers)
 │   └── page.tsx                  # Main page
 │
-├── components/                   # React components
-│   ├── ui/                       # Base UI components
-│   │   ├── button.tsx            # Button (with variants)
-│   │   └── card.tsx              # Card component
-│   ├── CalendarView.tsx          # Calendar view
-│   ├── ConfirmDialog.tsx         # Confirmation dialog
-│   ├── Dashboard.tsx             # Dashboard home
-│   ├── EmojiPicker.tsx           # Emoji picker
-│   ├── JournalList.tsx           # Journal list (with filters)
-│   ├── MoodEditor.tsx            # Mood editor (rich text)
-│   ├── PasswordLock.tsx          # Password lock screen
-│   ├── Providers.tsx             # Global Provider (i18n + password)
-│   ├── Settings.tsx              # Settings page
-│   └── Sidebar.tsx               # Sidebar navigation
-│
-├── lib/                          # Utilities
-│   ├── i18n/                     # Internationalization
-│   │   ├── index.tsx             # i18n Provider + Hooks
-│   │   ├── zh-CN.json            # Chinese translations
-│   │   └── en-US.json            # English translations
-│   ├── storage.ts                # Local storage operations
-│   ├── types.ts                  # TypeScript definitions
-│   └── utils.ts                  # Utility functions (cn)
+├── src/                          # Source code directory
+│   ├── types/                    # Global type definitions
+│   │   └── index.ts              # Mood, MoodEntry, ViewType, etc.
+│   │
+│   ├── core/                     # Core infrastructure
+│   │   ├── ui/                   # Base UI components
+│   │   │   ├── button.tsx        # Button component
+│   │   │   ├── card.tsx          # Card component
+│   │   │   └── index.ts          # UI components unified export
+│   │   │
+│   │   ├── utils/                # Utility functions
+│   │   │   ├── index.ts          # cn() and other utilities
+│   │   │   └── pinyin.ts         # Pinyin mapping and search
+│   │   │
+│   │   ├── config/               # Configuration files
+│   │   │   ├── mood.ts           # Mood config, factor options
+│   │   │   ├── templates.ts      # Journal template config
+│   │   │   └── index.ts          # Config unified export
+│   │   │
+│   │   ├── storage/              # Storage management
+│   │   │   ├── index.ts          # localStorage operations
+│   │   │   ├── types.ts          # Storage-related types
+│   │   │   └── __tests__/        # Storage module tests
+│   │   │
+│   │   ├── i18n/                 # Internationalization
+│   │   │   ├── index.ts          # i18n unified export
+│   │   │   ├── provider.tsx      # i18n Provider component
+│   │   │   ├── types.ts          # i18n type definitions
+│   │   │   └── locales/          # Language files
+│   │   │       ├── zh-CN.json
+│   │   │       └── en-US.json
+│   │   │
+│   │   └── index.ts              # Core module unified export
+│   │
+│   └── modules/                  # Feature modules
+│       ├── common/               # Common/shared module
+│       │   ├── components/
+│       │   │   ├── Sidebar.tsx
+│       │   │   ├── ConfirmDialog.tsx
+│       │   │   ├── EmojiPicker.tsx
+│       │   │   ├── Providers.tsx
+│       │   │   └── index.ts
+│       │   └── hooks/
+│       │
+│       ├── journal/              # Journal editing module
+│       │   ├── components/
+│       │   │   ├── JournalList.tsx
+│       │   │   ├── MoodEditor.tsx
+│       │   │   ├── TemplatePicker.tsx
+│       │   │   ├── CustomTemplateEditor.tsx
+│       │   │   ├── SmartReminder.tsx
+│       │   │   └── index.ts
+│       │   ├── hooks/
+│       │   └── utils/
+│       │
+│       ├── dashboard/            # Dashboard module
+│       │   ├── components/
+│       │   │   ├── Dashboard.tsx
+│       │   │   └── index.ts
+│       │   └── hooks/
+│       │
+│       ├── calendar/             # Calendar module
+│       │   ├── components/
+│       │   │   ├── CalendarView.tsx
+│       │   │   └── index.ts
+│       │   └── hooks/
+│       │
+│       └── settings/             # Settings module
+│           ├── components/
+│           │   ├── Settings.tsx
+│           │   ├── PasswordLock.tsx
+│           │   └── index.ts
+│           └── hooks/
 │
 ├── test/                         # Test configuration
 │   └── setup.ts                  # Vitest config
@@ -95,7 +147,18 @@ note/
 
 ### 1. MoodEditor.tsx - Mood Editor
 
+**Path**: `@/modules/journal/components/MoodEditor`
+
 A feature-rich modal for creating and editing mood entries.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { MoodEditor } from '@/modules/journal';
+
+// Or direct import
+import MoodEditor from '@/modules/journal/components/MoodEditor';
+```
 
 **Features:**
 - **Mood Selection**: 5 mood levels with emoji, colors, and styles
@@ -134,7 +197,18 @@ interface MoodEditorProps {
 
 ### 2. EmojiPicker.tsx - Emoji Picker
 
+**Path**: `@/modules/common/components/EmojiPicker`
+
 A complete emoji selection component.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { EmojiPicker } from '@/modules/common/components';
+
+// Or direct import
+import EmojiPicker from '@/modules/common/components/EmojiPicker';
+```
 
 **Features:**
 - **11 Categories**: Recent, Work & Study, Family, Health, Weather, Food, Entertainment, Animals, Transport, Emotions, Objects
@@ -149,7 +223,18 @@ A complete emoji selection component.
 
 ### 3. Dashboard.tsx - Dashboard
 
+**Path**: `@/modules/dashboard/components/Dashboard`
+
 Home page displaying key statistics.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { Dashboard } from '@/modules/dashboard';
+
+// Or direct import
+import Dashboard from '@/modules/dashboard/components/Dashboard';
+```
 
 **Features:**
 - **Hero Banner**: Today's mood display, quick record entry
@@ -166,7 +251,18 @@ Home page displaying key statistics.
 
 ### 4. CalendarView.tsx - Calendar View
 
+**Path**: `@/modules/calendar/components/CalendarView`
+
 Monthly view of mood records.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { CalendarView } from '@/modules/calendar';
+
+// Or direct import
+import CalendarView from '@/modules/calendar/components/CalendarView';
+```
 
 **Features:**
 - **Calendar Grid**: Full month display with marked dates
@@ -180,7 +276,18 @@ Monthly view of mood records.
 
 ### 5. JournalList.tsx - Journal List
 
+**Path**: `@/modules/journal/components/JournalList`
+
 Complete journal browsing and management interface.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { JournalList } from '@/modules/journal';
+
+// Or direct import
+import JournalList from '@/modules/journal/components/JournalList';
+```
 
 **Features:**
 - **Search**: Full-text search (content, mood, factors, date)
@@ -201,7 +308,18 @@ Complete journal browsing and management interface.
 
 ### 6. Settings.tsx - Settings
 
+**Path**: `@/modules/settings/components/Settings`
+
 App configuration and data management.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { Settings } from '@/modules/settings';
+
+// Or direct import
+import Settings from '@/modules/settings/components/Settings';
+```
 
 **Features:**
 - **Language Switch**: Simplified Chinese / English, real-time
@@ -224,7 +342,18 @@ App configuration and data management.
 
 ### 7. Sidebar.tsx - Sidebar Navigation
 
+**Path**: `@/modules/common/components/Sidebar`
+
 Responsive sidebar navigation.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { Sidebar } from '@/modules/common/components';
+
+// Or direct import
+import Sidebar from '@/modules/common/components/Sidebar';
+```
 
 **Features:**
 - **Nav Menu**: Dashboard, Calendar, Journal, Settings
@@ -237,7 +366,18 @@ Responsive sidebar navigation.
 
 ### 8. ConfirmDialog.tsx - Confirmation Dialog
 
+**Path**: `@/modules/common/components/ConfirmDialog`
+
 Generic confirmation dialog component.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { ConfirmDialog } from '@/modules/common/components';
+
+// Or direct import
+import ConfirmDialog from '@/modules/common/components/ConfirmDialog';
+```
 
 **Props Interface:**
 ```typescript
@@ -258,7 +398,18 @@ interface ConfirmDialogProps {
 
 ### 9. PasswordLock.tsx - Password Lock
 
+**Path**: `@/modules/settings/components/PasswordLock`
+
 App password protection component.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { PasswordLock } from '@/modules/settings';
+
+// Or direct import
+import PasswordLock from '@/modules/settings/components/PasswordLock';
+```
 
 **Features:**
 - Password input validation
@@ -270,7 +421,117 @@ App password protection component.
 
 ### 10. Providers.tsx - Global Provider
 
+**Path**: `@/modules/common/components/Providers`
+
 Combines all global providers.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { Providers, useTheme } from '@/modules/common/components';
+
+// Or direct import
+import { Providers, useTheme } from '@/modules/common/components/Providers';
+```
+
+---
+
+### 11. TemplatePicker.tsx - Template Picker
+
+**Path**: `@/modules/journal/components/TemplatePicker`
+
+Journal template selection component with rich preset and custom templates.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { TemplatePicker } from '@/modules/journal';
+
+// Or direct import
+import TemplatePicker from '@/modules/journal/components/TemplatePicker';
+```
+
+**Features:**
+- **Multi-category Templates**: Work, Study, Travel, Health, Life categories
+- **Favorites**: Bookmark frequently used templates for quick access
+- **Recent Usage**: Automatically tracks recently used templates
+- **Custom Templates**: Create, edit, and delete personal templates
+- **Variable Support**: Templates support variables like `{{date}}`, `{{year}}`, `{{month}}` for auto-replacement
+- **Category Icons**: Each category has corresponding emoji icons
+
+**Props Interface:**
+```typescript
+interface TemplatePickerProps {
+  isOpen: boolean;                    // Control visibility
+  onClose: () => void;                // Close callback
+  date: string;                       // Current date for variable substitution
+  onSelectTemplate: (content: string) => void;  // Template selection callback
+}
+```
+
+---
+
+### 12. CustomTemplateEditor.tsx - Custom Template Editor
+
+**Path**: `@/modules/journal/components/CustomTemplateEditor`
+
+Component for creating and editing custom journal templates.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { CustomTemplateEditor } from '@/modules/journal';
+
+// Or direct import
+import CustomTemplateEditor from '@/modules/journal/components/CustomTemplateEditor';
+```
+
+**Features:**
+- **Template Title**: Custom template name
+- **Category Selection**: Choose template category (Work, Study, Travel, Health, Life)
+- **Content Editing**: Multi-line text editing support
+- **Variable Hints**: Display available template variables
+- **Edit Mode**: Support editing existing custom templates
+
+**Supported Variables:**
+- `{{date}}` - Full date (YYYY-MM-DD)
+- `{{year}}` - Year
+- `{{month}}` - Month
+- `{{day}}` - Day
+- `{{weekday}}` - Weekday (English)
+- `{{weekdayZh}}` - Weekday (Chinese)
+
+---
+
+### 13. SmartReminder.tsx - Smart Reminder
+
+**Path**: `@/modules/journal/components/SmartReminder`
+
+Smart reminder component that reminds users to write journal based on their habits.
+
+**Import:**
+```typescript
+// Recommended: Import via module index
+import { SmartReminder } from '@/modules/journal';
+
+// Or direct import
+import SmartReminder from '@/modules/journal/components/SmartReminder';
+```
+
+**Features:**
+- **Smart Reminder Time**: Analyzes user's history to determine optimal reminder time
+- **Streak Protection**: Reminds users to maintain consecutive recording days
+- **Local Storage**: Reminder settings saved locally
+- **Dismissible**: Users can choose to remind later or record now
+- **Auto Check**: Checks every hour if reminder is needed
+
+**Props Interface:**
+```typescript
+interface SmartReminderProps {
+  entries: { date: string }[];        // Journal entries list
+  onRemind: () => void;               // Reminder callback, opens editor
+}
+```
 
 ---
 
@@ -325,10 +586,12 @@ interface MoodStats {
 }
 ```
 
-### Storage Functions (storage.ts)
+### Storage Functions (@/core/storage)
 
 ```typescript
 // Entry operations
+import { getEntries, saveEntry, deleteEntry, getEntryByDate } from '@/core/storage';
+
 function getEntries(): MoodEntry[];
 function saveEntry(entry: MoodEntry): void;
 function deleteEntry(id: string): void;
@@ -353,7 +616,9 @@ function clearAllData(): void;
 // Password protection
 function isPasswordEnabled(): boolean;
 function isSessionValid(): boolean;
-function validatePassword(password: string): boolean;
+function verifyPassword(password: string): boolean;
+function resetPassword(newPassword: string): { success: boolean; error?: string };
+function getLockoutStatus(): { isLocked: boolean; remainingMinutes: number };
 ```
 
 ---
@@ -432,7 +697,7 @@ npm run dev
 ### Usage
 
 ```typescript
-import { useTranslation, useLocale } from '@/lib/i18n';
+import { useTranslation, useLocale } from '@/core/i18n';
 
 function MyComponent() {
   const { t } = useTranslation();
@@ -451,12 +716,26 @@ function MyComponent() {
 }
 ```
 
+### Array Type Translation Values
+
+When retrieving array-type translation values (like `weekDays`), use generic parameter to specify return type:
+
+```typescript
+// Correct: Use generic parameter to get array type
+const weekDays = t<string[]>('calendar.weekDays', {});
+weekDays.map(day => ...);  // ✅ Works correctly
+
+// Incorrect: Without generic, type is inferred as string
+const weekDays = t('calendar.weekDays', {});
+weekDays.map(day => ...);  // ❌ Compile error: .map is not a function
+```
+
 ### Supported Languages
 
 | Code | Language | File |
 |------|----------|------|
-| `zh-CN` | Simplified Chinese | `lib/i18n/zh-CN.json` |
-| `en-US` | English | `lib/i18n/en-US.json` |
+| `zh-CN` | Simplified Chinese | `src/core/i18n/locales/zh-CN.json` |
+| `en-US` | English | `src/core/i18n/locales/en-US.json` |
 
 ---
 

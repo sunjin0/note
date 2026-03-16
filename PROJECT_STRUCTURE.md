@@ -113,7 +113,12 @@ note/
 
 #### Journal 模块
 - **职责**: 日记条目的创建、编辑、展示
-- **组件**: JournalList, MoodEditor, TemplatePicker 等
+- **组件**: 
+  - **JournalList** - 日记列表浏览和管理
+  - **MoodEditor** - 心情编辑器（富文本、照片上传）
+  - **TemplatePicker** - 模板选择器（预设+自定义模板）
+  - **CustomTemplateEditor** - 自定义模板编辑器
+  - **SmartReminder** - 智能提醒组件
 - **依赖**: core/config, core/storage, core/i18n
 
 #### Dashboard 模块
@@ -149,7 +154,14 @@ import { cn } from '@/core/utils';
 import { MOOD_CONFIG } from '@/core/config/mood';
 import { useTranslation } from '@/core/i18n';
 
-// 功能模块导入
+// 功能模块导入（推荐方式：通过模块索引导入）
+import { JournalList, MoodEditor, SmartReminder } from '@/modules/journal';
+import { Dashboard } from '@/modules/dashboard';
+import { CalendarView } from '@/modules/calendar';
+import { Settings, PasswordLock } from '@/modules/settings';
+import { Sidebar, ConfirmDialog, EmojiPicker, Providers } from '@/modules/common/components';
+
+// 也可以直接导入具体组件
 import JournalList from '@/modules/journal/components/JournalList';
 import Dashboard from '@/modules/dashboard/components/Dashboard';
 ```
@@ -206,9 +218,69 @@ modules/
 3. **共享代码**: 多个模块共享的代码应该放在 common/ 或 core/ 中
 4. **类型定义**: 全局类型放在 src/types/，模块特定类型可以放在模块目录内
 
+## 模块索引文件说明
+
+每个模块都包含 `index.ts` 索引文件，用于统一导出该模块的公共组件和类型：
+
+```typescript
+// src/modules/journal/index.ts
+export { default as JournalList } from '@/modules/journal/components/JournalList';
+export { default as MoodEditor } from '@/modules/journal/components/MoodEditor';
+export { default as TemplatePicker } from '@/modules/journal/components/TemplatePicker';
+export { default as CustomTemplateEditor } from '@/modules/journal/components/CustomTemplateEditor';
+export { default as SmartReminder } from '@/modules/journal/components/SmartReminder';
+
+// src/modules/common/components/index.ts
+export { default as ConfirmDialog } from '@/modules/common/components/ConfirmDialog';
+export { default as EmojiPicker } from '@/modules/common/components/EmojiPicker';
+export * from '@/modules/common/components/EmojiPicker';  // 导出类型和常量
+export { default as Sidebar } from '@/modules/common/components/Sidebar';
+export { Providers, useTheme } from '@/modules/common/components/Providers';
+```
+
+## i18n 数组类型返回值使用规范
+
+当需要获取数组类型的翻译值（如 `weekDays`）时，使用泛型参数指定返回类型：
+
+```typescript
+import { useTranslation } from '@/core/i18n';
+
+function MyComponent() {
+  const { t } = useTranslation();
+  
+  // 正确：使用泛型参数获取数组类型
+  const weekDays = t<string[]>('calendar.weekDays', {});
+  weekDays.map(day => ...);  // ✅ 可以正常使用 .map()
+  
+  // 错误：不使用泛型会导致类型推断为 string
+  const weekDays = t('calendar.weekDays', {});
+  weekDays.map(day => ...);  // ❌ 编译错误：.map is not a function
+}
+```
+
 ## 注意事项
 
-1. 迁移过程中保持旧文件不动，直到新结构验证通过
-2. 逐步更新导入路径，避免一次性大规模修改
+1. 模块可以依赖 `core/`，但 `core/` 不应该依赖模块
+2. 使用模块索引文件（`index.ts`）统一导出，简化导入路径
 3. 确保所有测试在迁移后仍然通过
 4. 更新构建配置以支持新的路径别名
+
+## i18n 数组类型返回值使用规范
+
+当需要获取数组类型的翻译值（如 `weekDays`）时，使用泛型参数指定返回类型：
+
+```typescript
+import { useTranslation } from '@/core/i18n';
+
+function MyComponent() {
+  const { t } = useTranslation();
+  
+  // 正确：使用泛型参数获取数组类型
+  const weekDays = t<string[]>('calendar.weekDays', {});
+  weekDays.map(day => ...);  // 可以正常使用 .map()
+  
+  // 错误：不使用泛型会导致类型推断为 string
+  const weekDays = t('calendar.weekDays', {});
+  weekDays.map(day => ...);  // 编译错误：.map is not a function
+}
+```
