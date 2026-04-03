@@ -76,28 +76,37 @@ export function saveEntry(entry: Omit<MoodEntry, 'id' | 'createdAt' | 'updatedAt
 
   const now = new Date().toISOString();
 
+  let savedEntry: MoodEntry;
+
   if (existingIndex >= 0) {
     const updated: MoodEntry = {
       ...entries[existingIndex],
       ...entry,
       updatedAt: now,
+      deletedAt: undefined,
     };
     const encryptedUpdated = encryptEntry(updated);
     entries[existingIndex] = encryptedUpdated;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-    return updated;
+    savedEntry = updated;
+  } else {
+    const newEntry: MoodEntry = {
+      ...entry,
+      id: generateId(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    const encryptedNewEntry = encryptEntry(newEntry);
+    entries.unshift(encryptedNewEntry);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    savedEntry = newEntry;
   }
 
-  const newEntry: MoodEntry = {
-    ...entry,
-    id: generateId(),
-    createdAt: now,
-    updatedAt: now,
-  };
-  const encryptedNewEntry = encryptEntry(newEntry);
-  entries.unshift(encryptedNewEntry);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  return newEntry;
+  import('./sync').then(({ trackPendingChange }) => {
+    trackPendingChange(savedEntry);
+  }).catch(() => {});
+
+  return savedEntry;
 }
 
 /**
@@ -120,6 +129,11 @@ export function updateEntry(id: string, updates: Partial<MoodEntry>): MoodEntry 
   const encryptedUpdated = encryptEntry(updated);
   entries[index] = encryptedUpdated;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+
+  import('./sync').then(({ trackPendingChange }) => {
+    trackPendingChange(updated);
+  }).catch(() => {});
+
   return updated;
 }
 
@@ -218,4 +232,72 @@ export function reEncryptAllEntries(
     console.error('Failed to re-encrypt entries:', error);
     throw error;
   }
+}
+
+/**
+ * 批量保存从服务器同步的日记条目
+ * 不会触发同步追踪，用于接收服务器数据
+ * @param syncedEntries - 从服务器同步的日记条目数组
+ * @returns 保存的条目数量
+ */
+export function saveSyncedEntries(syncedEntries: MoodEntry[]): number {
+  if (typeof window === 'undefined' || syncedEntries.length === 0) return 0;
+  
+  const entries = getEntries();
+  let savedCount = 0;
+  
+  syncedEntries.forEach(syncedEntry => {
+    const existingIndex = entries.findIndex(e => e.id === syncedEntry.id);
+    
+    if (existingIndex >= 0) {
+      const existing = entries[existingIndex];
+      if (new Date(syncedEntry.updatedAt) > new Date(existing.updatedAt)) {
+        const encrypted = encryptEntry(syncedEntry);
+        entries[existingIndex] = encrypted;
+        savedCount++;
+      }
+    } else {
+      const encrypted = encryptEntry(syncedEntry);
+      entries.push(encrypted);
+      savedCount++;
+    }
+  });
+  
+  const sortedEntries = entries.sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(sortedEntries));
+  
+  return savedCount;
+}
+
+/**
+ * 批量标记条目为已删除（从服务器同步的删除操作）
+ * @param deletes - 要删除的条目ID和删除时间数组
+ * @returns 标记删除的条目数量
+ */
+export function markEntriesDeleted(deletes: Array<{ id: string; deletedAt: string }>): number {
+  if (typeof window === 'undefined' || deletes.length === 0) return 0;
+  
+  const entries = getEntries();
+  let deletedCount = 0;
+  
+  deletes.forEach(({ id, deletedAt }) => {
+    const index = entries.findIndex(e => e.id === id);
+    if (index >= 0 && !entries[index].deletedAt) {
+      entries[index] = {
+        ...entries[index],
+        deletedAt,
+        updatedAt: deletedAt,
+      };
+      deletedCount++;
+    }
+  });
+  
+  if (deletedCount > 0) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.map(encryptEntry)));
+  }
+  
+  return deletedCount;
 }

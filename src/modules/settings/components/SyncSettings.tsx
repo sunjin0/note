@@ -112,6 +112,18 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
     };
   }, [refreshState]);
 
+  // 监听登录状态变化，退出登录时自动关闭同步并隐藏高级设置
+  useEffect(() => {
+    if (!isLoggedIn && settings?.enabled) {
+      disableSync();
+      stopAutoSync();
+      setShowAdvanced(false);
+      setConflicts([]);
+      setShowConflictModal(false);
+      refreshState();
+    }
+  }, [isLoggedIn, settings?.enabled, refreshState]);
+
   // 处理同步开关
   const handleToggleSync = async (enabled: boolean) => {
     if (enabled) {
@@ -147,6 +159,9 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
     await logout();
     disableSync();
     stopAutoSync();
+    setShowAdvanced(false);
+    setConflicts([]);
+    setShowConflictModal(false);
     refreshState();
   };
 
@@ -434,7 +449,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
       )}
 
       {/* 高级设置 */}
-      {settings.enabled && (
+      {settings.enabled && isLoggedIn && (
         <div className="border border-border rounded-xl overflow-hidden">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}

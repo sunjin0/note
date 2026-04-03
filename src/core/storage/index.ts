@@ -44,6 +44,8 @@ export {
   encryptEntry,
   decryptEntry,
   reEncryptAllEntries,
+  saveSyncedEntries,
+  markEntriesDeleted,
 } from '@/core/storage/entries';
 
 // 应用设置管理
@@ -150,6 +152,7 @@ export {
   canSync,
   // 数据收集
   collectSyncData,
+  markAllEntriesForSync,
   // 冲突解决
   resolveConflict,
   getConflicts,

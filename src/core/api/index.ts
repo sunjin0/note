@@ -36,4 +36,7 @@ export {
   apiSync,
   apiGetSyncStatus,
   apiResolveConflict,
+  type SyncResult,
+  type SyncPayload,
+  type ConflictDetail,
 } from './sync';

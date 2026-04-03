@@ -4,8 +4,8 @@
  */
 
 import { MoodEntry } from '@/types';
-import { apiSync } from '@/core/api';
-import { getEntries } from './entries';
+import { apiSync, type SyncResult } from '@/core/api';
+import { getEntries, saveSyncedEntries, markEntriesDeleted } from './entries';
 
 export const SYNC_SETTINGS_KEY = 'mood_journal_sync_settings';
 export const SYNC_STATE_KEY = 'mood_journal_sync_state';
@@ -46,16 +46,7 @@ export type ConflictResolution = 'server' | 'client' | 'merged' | 'pending';
 
 export type ConflictStrategy = 'server-wins' | 'client-wins' | 'manual' | 'timestamp';
 
-export interface SyncResult {
-  success: boolean;
-  uploaded: number;
-  downloaded: number;
-  conflicts: number;
-  skipped: number;
-  deleted: number;
-  error?: string;
-  timestamp: string;
-}
+export { type SyncResult };
 
 export const DEFAULT_SYNC_SETTINGS: SyncSettings = {
   enabled: false,
@@ -142,11 +133,17 @@ function generateDeviceId(): string {
 
 export function enableSync(): void {
     const settings = getSyncSettings();
+    const state = getSyncState();
+    
     settings.enabled = true;
     if (!settings.deviceId) {
         settings.deviceId = generateDeviceId();
     }
     saveSyncSettings(settings);
+    
+    if (!state.lastSyncAt) {
+        markAllEntriesForSync();
+    }
 }
 
 export function disableSync(): void {
@@ -182,6 +179,24 @@ export function trackPendingChange(entry: MoodEntry): void {
         state.pendingCount++;
         saveSyncState(state);
     }
+}
+
+export function markAllEntriesForSync(): void {
+    const allEntries = getEntries();
+    const state = getSyncState();
+    
+    if (!state.pendingEntryIds) {
+        state.pendingEntryIds = [];
+    }
+    
+    allEntries.forEach(entry => {
+        if (!entry.deletedAt && !state.pendingEntryIds.includes(entry.id)) {
+            state.pendingEntryIds.push(entry.id);
+            state.pendingCount++;
+        }
+    });
+    
+    saveSyncState(state);
 }
 
 export function trackDeletedId(id: string): void {
@@ -393,10 +408,12 @@ export async function performSync(): Promise<SyncResult> {
   });
   
   try {
+    const syncData = collectSyncData();
+    
     const payload: SyncPayload = {
       deviceId: settings.deviceId,
       lastSyncAt: state.lastSyncAt,
-      entries: collectSyncData(),
+      entries: syncData,
       deletes: state.pendingDeletes,
     };
     
@@ -405,7 +422,14 @@ export async function performSync(): Promise<SyncResult> {
     if (response.success) {
       clearPendingSync();
       
-      // 保存冲突详情
+      if (response.entries && response.entries.length > 0) {
+        saveSyncedEntries(response.entries);
+      }
+      
+      if (response.deletes && response.deletes.length > 0) {
+        markEntriesDeleted(response.deletes);
+      }
+      
       if (response.conflictDetails && response.conflictDetails.length > 0) {
         saveConflicts(response.conflictDetails);
       } else {

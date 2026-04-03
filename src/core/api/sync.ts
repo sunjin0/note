@@ -46,6 +46,8 @@ export interface SyncResult {
   error?: string;
   timestamp: string;
   conflictDetails?: ConflictDetail[];
+  entries?: MoodEntry[];
+  deletes?: Array<{ id: string; deletedAt: string }>;
 }
 
 /**
@@ -129,6 +131,8 @@ export async function apiSync(payload: SyncPayload): Promise<SyncResult> {
         deleted: response.data.stats.deleted,
         timestamp: response.data.serverTime,
         conflictDetails: response.data.conflicts,
+        entries: response.data.entries,
+        deletes: response.data.deletes,
       };
     }
 
