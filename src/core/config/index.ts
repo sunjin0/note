@@ -1,11 +1,18 @@
 /**
  * 配置模块
  * 提供应用所需的配置数据和常量
- * 
+ *
  * @module config
  */
 
-export { MOOD_CONFIG, FACTOR_OPTIONS, COMMON_EMOJIS, CALENDAR_COLORS, DASHBOARD_CHART, HEATMAP_VALUE } from '@/core/config/mood';
+export {
+  MOOD_CONFIG,
+  FACTOR_OPTIONS,
+  COMMON_EMOJIS,
+  CALENDAR_COLORS,
+  DASHBOARD_CHART,
+  HEATMAP_VALUE,
+} from '@/core/config/mood';
 export {
   PRESET_TEMPLATES,
   TEMPLATE_CATEGORY_ORDER,

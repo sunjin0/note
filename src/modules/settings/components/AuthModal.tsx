@@ -4,11 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/core/utils';
 import { useTranslation } from '@/core/i18n';
 import { Button } from '@/core/ui/button';
-import type {
-  User,
-  AuthCredentials,
-  AuthResponse,
-} from '@/core/storage';
+import type { User, AuthCredentials, AuthResponse } from '@/core/storage';
 import {
   register,
   login,
@@ -50,7 +46,7 @@ export default function AuthModal({
   const { t } = useTranslation();
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  
+
   // 表单状态
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -58,7 +54,7 @@ export default function AuthModal({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
-  
+
   // UI状态
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -102,20 +98,20 @@ export default function AuthModal({
   // 验证表单
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
-    
+
     if (mode === 'register') {
       if (!username || username.length < 3) {
         errors.username = t('auth.usernameTooShort');
       }
-      
+
       if (!email || !isValidEmail(email)) {
         errors.email = t('auth.invalidEmail');
       }
-      
+
       if (!password || password.length < 6) {
         errors.password = t('auth.passwordTooShort');
       }
-      
+
       if (password !== confirmPassword) {
         errors.confirmPassword = t('auth.passwordMismatch');
       }
@@ -124,12 +120,12 @@ export default function AuthModal({
       if (!email) {
         errors.email = t('auth.emailRequired');
       }
-      
+
       if (!password) {
         errors.password = t('auth.passwordRequired');
       }
     }
-    
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -137,15 +133,15 @@ export default function AuthModal({
   // 处理提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let response: AuthResponse;
-      
+
       if (mode === 'register') {
         response = await register({
           username,
@@ -161,7 +157,7 @@ export default function AuthModal({
           rememberMe,
         });
       }
-      
+
       if (response.success && response.user && response.token) {
         // 保存认证凭据
         const credentials: AuthCredentials = {
@@ -172,7 +168,7 @@ export default function AuthModal({
           loginAt: new Date().toISOString(),
         };
         saveAuthCredentials(credentials);
-        
+
         // 保存认证状态
         saveAuthState({
           isAuthenticated: true,
@@ -180,12 +176,12 @@ export default function AuthModal({
           isLoading: false,
           error: null,
         });
-        
+
         // 更新同步设置中的认证令牌
         const syncSettings = getSyncSettings();
         syncSettings.authToken = response.token;
         saveSyncSettings(syncSettings);
-        
+
         // 回调
         onAuthSuccess?.(response.user);
         onClose();
@@ -211,7 +207,13 @@ export default function AuthModal({
 
   // 获取密码强度颜色
   const getStrengthColor = (score: number) => {
-    const colors = ['bg-destructive', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-green-600'];
+    const colors = [
+      'bg-destructive',
+      'bg-orange-500',
+      'bg-yellow-500',
+      'bg-green-500',
+      'bg-green-600',
+    ];
     return colors[score] || colors[0];
   };
 
@@ -229,7 +231,7 @@ export default function AuthModal({
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           {/* 遮罩层 */}
           <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
-          
+
           {/* 模态框 */}
           <div className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-elevated border border-border animate-scale-in">
             {/* 头部 */}
@@ -289,9 +291,7 @@ export default function AuthModal({
 
               {/* 邮箱 */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">
-                  {t('auth.email')}
-                </label>
+                <label className="text-sm font-medium text-foreground">{t('auth.email')}</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
@@ -316,7 +316,10 @@ export default function AuthModal({
               {mode === 'register' && (
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
-                    {t('auth.nickname')} <span className="text-muted-foreground font-normal">({t('auth.optional')})</span>
+                    {t('auth.nickname')}{' '}
+                    <span className="text-muted-foreground font-normal">
+                      ({t('auth.optional')})
+                    </span>
                   </label>
                   <div className="relative">
                     <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -333,9 +336,7 @@ export default function AuthModal({
 
               {/* 密码 */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">
-                  {t('auth.password')}
-                </label>
+                <label className="text-sm font-medium text-foreground">{t('auth.password')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
@@ -361,14 +362,17 @@ export default function AuthModal({
                 {fieldErrors.password && (
                   <p className="text-xs text-destructive">{fieldErrors.password}</p>
                 )}
-                
+
                 {/* 密码强度指示器（仅注册） */}
                 {mode === 'register' && password && (
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
-                          className={cn('h-full transition-all duration-300', getStrengthColor(passwordStrength.score))}
+                          className={cn(
+                            'h-full transition-all duration-300',
+                            getStrengthColor(passwordStrength.score)
+                          )}
                           style={{ width: getStrengthWidth(passwordStrength.score) }}
                         />
                       </div>
@@ -412,7 +416,11 @@ export default function AuthModal({
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                   {fieldErrors.confirmPassword && (
@@ -444,12 +452,7 @@ export default function AuthModal({
               )}
 
               {/* 提交按钮 */}
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full"
-                size="lg"
-              >
+              <Button type="submit" disabled={isLoading} className="w-full" size="lg">
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

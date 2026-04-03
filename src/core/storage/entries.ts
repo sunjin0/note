@@ -75,7 +75,7 @@ export function saveEntry(entry: Omit<MoodEntry, 'id' | 'createdAt' | 'updatedAt
   const settings = getSettings();
   const shouldEncrypt = settings.encrypted;
   const entries = getEntries();
-  const existingIndex = entries.findIndex(e => e.date === entry.date);
+  const existingIndex = entries.findIndex((e) => e.date === entry.date);
 
   const now = new Date().toISOString();
 
@@ -101,19 +101,21 @@ export function saveEntry(entry: Omit<MoodEntry, 'id' | 'createdAt' | 'updatedAt
     entries.unshift(newEntry);
   }
 
-  const entriesToSave = entries.map(e => {
+  const entriesToSave = entries.map((e) => {
     if (shouldEncrypt) {
       return encryptEntry(e);
     } else {
       return { ...e, journalEncrypted: false };
     }
   });
-  
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entriesToSave));
 
-  import('./sync').then(({ trackPendingChange }) => {
-    trackPendingChange(savedEntry);
-  }).catch(() => {});
+  import('./sync')
+    .then(({ trackPendingChange }) => {
+      trackPendingChange(savedEntry);
+    })
+    .catch(() => {});
 
   return savedEntry;
 }
@@ -129,7 +131,7 @@ export function updateEntry(id: string, updates: Partial<MoodEntry>): MoodEntry 
   const settings = getSettings();
   const shouldEncrypt = settings.encrypted;
   const entries = getEntries();
-  const index = entries.findIndex(e => e.id === id);
+  const index = entries.findIndex((e) => e.id === id);
   if (index < 0) return null;
 
   const updated: MoodEntry = {
@@ -137,22 +139,24 @@ export function updateEntry(id: string, updates: Partial<MoodEntry>): MoodEntry 
     ...updates,
     updatedAt: new Date().toISOString(),
   };
-  
+
   entries[index] = updated;
-  
-  const entriesToSave = entries.map(e => {
+
+  const entriesToSave = entries.map((e) => {
     if (shouldEncrypt) {
       return encryptEntry(e);
     } else {
       return { ...e, journalEncrypted: false };
     }
   });
-  
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entriesToSave));
 
-  import('./sync').then(({ trackPendingChange }) => {
-    trackPendingChange(updated);
-  }).catch(() => {});
+  import('./sync')
+    .then(({ trackPendingChange }) => {
+      trackPendingChange(updated);
+    })
+    .catch(() => {});
 
   return updated;
 }
@@ -166,30 +170,32 @@ export function deleteEntry(id: string): boolean {
   const settings = getSettings();
   const shouldEncrypt = settings.encrypted;
   const entries = getEntries();
-  const index = entries.findIndex(e => e.id === id);
+  const index = entries.findIndex((e) => e.id === id);
   if (index < 0) return false;
-  
+
   const now = new Date().toISOString();
-  
+
   entries[index] = {
     ...entries[index],
     deletedAt: now,
     updatedAt: now,
   };
-  
-  const entriesToSave = entries.map(e => {
+
+  const entriesToSave = entries.map((e) => {
     if (shouldEncrypt) {
       return encryptEntry(e);
     } else {
       return { ...e, journalEncrypted: false };
     }
   });
-  
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entriesToSave));
-  
-  import('./sync').then(({ trackDeletedId }) => {
-    trackDeletedId(id);
-  }).catch(() => {});
+
+  import('./sync')
+    .then(({ trackDeletedId }) => {
+      trackDeletedId(id);
+    })
+    .catch(() => {});
 
   return true;
 }
@@ -200,7 +206,7 @@ export function deleteEntry(id: string): boolean {
  * @returns 找到的日记条目，未找到则返回 undefined
  */
 export function getEntryByDate(date: string): MoodEntry | undefined {
-  return getEntries().find(e => e.date === date);
+  return getEntries().find((e) => e.date === date);
 }
 
 /**
@@ -211,7 +217,7 @@ export function getEntryByDate(date: string): MoodEntry | undefined {
  */
 export function getEntriesForMonth(year: number, month: number): MoodEntry[] {
   const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
-  return getEntries().filter(e => e.date.startsWith(prefix));
+  return getEntries().filter((e) => e.date.startsWith(prefix));
 }
 
 /**
@@ -268,29 +274,29 @@ export function reEncryptAllEntries(
  */
 export function saveSyncedEntries(syncedEntries: MoodEntry[]): number {
   if (typeof window === 'undefined' || syncedEntries.length === 0) return 0;
-  
+
   const settings = getSettings();
   const shouldEncrypt = settings.encrypted;
-  
+
   const data = localStorage.getItem(STORAGE_KEY);
   let entries: MoodEntry[] = data ? JSON.parse(data) : [];
   let savedCount = 0;
-  
-  syncedEntries.forEach(syncedEntry => {
+
+  syncedEntries.forEach((syncedEntry) => {
     let entryToSave = { ...syncedEntry };
-    
+
     if (syncedEntry.journalEncrypted) {
       entryToSave = decryptEntry(syncedEntry);
     }
-    
+
     if (shouldEncrypt) {
       entryToSave = encryptEntry(entryToSave);
     } else {
       entryToSave.journalEncrypted = false;
     }
-    
-    const existingIndex = entries.findIndex(e => e.id === syncedEntry.id);
-    
+
+    const existingIndex = entries.findIndex((e) => e.id === syncedEntry.id);
+
     if (existingIndex >= 0) {
       const existing = entries[existingIndex];
       const existingDecrypted = decryptEntry(existing);
@@ -303,13 +309,13 @@ export function saveSyncedEntries(syncedEntries: MoodEntry[]): number {
       savedCount++;
     }
   });
-  
-  const sortedEntries = entries.sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
+
+  const sortedEntries = entries.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
-  
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sortedEntries));
-  
+
   return savedCount;
 }
 
@@ -320,43 +326,43 @@ export function saveSyncedEntries(syncedEntries: MoodEntry[]): number {
  */
 export function markEntriesDeleted(deletes: Array<{ id: string; deletedAt: string }>): number {
   if (typeof window === 'undefined' || deletes.length === 0) return 0;
-  
+
   const settings = getSettings();
   const shouldEncrypt = settings.encrypted;
-  
+
   const data = localStorage.getItem(STORAGE_KEY);
   if (!data) return 0;
-  
+
   const entries: MoodEntry[] = JSON.parse(data);
   let deletedCount = 0;
-  
+
   deletes.forEach(({ id, deletedAt }) => {
-    const index = entries.findIndex(e => e.id === id);
+    const index = entries.findIndex((e) => e.id === id);
     if (index >= 0) {
       let entry = entries[index];
       if (entry.journalEncrypted) {
         entry = decryptEntry(entry);
       }
-      
+
       if (!entry.deletedAt) {
         entry.deletedAt = deletedAt;
         entry.updatedAt = deletedAt;
-        
+
         if (shouldEncrypt) {
           entry = encryptEntry(entry);
         } else {
           entry.journalEncrypted = false;
         }
-        
+
         entries[index] = entry;
         deletedCount++;
       }
     }
   });
-  
+
   if (deletedCount > 0) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   }
-  
+
   return deletedCount;
 }

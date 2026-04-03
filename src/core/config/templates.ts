@@ -25,7 +25,7 @@ export const PRESET_TEMPLATES: JournalTemplate[] = [
     titleKey: 'templates.work.summary.title',
     contentKey: 'templates.work.summary.content',
   },
-  
+
   // Study templates
   {
     id: 'study-daily',
@@ -45,7 +45,7 @@ export const PRESET_TEMPLATES: JournalTemplate[] = [
     titleKey: 'templates.study.exam.title',
     contentKey: 'templates.study.exam.content',
   },
-  
+
   // Travel templates
   {
     id: 'travel-daily',
@@ -65,7 +65,7 @@ export const PRESET_TEMPLATES: JournalTemplate[] = [
     titleKey: 'templates.travel.food.title',
     contentKey: 'templates.travel.food.content',
   },
-  
+
   // Health templates
   {
     id: 'health-daily',
@@ -91,7 +91,7 @@ export const PRESET_TEMPLATES: JournalTemplate[] = [
     titleKey: 'templates.health.sleep.title',
     contentKey: 'templates.health.sleep.content',
   },
-  
+
   // Life templates
   {
     id: 'life-gratitude',
@@ -165,7 +165,7 @@ export function getTemplatesByCategory(category: TemplateCategory): JournalTempl
   }
   const allTemplates = getAllTemplates();
   // 普通分类显示该分类下的预设模板和自定义模板
-  return allTemplates.filter(t => t.category === category);
+  return allTemplates.filter((t) => t.category === category);
 }
 
 // Get custom templates
@@ -183,7 +183,9 @@ export function getCustomTemplates(): CustomTemplate[] {
 }
 
 // Save custom template
-export function saveCustomTemplate(template: Omit<CustomTemplate, 'id' | 'createdAt' | 'isCustom'>): CustomTemplate {
+export function saveCustomTemplate(
+  template: Omit<CustomTemplate, 'id' | 'createdAt' | 'isCustom'>
+): CustomTemplate {
   const templates = getCustomTemplates();
   const newTemplate: CustomTemplate = {
     ...template,
@@ -199,7 +201,7 @@ export function saveCustomTemplate(template: Omit<CustomTemplate, 'id' | 'create
 // Delete custom template
 export function deleteCustomTemplate(templateId: string): boolean {
   const templates = getCustomTemplates();
-  const filtered = templates.filter(t => t.id !== templateId);
+  const filtered = templates.filter((t) => t.id !== templateId);
   if (filtered.length !== templates.length) {
     localStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(filtered));
     // Also remove from favorites and recent
@@ -229,7 +231,7 @@ export function getFavoriteTemplates(): JournalTemplate[] {
   const favoriteIds = getFavoriteTemplateIds();
   const allTemplates = getAllTemplates();
   return favoriteIds
-    .map(id => allTemplates.find(t => t.id === id))
+    .map((id) => allTemplates.find((t) => t.id === id))
     .filter((t): t is JournalTemplate => t !== undefined);
 }
 
@@ -245,7 +247,7 @@ export function addToFavorites(templateId: string): void {
 // Remove from favorites
 export function removeFromFavorites(templateId: string): void {
   const favorites = getFavoriteTemplateIds();
-  const filtered = favorites.filter(id => id !== templateId);
+  const filtered = favorites.filter((id) => id !== templateId);
   localStorage.setItem(FAVORITE_TEMPLATES_KEY, JSON.stringify(filtered));
 }
 
@@ -285,7 +287,7 @@ export function getRecentTemplates(): JournalTemplate[] {
   const recentIds = getRecentTemplateIds();
   const allTemplates = getAllTemplates();
   return recentIds
-    .map(id => allTemplates.find(t => t.id === id))
+    .map((id) => allTemplates.find((t) => t.id === id))
     .filter((t): t is JournalTemplate => t !== undefined);
 }
 
@@ -293,7 +295,7 @@ export function getRecentTemplates(): JournalTemplate[] {
 export function addToRecent(templateId: string): void {
   let recent = getRecentTemplateIds();
   // Remove if already exists
-  recent = recent.filter(id => id !== templateId);
+  recent = recent.filter((id) => id !== templateId);
   // Add to beginning
   recent.unshift(templateId);
   // Keep only max number
@@ -304,7 +306,7 @@ export function addToRecent(templateId: string): void {
 // Remove from recent
 export function removeFromRecent(templateId: string): void {
   const recent = getRecentTemplateIds();
-  const filtered = recent.filter(id => id !== templateId);
+  const filtered = recent.filter((id) => id !== templateId);
   localStorage.setItem(RECENT_TEMPLATES_KEY, JSON.stringify(filtered));
 }
 
@@ -313,7 +315,7 @@ export function processTemplateContent(content: string, date: string): string {
   const dt = new Date(date + 'T00:00:00');
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const weekdaysZh = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-  
+
   return content
     .replace(/\{\{date\}\}/g, date)
     .replace(/\{\{year\}\}/g, String(dt.getFullYear()))

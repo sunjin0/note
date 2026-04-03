@@ -29,12 +29,14 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
 
   const monthEntries = React.useMemo(() => {
     const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
-    return entries.filter(e => e.date.startsWith(prefix));
+    return entries.filter((e) => e.date.startsWith(prefix));
   }, [entries, year, month]);
 
   const entryMap = React.useMemo(() => {
     const map: Record<string, MoodEntry> = {};
-    monthEntries.forEach(e => { map[e.date] = e; });
+    monthEntries.forEach((e) => {
+      map[e.date] = e;
+    });
     return map;
   }, [monthEntries]);
 
@@ -50,7 +52,9 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
 
   // Mood stats for this month
   const moodCounts: Record<Mood, number> = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
-  monthEntries.forEach(e => { moodCounts[e.mood]++; });
+  monthEntries.forEach((e) => {
+    moodCounts[e.mood]++;
+  });
 
   const days = [];
   // Fill blanks for first week
@@ -67,16 +71,16 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-foreground">
-            {viewMode === 'month' 
+            {viewMode === 'month'
               ? t('calendar.title', { year, month: month + 1 })
-              : `${year}${t('calendar.yearSuffix') || '年'}`
-            }
+              : `${year}${t('calendar.yearSuffix') || '年'}`}
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {viewMode === 'month' 
+            {viewMode === 'month'
               ? t('calendar.recordsThisMonth', { count: monthEntries.length })
-              : t('calendar.recordsThisYear', { count: entries.filter(e => e.date.startsWith(String(year))).length })
-            }
+              : t('calendar.recordsThisYear', {
+                  count: entries.filter((e) => e.date.startsWith(String(year))).length,
+                })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -86,8 +90,8 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
               onClick={() => setViewMode('month')}
               className={cn(
                 'flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
-                viewMode === 'month' 
-                  ? 'bg-card text-foreground shadow-sm' 
+                viewMode === 'month'
+                  ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -98,8 +102,8 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
               onClick={() => setViewMode('year')}
               className={cn(
                 'flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
-                viewMode === 'year' 
-                  ? 'bg-card text-foreground shadow-sm' 
+                viewMode === 'year'
+                  ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -107,7 +111,9 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
               <span className="hidden sm:inline">{t('calendar.yearView') || '年'}</span>
             </button>
           </div>
-          <Button variant="outline" size="sm" onClick={goToday}>{t('calendar.today')}</Button>
+          <Button variant="outline" size="sm" onClick={goToday}>
+            {t('calendar.today')}
+          </Button>
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={prevMonth}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -118,9 +124,9 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
       </div>
 
       {viewMode === 'year' ? (
-        <YearView 
-          year={year} 
-          entries={entries} 
+        <YearView
+          year={year}
+          entries={entries}
           onSelectDate={onSelectDate}
           onMonthClick={(m) => {
             setCurrentDate(new Date(year, m, 1));
@@ -131,78 +137,87 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
         <>
           {/* Month View Content */}
 
-      {/* Calendar Grid */}
-      <Card>
-        <CardContent className="p-4">
-          {/* Week headers */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {t<string[]>('calendar.weekDays', {}).map((d: string) => (
-              <div key={d} className="text-center text-xs font-medium text-muted-foreground py-2">
-                {d}
+          {/* Calendar Grid */}
+          <Card>
+            <CardContent className="p-4">
+              {/* Week headers */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {t<string[]>('calendar.weekDays', {}).map((d: string) => (
+                  <div
+                    key={d}
+                    className="text-center text-xs font-medium text-muted-foreground py-2"
+                  >
+                    {d}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          {/* Day cells */}
-          <div className="grid grid-cols-7 gap-1">
-            {days.map((day, i) => {
-              if (day === null) return <div key={`blank-${i}`} />;
-              const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-              const entry = entryMap[dateStr];
-              const isToday = dateStr === todayStr;
-              const isFuture = new Date(dateStr + 'T00:00:00') > today;
+              {/* Day cells */}
+              <div className="grid grid-cols-7 gap-1">
+                {days.map((day, i) => {
+                  if (day === null) return <div key={`blank-${i}`} />;
+                  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const entry = entryMap[dateStr];
+                  const isToday = dateStr === todayStr;
+                  const isFuture = new Date(dateStr + 'T00:00:00') > today;
 
-              const isSelected = selectedDate === dateStr;
+                  const isSelected = selectedDate === dateStr;
 
-              return (
-                <button
-                  key={dateStr}
-                  onClick={() => {
-                    if (!isFuture) {
-                      setSelectedDate(dateStr);
-                      onSelectDate(dateStr);
-                    }
-                  }}
-                  disabled={isFuture}
-                  className={cn(
-                    'relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm transition-all duration-200',
-                    isSelected && 'ring-2 ring-primary',
-                    entry && moodCellBg[entry.mood],
-                    !isFuture && !entry && 'hover:bg-accent',
-                    isFuture && 'opacity-30 cursor-not-allowed',
-                  )}
-                >
-                  <span className={cn(
-                    'text-sm font-medium',
-                    isToday ? 'text-primary' : entry ? 'text-foreground' : 'text-muted-foreground'
-                  )}>
-                    {day}
-                  </span>
-                  {entry && (
-                    <span className="text-xs mt-0.5">{MOOD_CONFIG[entry.mood].emoji}</span>
-                  )}
-                  {isToday && !entry && (
-                    <Plus className="h-3 w-3 text-primary mt-0.5" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                  return (
+                    <button
+                      key={dateStr}
+                      onClick={() => {
+                        if (!isFuture) {
+                          setSelectedDate(dateStr);
+                          onSelectDate(dateStr);
+                        }
+                      }}
+                      disabled={isFuture}
+                      className={cn(
+                        'relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm transition-all duration-200',
+                        isSelected && 'ring-2 ring-primary',
+                        entry && moodCellBg[entry.mood],
+                        !isFuture && !entry && 'hover:bg-accent',
+                        isFuture && 'opacity-30 cursor-not-allowed'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'text-sm font-medium',
+                          isToday
+                            ? 'text-primary'
+                            : entry
+                              ? 'text-foreground'
+                              : 'text-muted-foreground'
+                        )}
+                      >
+                        {day}
+                      </span>
+                      {entry && (
+                        <span className="text-xs mt-0.5">{MOOD_CONFIG[entry.mood].emoji}</span>
+                      )}
+                      {isToday && !entry && <Plus className="h-3 w-3 text-primary mt-0.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Month Summary */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
-              <Card key={key} className={cn('border-none', config.bgClass)}>
-                <CardContent className="p-3 flex items-center gap-2">
-                  <span className="text-xl">{config.emoji}</span>
-                  <div>
-                    <p className="text-lg font-bold text-foreground">{moodCounts[key as Mood]}</p>
-                    <p className="text-[10px] text-muted-foreground">{t(`mood.${key}`)}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {(Object.entries(MOOD_CONFIG) as [Mood, (typeof MOOD_CONFIG)[Mood]][]).map(
+              ([key, config]) => (
+                <Card key={key} className={cn('border-none', config.bgClass)}>
+                  <CardContent className="p-3 flex items-center gap-2">
+                    <span className="text-xl">{config.emoji}</span>
+                    <div>
+                      <p className="text-lg font-bold text-foreground">{moodCounts[key as Mood]}</p>
+                      <p className="text-[10px] text-muted-foreground">{t(`mood.${key}`)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            )}
           </div>
         </>
       )}
@@ -221,54 +236,71 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
 }
 
 // 年度视图组件
-function YearView({ 
-  year, 
-  entries, 
+function YearView({
+  year,
+  entries,
   onSelectDate,
-  onMonthClick 
-}: { 
-  year: number; 
-  entries: MoodEntry[]; 
+  onMonthClick,
+}: {
+  year: number;
+  entries: MoodEntry[];
   onSelectDate: (date: string) => void;
   onMonthClick: (month: number) => void;
 }) {
   const { t } = useTranslation();
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  
+
   // 获取年度数据
-  const yearEntries = entries.filter(e => e.date.startsWith(String(year)));
+  const yearEntries = entries.filter((e) => e.date.startsWith(String(year)));
   const entryMap: Record<string, MoodEntry> = {};
-  yearEntries.forEach(e => { entryMap[e.date] = e; });
+  yearEntries.forEach((e) => {
+    entryMap[e.date] = e;
+  });
 
   // 生成12个月的迷你日历
   const months = Array.from({ length: 12 }, (_, i) => i);
-  const weekDays = (t('calendar.weekDaysShort', {}) as unknown as string[]) || ['日', '一', '二', '三', '四', '五', '六'];
+  const weekDays = (t('calendar.weekDaysShort', {}) as unknown as string[]) || [
+    '日',
+    '一',
+    '二',
+    '三',
+    '四',
+    '五',
+    '六',
+  ];
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      {months.map(month => {
+      {months.map((month) => {
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        
+
         const days: (number | null)[] = [];
         for (let i = 0; i < firstDay; i++) days.push(null);
         for (let d = 1; d <= daysInMonth; d++) days.push(d);
-        
+
         // 计算该月的心情统计
         const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
-        const monthData = yearEntries.filter(e => e.date.startsWith(monthPrefix));
+        const monthData = yearEntries.filter((e) => e.date.startsWith(monthPrefix));
         const moodCount = monthData.length;
-        const avgMood = moodCount > 0 
-          ? monthData.reduce((sum, e) => {
-              const values: Record<Mood, number> = { great: 5, good: 4, okay: 3, sad: 2, angry: 1 };
-              return sum + values[e.mood];
-            }, 0) / moodCount 
-          : 0;
+        const avgMood =
+          moodCount > 0
+            ? monthData.reduce((sum, e) => {
+                const values: Record<Mood, number> = {
+                  great: 5,
+                  good: 4,
+                  okay: 3,
+                  sad: 2,
+                  angry: 1,
+                };
+                return sum + values[e.mood];
+              }, 0) / moodCount
+            : 0;
 
         return (
-          <Card 
-            key={month} 
+          <Card
+            key={month}
             className="cursor-pointer hover:shadow-md transition-shadow"
             onClick={() => onMonthClick(month)}
           >
@@ -276,7 +308,8 @@ function YearView({
               {/* 月份标题 */}
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-foreground">
-                  {month + 1}{t('calendar.monthSuffix') || '月'}
+                  {month + 1}
+                  {t('calendar.monthSuffix') || '月'}
                 </h3>
                 {moodCount > 0 && (
                   <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
@@ -284,7 +317,7 @@ function YearView({
                   </span>
                 )}
               </div>
-              
+
               {/* 迷你日历网格 */}
               <div className="grid grid-cols-7 gap-0.5">
                 {/* 星期标题 */}
@@ -300,7 +333,7 @@ function YearView({
                   const entry = entryMap[dateStr];
                   const isToday = dateStr === todayStr;
                   const isFuture = new Date(dateStr + 'T00:00:00') > today;
-                  
+
                   return (
                     <button
                       key={dateStr}
@@ -319,25 +352,32 @@ function YearView({
                         !isFuture && 'hover:bg-accent cursor-pointer',
                         isFuture && 'opacity-30 cursor-not-allowed'
                       )}
-                      title={entry ? `${month + 1}/${day} ${t(`mood.${entry.mood}`)}` : `${month + 1}/${day}`}
+                      title={
+                        entry
+                          ? `${month + 1}/${day} ${t(`mood.${entry.mood}`)}`
+                          : `${month + 1}/${day}`
+                      }
                     >
                       {day}
                     </button>
                   );
                 })}
               </div>
-              
+
               {/* 心情指示条 */}
               {moodCount > 0 && (
                 <div className="mt-2 h-1 rounded-full overflow-hidden bg-muted flex">
-                  {(['great', 'good', 'okay', 'sad', 'angry'] as Mood[]).map(mood => {
-                    const count = monthData.filter(e => e.mood === mood).length;
+                  {(['great', 'good', 'okay', 'sad', 'angry'] as Mood[]).map((mood) => {
+                    const count = monthData.filter((e) => e.mood === mood).length;
                     const percentage = (count / moodCount) * 100;
                     if (percentage === 0) return null;
                     return (
                       <div
                         key={mood}
-                        className={cn('h-full', CALENDAR_COLORS.moodDotColor[mood].replace('bg-', 'bg-mood-'))}
+                        className={cn(
+                          'h-full',
+                          CALENDAR_COLORS.moodDotColor[mood].replace('bg-', 'bg-mood-')
+                        )}
                         style={{ width: `${percentage}%` }}
                       />
                     );
@@ -354,9 +394,9 @@ function YearView({
 
 function HeatmapView({ entries }: { entries: MoodEntry[] }) {
   const { t } = useTranslation();
-  
+
   const moodValue = HEATMAP_VALUE;
-  
+
   const valueColor = (v: number | null) => {
     if (v === null) return 'bg-muted/40';
     if (v >= 4) return 'bg-mood-great';
@@ -374,7 +414,9 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
   });
 
   const entryMap: Record<string, MoodEntry> = {};
-  entries.forEach(e => { entryMap[e.date] = e; });
+  entries.forEach((e) => {
+    entryMap[e.date] = e;
+  });
 
   // Group by weeks
   const weeks: (string | null)[][] = [];
@@ -383,7 +425,7 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
   for (let i = 0; i < firstDayOfWeek; i++) {
     currentWeek.push(null);
   }
-  days.forEach(d => {
+  days.forEach((d) => {
     currentWeek.push(d);
     if (currentWeek.length === 7) {
       weeks.push(currentWeek);
@@ -398,7 +440,7 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
   const getMonthLabel = (weekIndex: number) => {
     const week = weeks[weekIndex];
     if (!week) return null;
-    const firstValidDay = week.find(d => d !== null);
+    const firstValidDay = week.find((d) => d !== null);
     if (!firstValidDay) return null;
     const dt = new Date(firstValidDay + 'T00:00:00');
     const dayOfMonth = dt.getDate();
@@ -410,7 +452,15 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
   };
 
   // Week day labels
-  const weekDayLabels = t('calendar.weekDaysShort', {}) as unknown as string[] || ['日', '一', '二', '三', '四', '五', '六'];
+  const weekDayLabels = (t('calendar.weekDaysShort', {}) as unknown as string[]) || [
+    '日',
+    '一',
+    '二',
+    '三',
+    '四',
+    '五',
+    '六',
+  ];
 
   return (
     <div className="space-y-3">
@@ -424,7 +474,8 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
               <div key={wi} className="flex-shrink-0 w-4 md:w-5 flex items-center justify-center">
                 {monthLabel && (
                   <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">
-                    {monthLabel}{t('calendar.monthSuffix') || '月'}
+                    {monthLabel}
+                    {t('calendar.monthSuffix') || '月'}
                   </span>
                 )}
               </div>
@@ -437,9 +488,9 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
       <div className="flex gap-1">
         {/* Weekday labels */}
         <div className="flex flex-col gap-1 w-6 md:w-8 flex-shrink-0">
-          {[0, 1, 2, 3, 4, 5, 6].map(dayIndex => (
-            <div 
-              key={dayIndex} 
+          {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
+            <div
+              key={dayIndex}
               className="h-4 md:h-5 flex items-center justify-end pr-1 text-[10px] md:text-xs text-muted-foreground"
             >
               {weekDayLabels[dayIndex]}
@@ -457,14 +508,16 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
                 const val = entry ? moodValue[entry.mood] : null;
                 const dt = new Date(d + 'T00:00:00');
                 const tooltip = `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()} ${entry ? t(`mood.${entry.mood}`) : t('calendar.noRecord')}`;
-                
+
                 return (
                   <div
                     key={d}
                     className={cn(
                       'w-4 h-4 md:w-5 md:h-5 rounded transition-all duration-200 cursor-pointer',
                       valueColor(val),
-                      val !== null ? 'hover:ring-2 hover:ring-foreground/30 hover:scale-110' : 'hover:bg-muted/60'
+                      val !== null
+                        ? 'hover:ring-2 hover:ring-foreground/30 hover:scale-110'
+                        : 'hover:bg-muted/60'
                     )}
                     title={tooltip}
                   />
@@ -489,7 +542,7 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
           </div>
           <span>{t('calendar.heatmapMore')}</span>
         </div>
-        
+
         {/* Date range indicator */}
         <div className="text-[10px] text-muted-foreground">
           {(() => {

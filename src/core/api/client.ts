@@ -1,12 +1,17 @@
 /**
  * API 客户端模块
  * 提供HTTP请求封装、拦截器、错误处理等功能
- * 
+ *
  * @module api/client
  */
 
 import { API_BASE_URL, API_CONFIG, HTTP_STATUS, API_ERROR_CODES } from './config';
-import { getAuthToken, getAuthCredentials, saveAuthCredentials, clearAuthCredentials } from '@/core/storage';
+import {
+  getAuthToken,
+  getAuthCredentials,
+  saveAuthCredentials,
+  clearAuthCredentials,
+} from '@/core/storage';
 
 /**
  * API 错误类
@@ -53,7 +58,7 @@ function buildUrl(endpoint: string): string {
 function getHeaders(config: RequestConfig): HeadersInit {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   };
 
   // 添加认证令牌
@@ -70,12 +75,9 @@ function getHeaders(config: RequestConfig): HeadersInit {
 /**
  * 带超时的fetch
  */
-async function fetchWithTimeout(
-  url: string,
-  config: RequestConfig
-): Promise<Response> {
+async function fetchWithTimeout(url: string, config: RequestConfig): Promise<Response> {
   const timeout = config.timeout || API_CONFIG.timeout;
-  
+
   return new Promise((resolve, reject) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
@@ -108,13 +110,8 @@ async function handleResponse<T>(response: Response): Promise<T> {
     const errorCode = data.code || data.error?.code;
     const message = data.message || data.error?.message || 'Request failed';
     const fieldErrors = data.errors || data.fieldErrors;
-    
-    throw new ApiError(
-      message,
-      response.status,
-      errorCode,
-      fieldErrors
-    );
+
+    throw new ApiError(message, response.status, errorCode, fieldErrors);
   }
 
   return data as T;
@@ -139,7 +136,7 @@ async function refreshAuthToken(): Promise<string | null> {
     }
 
     const data = await response.json();
-    
+
     // 更新存储的凭据
     const newCredentials = {
       ...credentials,
@@ -160,15 +157,12 @@ async function refreshAuthToken(): Promise<string | null> {
 /**
  * 发送API请求
  */
-async function request<T>(
-  endpoint: string,
-  config: RequestConfig = {}
-): Promise<T> {
+async function request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
   const url = buildUrl(endpoint);
   const retryCount = config.retryCount ?? API_CONFIG.retryCount;
-  
+
   let lastError: Error | null = null;
-  
+
   for (let attempt = 0; attempt <= retryCount; attempt++) {
     try {
       const response = await fetchWithTimeout(url, {
@@ -188,13 +182,13 @@ async function request<T>(
       return await handleResponse<T>(response);
     } catch (error) {
       lastError = error as Error;
-      
+
       // 网络错误时重试
       if (error instanceof TypeError && attempt < retryCount) {
-        await new Promise(resolve => setTimeout(resolve, API_CONFIG.retryDelay * (attempt + 1)));
+        await new Promise((resolve) => setTimeout(resolve, API_CONFIG.retryDelay * (attempt + 1)));
         continue;
       }
-      
+
       throw error;
     }
   }
@@ -263,7 +257,7 @@ export function getApiErrorMessage(error: unknown): string {
     if (error.errorCode && API_ERROR_CODES[error.errorCode]) {
       return API_ERROR_CODES[error.errorCode];
     }
-    
+
     // 根据状态码返回通用错误
     switch (error.statusCode) {
       case HTTP_STATUS.UNAUTHORIZED:
@@ -280,11 +274,11 @@ export function getApiErrorMessage(error: unknown): string {
         return error.message;
     }
   }
-  
+
   if (error instanceof TypeError) {
     return 'api.networkError';
   }
-  
+
   return 'api.unknownError';
 }
 

@@ -30,11 +30,8 @@ export default function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" 
-        onClick={onCancel}
-      />
-      
+      <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onCancel} />
+
       {/* Dialog */}
       <div className="relative z-10 w-full max-w-sm bg-card rounded-2xl shadow-elevated border border-border animate-scale-in">
         {/* Header */}
@@ -43,10 +40,7 @@ export default function ConfirmDialog({
             <AlertTriangle className="h-5 w-5 text-destructive" />
             <h3 className="text-base font-semibold text-foreground">{title}</h3>
           </div>
-          <button 
-            onClick={onCancel}
-            className="rounded-lg p-1.5 hover:bg-accent transition-colors"
-          >
+          <button onClick={onCancel} className="rounded-lg p-1.5 hover:bg-accent transition-colors">
             <X className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
@@ -61,11 +55,7 @@ export default function ConfirmDialog({
           <Button variant="outline" onClick={onCancel} className="flex-1">
             {cancelText}
           </Button>
-          <Button 
-            variant={confirmVariant} 
-            onClick={onConfirm} 
-            className="flex-1"
-          >
+          <Button variant={confirmVariant} onClick={onConfirm} className="flex-1">
             {confirmText}
           </Button>
         </div>

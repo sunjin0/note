@@ -40,10 +40,10 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!mounted) return;
-    
+
     const resolved = resolveTheme(theme);
     setResolvedTheme(resolved);
-    
+
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(resolved);
@@ -51,7 +51,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!mounted) return;
-    
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
       if (theme === 'system') {
@@ -97,16 +97,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initialize = async () => {
       await initAuth();
-      
+
       const passwordEnabled = isPasswordEnabled();
       const sessionValid = isSessionValid();
-      
+
       if (!passwordEnabled || sessionValid) {
         setIsUnlocked(true);
       }
       setIsLoading(false);
     };
-    
+
     initialize();
   }, []);
 

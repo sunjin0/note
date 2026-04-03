@@ -28,7 +28,11 @@ export function exportData(): string {
   const entries = getEntries();
   const settings = getSettings();
   const securitySettings = getSecuritySettings();
-  return JSON.stringify({ entries, settings, securitySettings, exportedAt: new Date().toISOString() }, null, 2);
+  return JSON.stringify(
+    { entries, settings, securitySettings, exportedAt: new Date().toISOString() },
+    null,
+    2
+  );
 }
 
 /**
@@ -95,13 +99,13 @@ export function importData(
       // 合并数据：保留现有数据，添加新数据（根据日期去重）
       const existingData = localStorage.getItem(STORAGE_KEY);
       const existingEntries: MoodEntry[] = existingData ? JSON.parse(existingData) : [];
-      
-      const existingDates = new Set(existingEntries.map(e => e.date));
-      const newEntries = data.entries.filter(e => !existingDates.has(e.date));
-      
+
+      const existingDates = new Set(existingEntries.map((e) => e.date));
+      const newEntries = data.entries.filter((e) => !existingDates.has(e.date));
+
       const mergedEntries = [...existingEntries, ...newEntries];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedEntries));
-      
+
       return { success: true, importedCount: newEntries.length };
     }
 
@@ -110,10 +114,10 @@ export function importData(
     if (existingData) {
       const existingEntries = JSON.parse(existingData) as MoodEntry[];
       if (existingEntries.length > 0) {
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: 'Existing data found. Use merge=true or overwrite=true option.',
-          importedCount: 0 
+          importedCount: 0,
         };
       }
     }
@@ -126,13 +130,13 @@ export function importData(
     if (data.securitySettings) {
       localStorage.setItem(SECURITY_KEY, JSON.stringify(data.securitySettings));
     }
-    
+
     return { success: true, importedCount: data.entries.length };
   } catch (error) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : 'Import failed',
-      importedCount: 0 
+      importedCount: 0,
     };
   }
 }
@@ -144,17 +148,17 @@ export function importData(
  */
 export function downloadExportFile(filename?: string): void {
   if (typeof window === 'undefined') return;
-  
+
   const data = exportData();
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  
+
   const link = document.createElement('a');
   link.href = url;
   link.download = `${filename || 'mood-journal-backup'}-${new Date().toISOString().split('T')[0]}.json`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
+
   URL.revokeObjectURL(url);
 }

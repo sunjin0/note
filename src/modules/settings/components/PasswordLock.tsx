@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff, HelpCircle, KeyRound } from 'lucide-react';
 import { Button } from '@/core/ui/button';
 import type { SecuritySettings } from '@/core/storage';
-import { 
-  verifyPassword, 
-  verifySecurityAnswers, 
-  resetPassword, 
+import {
+  verifyPassword,
+  verifySecurityAnswers,
+  resetPassword,
   getSecuritySettings,
   getLockoutStatus,
-  createSession
+  createSession,
 } from '@/core/storage';
 import { useTranslation } from '@/core/i18n';
 
@@ -45,12 +45,17 @@ export default function PasswordLock({ onUnlock }: PasswordLockProps) {
 
   const handleVerifyPassword = () => {
     setError('');
-    
+
     if (lockoutStatus.isLocked) {
-      setError(t('settings.security.lockoutMessage').replace('{minutes}', String(lockoutStatus.remainingMinutes)));
+      setError(
+        t('settings.security.lockoutMessage').replace(
+          '{minutes}',
+          String(lockoutStatus.remainingMinutes)
+        )
+      );
       return;
     }
-    
+
     if (verifyPassword(password)) {
       createSession();
       onUnlock();
@@ -58,7 +63,12 @@ export default function PasswordLock({ onUnlock }: PasswordLockProps) {
       const newStatus = getLockoutStatus();
       setLockoutStatus(newStatus);
       if (newStatus.isLocked) {
-        setError(t('settings.security.lockoutMessage').replace('{minutes}', String(newStatus.remainingMinutes)));
+        setError(
+          t('settings.security.lockoutMessage').replace(
+            '{minutes}',
+            String(newStatus.remainingMinutes)
+          )
+        );
       } else {
         setError(t('settings.security.passwordPlaceholder'));
       }
@@ -84,17 +94,17 @@ export default function PasswordLock({ onUnlock }: PasswordLockProps) {
 
   const handleResetPassword = () => {
     setError('');
-    
+
     if (newPassword.length < 6) {
       setError(t('settings.security.passwordTooShort'));
       return;
     }
-    
+
     if (newPassword !== confirmPassword) {
       setError(t('settings.security.passwordMismatch'));
       return;
     }
-    
+
     resetPassword(newPassword);
     setPassword(newPassword);
     setStep('password');
@@ -122,8 +132,12 @@ export default function PasswordLock({ onUnlock }: PasswordLockProps) {
           {step === 'password' && (
             <div className="space-y-4">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-semibold mb-1">{t('settings.security.passwordProtection')}</h2>
-                <p className="text-sm text-muted-foreground">{t('settings.security.passwordPlaceholder')}</p>
+                <h2 className="text-lg font-semibold mb-1">
+                  {t('settings.security.passwordProtection')}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {t('settings.security.passwordPlaceholder')}
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -154,8 +168,8 @@ export default function PasswordLock({ onUnlock }: PasswordLockProps) {
                 </div>
               )}
 
-              <Button 
-                onClick={handleVerifyPassword} 
+              <Button
+                onClick={handleVerifyPassword}
                 disabled={!password || lockoutStatus.isLocked}
                 className="w-full py-3"
               >
@@ -179,8 +193,12 @@ export default function PasswordLock({ onUnlock }: PasswordLockProps) {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-3">
                   <HelpCircle className="h-6 w-6 text-primary" />
                 </div>
-                <h2 className="text-lg font-semibold mb-1">{t('settings.security.verifyIdentity')}</h2>
-                <p className="text-sm text-muted-foreground">{t('settings.security.securityQuestionsDescription')}</p>
+                <h2 className="text-lg font-semibold mb-1">
+                  {t('settings.security.verifyIdentity')}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {t('settings.security.securityQuestionsDescription')}
+                </p>
               </div>
 
               <div className="space-y-4">
@@ -226,8 +244,12 @@ export default function PasswordLock({ onUnlock }: PasswordLockProps) {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-3">
                   <KeyRound className="h-6 w-6 text-primary" />
                 </div>
-                <h2 className="text-lg font-semibold mb-1">{t('settings.security.resetPassword')}</h2>
-                <p className="text-sm text-muted-foreground">{t('settings.security.passwordTooShort')}</p>
+                <h2 className="text-lg font-semibold mb-1">
+                  {t('settings.security.resetPassword')}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {t('settings.security.passwordTooShort')}
+                </p>
               </div>
 
               <div className="space-y-3">

@@ -2,7 +2,7 @@
  * 存储管理模块
  * 提供本地数据的增删改查、加密解密、密码保护等功能
  * 所有数据存储在浏览器的 localStorage 中
- * 
+ *
  * @module storage
  */
 
@@ -49,10 +49,7 @@ export {
 } from '@/core/storage/entries';
 
 // 应用设置管理
-export {
-  getSettings,
-  saveSettings,
-} from '@/core/storage/settings';
+export { getSettings, saveSettings } from '@/core/storage/settings';
 
 // 安全设置与会话管理
 export {
@@ -113,11 +110,7 @@ export {
 } from '@/core/storage/backup';
 
 // 加密工具
-export {
-  simpleHash,
-  encryptData,
-  decryptData,
-} from '@/core/storage/crypto';
+export { simpleHash, encryptData, decryptData } from '@/core/storage/crypto';
 
 // 数据同步
 export {

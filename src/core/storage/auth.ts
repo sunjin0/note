@@ -1,7 +1,7 @@
 /**
  * 用户认证模块
  * 提供用户注册、登录、登出和认证状态管理功能
- * 
+ *
  * @module auth
  */
 
@@ -202,13 +202,13 @@ export function clearAuthState(): void {
 export function isAuthenticated(): boolean {
   const credentials = getAuthCredentials();
   if (!credentials) return false;
-  
+
   // 检查令牌是否过期
   const expiresAt = new Date(credentials.expiresAt);
   if (expiresAt <= new Date()) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -234,10 +234,10 @@ export function getAuthToken(): string | null {
 export function isTokenExpiringSoon(): boolean {
   const credentials = getAuthCredentials();
   if (!credentials) return false;
-  
+
   const expiresAt = new Date(credentials.expiresAt);
   const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000);
-  
+
   return expiresAt <= oneHourFromNow;
 }
 
@@ -250,30 +250,30 @@ export function isTokenExpiringSoon(): boolean {
 export async function register(request: RegisterRequest): Promise<AuthResponse> {
   // 验证输入
   const fieldErrors: Record<string, string> = {};
-  
+
   if (!request.username || request.username.length < 3) {
     fieldErrors.username = 'auth.usernameTooShort';
   }
-  
+
   if (!request.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(request.email)) {
     fieldErrors.email = 'auth.invalidEmail';
   }
-  
+
   if (!request.password || request.password.length < 6) {
     fieldErrors.password = 'auth.passwordTooShort';
   }
-  
+
   if (request.password !== request.confirmPassword) {
     fieldErrors.confirmPassword = 'auth.passwordMismatch';
   }
-  
+
   if (Object.keys(fieldErrors).length > 0) {
     return { success: false, fieldErrors };
   }
-  
+
   // 调用后端API
   const response = await apiRegister(request);
-  
+
   if (response.success && response.token && response.user) {
     // 保存认证凭据
     const credentials: AuthCredentials = {
@@ -284,7 +284,7 @@ export async function register(request: RegisterRequest): Promise<AuthResponse> 
       loginAt: new Date().toISOString(),
     };
     saveAuthCredentials(credentials);
-    
+
     // 保存认证状态
     saveAuthState({
       isAuthenticated: true,
@@ -292,7 +292,7 @@ export async function register(request: RegisterRequest): Promise<AuthResponse> 
       error: null,
     });
   }
-  
+
   return response;
 }
 
@@ -305,10 +305,10 @@ export async function login(request: LoginRequest): Promise<AuthResponse> {
   if (!request.identifier || !request.password) {
     return { success: false, error: 'auth.invalidCredentials' };
   }
-  
+
   // 调用后端API
   const response = await apiLogin(request);
-  
+
   if (response.success && response.token && response.user) {
     // 保存认证凭据
     const credentials: AuthCredentials = {
@@ -319,7 +319,7 @@ export async function login(request: LoginRequest): Promise<AuthResponse> {
       loginAt: new Date().toISOString(),
     };
     saveAuthCredentials(credentials);
-    
+
     // 保存认证状态
     saveAuthState({
       isAuthenticated: true,
@@ -327,7 +327,7 @@ export async function login(request: LoginRequest): Promise<AuthResponse> {
       error: null,
     });
   }
-  
+
   return response;
 }
 
@@ -337,11 +337,11 @@ export async function login(request: LoginRequest): Promise<AuthResponse> {
 export async function logout(): Promise<void> {
   // 调用后端API
   await apiLogout();
-  
+
   // 清除本地存储
   clearAuthCredentials();
   clearAuthState();
-  
+
   // 清除同步相关的认证令牌
   const { getSyncSettings, saveSyncSettings } = await import('./sync');
   const syncSettings = getSyncSettings();
@@ -355,10 +355,10 @@ export async function logout(): Promise<void> {
 export async function refreshToken(): Promise<boolean> {
   const credentials = getAuthCredentials();
   if (!credentials?.refreshToken) return false;
-  
+
   // 调用后端API刷新令牌
   const response = await apiRefreshToken(credentials.refreshToken);
-  
+
   if (response.success && response.token) {
     const newCredentials: AuthCredentials = {
       ...credentials,
@@ -366,18 +366,18 @@ export async function refreshToken(): Promise<boolean> {
       refreshToken: response.refreshToken || credentials.refreshToken,
       expiresAt: response.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     };
-    
+
     saveAuthCredentials(newCredentials);
-    
+
     // 更新同步设置中的令牌
     const { getSyncSettings, saveSyncSettings } = await import('./sync');
     const syncSettings = getSyncSettings();
     syncSettings.authToken = response.token;
     saveSyncSettings(syncSettings);
-    
+
     return true;
   }
-  
+
   return false;
 }
 
@@ -387,12 +387,12 @@ export async function refreshToken(): Promise<boolean> {
  */
 export async function initAuth(): Promise<void> {
   const credentials = getAuthCredentials();
-  
+
   if (!credentials) {
     saveAuthState({ isAuthenticated: false, user: null, isLoading: false });
     return;
   }
-  
+
   // 检查令牌是否过期
   const expiresAt = new Date(credentials.expiresAt);
   if (expiresAt <= new Date()) {
@@ -404,7 +404,7 @@ export async function initAuth(): Promise<void> {
       return;
     }
   }
-  
+
   // 从后端获取最新用户信息
   const user = await apiGetCurrentUser();
   if (user) {
@@ -413,7 +413,7 @@ export async function initAuth(): Promise<void> {
       user,
       isLoading: false,
     });
-    
+
     // 同步更新同步设置中的令牌
     const { getSyncSettings, saveSyncSettings } = await import('./sync');
     const syncSettings = getSyncSettings();
@@ -448,12 +448,10 @@ export async function changePassword(
   if (!credentials) {
     return { success: false, error: 'auth.notAuthenticated' };
   }
-  
+
   // 调用后端API
   return apiChangePassword(currentPassword, newPassword);
 }
-
-
 
 /**
  * 验证邮箱格式
@@ -473,33 +471,33 @@ export function checkPasswordStrength(password: string): {
 } {
   let score = 0;
   const feedback: string[] = [];
-  
+
   if (password.length >= 8) {
     score++;
   } else {
     feedback.push('auth.passwordTooShort');
   }
-  
+
   if (/[a-z]/.test(password) && /[A-Z]/.test(password)) {
     score++;
   } else {
     feedback.push('auth.passwordNeedMixedCase');
   }
-  
+
   if (/\d/.test(password)) {
     score++;
   } else {
     feedback.push('auth.passwordNeedNumber');
   }
-  
+
   if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
     score++;
   } else {
     feedback.push('auth.passwordNeedSpecialChar');
   }
-  
+
   const labels = ['auth.weak', 'auth.fair', 'auth.good', 'auth.strong', 'auth.veryStrong'];
-  
+
   return {
     score,
     label: labels[score],

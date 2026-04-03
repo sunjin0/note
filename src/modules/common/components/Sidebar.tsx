@@ -30,7 +30,11 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
         className="fixed top-4 left-4 z-50 lg:hidden rounded-xl bg-card p-2.5 shadow-medium border border-border"
         aria-label={t('nav.menu')}
       >
-        {mobileOpen ? <X className="h-5 w-5 text-foreground" /> : <Menu className="h-5 w-5 text-foreground" />}
+        {mobileOpen ? (
+          <X className="h-5 w-5 text-foreground" />
+        ) : (
+          <Menu className="h-5 w-5 text-foreground" />
+        )}
       </button>
 
       {/* Overlay */}
@@ -64,7 +68,10 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
           {NAV_ITEMS.map(({ view, label, icon: Icon }) => (
             <button
               key={view}
-              onClick={() => { onViewChange(view); setMobileOpen(false); }}
+              onClick={() => {
+                onViewChange(view);
+                setMobileOpen(false);
+              }}
               className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                 currentView === view

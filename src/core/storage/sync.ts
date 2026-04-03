@@ -91,12 +91,12 @@ export function getSyncSettings(): SyncSettings {
 
 export function saveSyncSettings(settings: SyncSettings): void {
   if (typeof window === 'undefined') return;
-    settings.lastModified = new Date().toISOString();
-    localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify(settings));
+  settings.lastModified = new Date().toISOString();
+  localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify(settings));
 }
 
 export function getSyncState(): SyncState {
-    if (typeof window === 'undefined') {
+  if (typeof window === 'undefined') {
     return { ...DEFAULT_SYNC_STATE };
   }
   try {
@@ -115,120 +115,118 @@ export function getSyncState(): SyncState {
 }
 
 export function saveSyncState(state: Partial<SyncState>): void {
-    if (typeof window === 'undefined') return;
-    const current = getSyncState();
-    const newState = { 
-      ...current, 
-      ...state,
-      pendingEntryIds: state.pendingEntryIds ?? current.pendingEntryIds,
-      pendingDeletes: state.pendingDeletes ?? current.pendingDeletes,
-    };
-    localStorage.setItem(SYNC_STATE_KEY, JSON.stringify(newState));
+  if (typeof window === 'undefined') return;
+  const current = getSyncState();
+  const newState = {
+    ...current,
+    ...state,
+    pendingEntryIds: state.pendingEntryIds ?? current.pendingEntryIds,
+    pendingDeletes: state.pendingDeletes ?? current.pendingDeletes,
+  };
+  localStorage.setItem(SYNC_STATE_KEY, JSON.stringify(newState));
 }
 
 function generateDeviceId(): string {
-    const id = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    return id;
+  const id = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return id;
 }
 
 export function enableSync(): void {
-    const settings = getSyncSettings();
-    const state = getSyncState();
-    
-    settings.enabled = true;
-    if (!settings.deviceId) {
-        settings.deviceId = generateDeviceId();
-    }
-    saveSyncSettings(settings);
-    
-    if (!state.lastSyncAt) {
-        markAllEntriesForSync();
-    }
+  const settings = getSyncSettings();
+  const state = getSyncState();
+
+  settings.enabled = true;
+  if (!settings.deviceId) {
+    settings.deviceId = generateDeviceId();
+  }
+  saveSyncSettings(settings);
+
+  if (!state.lastSyncAt) {
+    markAllEntriesForSync();
+  }
 }
 
 export function disableSync(): void {
-    const settings = getSyncSettings();
-    settings.enabled = false;
-    saveSyncSettings(settings);
+  const settings = getSyncSettings();
+  settings.enabled = false;
+  saveSyncSettings(settings);
 }
 
 export function isSyncEnabled(): boolean {
-    const settings = getSyncSettings();
-    return settings.enabled && !!settings.authToken;
+  const settings = getSyncSettings();
+  return settings.enabled && !!settings.authToken;
 }
 
 export function setAuthToken(token: string | null): void {
-    const settings = getSyncSettings();
-    settings.authToken = token;
-    saveSyncSettings(settings);
+  const settings = getSyncSettings();
+  settings.authToken = token;
+  saveSyncSettings(settings);
 }
 
 export function updateSyncSettings(updates: Partial<SyncSettings>): void {
-    const settings = getSyncSettings();
-    Object.assign(settings, updates);
-    saveSyncSettings(settings);
+  const settings = getSyncSettings();
+  Object.assign(settings, updates);
+  saveSyncSettings(settings);
 }
 
 export function trackPendingChange(entry: MoodEntry): void {
-    const state = getSyncState();
-    if (!state.pendingEntryIds) {
-        state.pendingEntryIds = [];
-    }
-    if (!state.pendingEntryIds.includes(entry.id)) {
-        state.pendingEntryIds.push(entry.id);
-        state.pendingCount++;
-        saveSyncState(state);
-    }
+  const state = getSyncState();
+  if (!state.pendingEntryIds) {
+    state.pendingEntryIds = [];
+  }
+  if (!state.pendingEntryIds.includes(entry.id)) {
+    state.pendingEntryIds.push(entry.id);
+    state.pendingCount++;
+    saveSyncState(state);
+  }
 }
 
 export function markAllEntriesForSync(): void {
-    const allEntries = getEntries();
-    const state = getSyncState();
-    
-    if (!state.pendingEntryIds) {
-        state.pendingEntryIds = [];
+  const allEntries = getEntries();
+  const state = getSyncState();
+
+  if (!state.pendingEntryIds) {
+    state.pendingEntryIds = [];
+  }
+
+  allEntries.forEach((entry) => {
+    if (!entry.deletedAt && !state.pendingEntryIds.includes(entry.id)) {
+      state.pendingEntryIds.push(entry.id);
+      state.pendingCount++;
     }
-    
-    allEntries.forEach(entry => {
-        if (!entry.deletedAt && !state.pendingEntryIds.includes(entry.id)) {
-            state.pendingEntryIds.push(entry.id);
-            state.pendingCount++;
-        }
-    });
-    
-    saveSyncState(state);
+  });
+
+  saveSyncState(state);
 }
 
 export function trackDeletedId(id: string): void {
-    const state = getSyncState();
-    if (!state.pendingDeletes) {
-        state.pendingDeletes = [];
-    }
-    const deletedAt = new Date().toISOString();
-    state.pendingDeletes.push({ id, deletedAt });
-    state.pendingCount++;
-    saveSyncState(state);
+  const state = getSyncState();
+  if (!state.pendingDeletes) {
+    state.pendingDeletes = [];
+  }
+  const deletedAt = new Date().toISOString();
+  state.pendingDeletes.push({ id, deletedAt });
+  state.pendingCount++;
+  saveSyncState(state);
 }
 
 export function clearPendingSync(): void {
-    const state = getSyncState();
-    state.pendingEntryIds = [];
-    state.pendingDeletes = [];
-    state.pendingCount = 0;
-    saveSyncState(state);
+  const state = getSyncState();
+  state.pendingEntryIds = [];
+  state.pendingDeletes = [];
+  state.pendingCount = 0;
+  saveSyncState(state);
 }
 
 export function collectSyncData(): MoodEntry[] {
-    const state = getSyncState();
-    const allEntries = getEntries();
-    
-    if (!state.pendingEntryIds || !Array.isArray(state.pendingEntryIds)) {
-        return [];
-    }
-    
-    return allEntries.filter(entry => 
-        state.pendingEntryIds.includes(entry.id) && !entry.deletedAt
-    );
+  const state = getSyncState();
+  const allEntries = getEntries();
+
+  if (!state.pendingEntryIds || !Array.isArray(state.pendingEntryIds)) {
+    return [];
+  }
+
+  return allEntries.filter((entry) => state.pendingEntryIds.includes(entry.id) && !entry.deletedAt);
 }
 
 export interface SyncPayload {
@@ -272,23 +270,23 @@ export function checkNetworkStatus(): { online: boolean; type?: string } {
 export function canSync(): { canSync: boolean; reason?: string } {
   const settings = getSyncSettings();
   const network = checkNetworkStatus();
-  
+
   if (!settings.enabled) {
     return { canSync: false, reason: 'sync_disabled' };
   }
-  
+
   if (!settings.authToken) {
     return { canSync: false, reason: 'not_authenticated' };
   }
-  
+
   if (!network.online) {
     return { canSync: false, reason: 'offline' };
   }
-  
+
   if (settings.wifiOnly && network.type && network.type !== 'wifi') {
     return { canSync: false, reason: 'wifi_only' };
   }
-  
+
   return { canSync: true };
 }
 
@@ -326,16 +324,16 @@ export function clearSyncData(): void {
 
 export function startAutoSync(): void {
   const settings = getSyncSettings();
-  
+
   if (autoSyncTimer) {
     clearInterval(autoSyncTimer);
     autoSyncTimer = null;
   }
-  
+
   if (!settings.enabled || !settings.autoSync) {
     return;
   }
-  
+
   const intervalMs = settings.syncInterval * 60 * 1000;
   autoSyncTimer = setInterval(() => {
     const check = canSync();
@@ -380,14 +378,14 @@ export function clearConflicts(): void {
 
 export function removeConflict(entryId: string): void {
   const conflicts = getConflicts();
-  const filtered = conflicts.filter(c => c.id !== entryId);
+  const filtered = conflicts.filter((c) => c.id !== entryId);
   saveConflicts(filtered);
 }
 
 export async function performSync(): Promise<SyncResult> {
   const settings = getSyncSettings();
   const state = getSyncState();
-  
+
   if (!settings.enabled || !settings.authToken) {
     return {
       success: false,
@@ -400,42 +398,42 @@ export async function performSync(): Promise<SyncResult> {
       timestamp: new Date().toISOString(),
     };
   }
-  
+
   saveSyncState({
     isSyncing: true,
     status: 'syncing',
     error: null,
   });
-  
+
   try {
     const syncData = collectSyncData();
-    
+
     const payload: SyncPayload = {
       deviceId: settings.deviceId,
       lastSyncAt: state.lastSyncAt,
       entries: syncData,
       deletes: state.pendingDeletes,
     };
-    
+
     const response = await apiSync(payload);
-    
+
     if (response.success) {
       clearPendingSync();
-      
+
       if (response.entries && response.entries.length > 0) {
         saveSyncedEntries(response.entries);
       }
-      
+
       if (response.deletes && response.deletes.length > 0) {
         markEntriesDeleted(response.deletes);
       }
-      
+
       if (response.conflictDetails && response.conflictDetails.length > 0) {
         saveConflicts(response.conflictDetails);
       } else {
         clearConflicts();
       }
-      
+
       saveSyncState({
         isSyncing: false,
         lastSyncAt: response.timestamp,
@@ -444,26 +442,26 @@ export async function performSync(): Promise<SyncResult> {
         error: null,
         lastResult: response,
       });
-      
+
       return response;
     }
-    
+
     saveSyncState({
       isSyncing: false,
       status: 'error',
       error: response.error,
     });
-    
+
     return response;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'sync_failed';
-    
+
     saveSyncState({
       isSyncing: false,
       status: 'error',
       error: errorMessage,
     });
-    
+
     return {
       success: false,
       uploaded: 0,

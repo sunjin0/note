@@ -3,7 +3,12 @@
  * 提供密码保护、安全问题、会话管理等功能
  */
 
-import { SecuritySettings, SecurityQuestionAnswer, PasswordResetResult, LockoutStatus } from './types';
+import {
+  SecuritySettings,
+  SecurityQuestionAnswer,
+  PasswordResetResult,
+  LockoutStatus,
+} from './types';
 import { SECURITY_KEY, SESSION_KEY, DEFAULT_SECURITY_SETTINGS, STORAGE_KEY } from './constants';
 import { simpleHash } from './crypto';
 import { encryptEntry, decryptEntry, getEntries } from './entries';
@@ -48,7 +53,7 @@ export function setPassword(password: string, questions: SecurityQuestionAnswer[
   const security: SecuritySettings = {
     passwordEnabled: true,
     passwordHash: simpleHash(password),
-    securityQuestions: questions.map(q => ({
+    securityQuestions: questions.map((q) => ({
       id: Math.random().toString(36).substring(2, 11),
       question: q.question,
       answerHash: simpleHash(q.answer.toLowerCase().trim()),
@@ -163,7 +168,7 @@ export function resetPassword(newPassword: string): PasswordResetResult {
       if (entry.journalEncrypted && decryptedEntry.journal === entry.journal) {
         return {
           success: false,
-          error: 'Failed to decrypt some entries. Data may be corrupted.'
+          error: 'Failed to decrypt some entries. Data may be corrupted.',
         };
       }
       decryptedEntries.push({
@@ -179,7 +184,7 @@ export function resetPassword(newPassword: string): PasswordResetResult {
     settings.lockoutUntil = null;
     saveSecuritySettings(settings);
 
-    const reEncryptedEntries = decryptedEntries.map(entry => encryptEntry(entry));
+    const reEncryptedEntries = decryptedEntries.map((entry) => encryptEntry(entry));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(reEncryptedEntries));
 
     createSession();
@@ -189,7 +194,8 @@ export function resetPassword(newPassword: string): PasswordResetResult {
     console.error('Password reset failed:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Password reset failed due to an unexpected error'
+      error:
+        error instanceof Error ? error.message : 'Password reset failed due to an unexpected error',
     };
   }
 }
@@ -228,7 +234,7 @@ export function changePasswordWithDataPreservation(
       const newSecurity: SecuritySettings = {
         passwordEnabled: true,
         passwordHash: simpleHash(newPassword),
-        securityQuestions: questions.map(q => ({
+        securityQuestions: questions.map((q) => ({
           id: Math.random().toString(36).substring(2, 11),
           question: q.question,
           answerHash: simpleHash(q.answer.toLowerCase().trim()),
@@ -252,7 +258,7 @@ export function changePasswordWithDataPreservation(
         // Decryption failed - journal content is still encrypted
         return {
           success: false,
-          error: 'Failed to decrypt some entries. Please ensure your current password is correct.'
+          error: 'Failed to decrypt some entries. Please ensure your current password is correct.',
         };
       }
       decryptedEntries.push({
@@ -268,7 +274,7 @@ export function changePasswordWithDataPreservation(
     const newSecurity: SecuritySettings = {
       passwordEnabled: true,
       passwordHash: simpleHash(newPassword),
-      securityQuestions: questions.map(q => ({
+      securityQuestions: questions.map((q) => ({
         id: Math.random().toString(36).substring(2, 11),
         question: q.question,
         answerHash: simpleHash(q.answer.toLowerCase().trim()),
@@ -279,7 +285,7 @@ export function changePasswordWithDataPreservation(
     saveSecuritySettings(newSecurity);
 
     // Step 6: Re-encrypt all entries with new password
-    const reEncryptedEntries = decryptedEntries.map(entry => encryptEntry(entry));
+    const reEncryptedEntries = decryptedEntries.map((entry) => encryptEntry(entry));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(reEncryptedEntries));
 
     // Step 7: Create new session
@@ -290,7 +296,10 @@ export function changePasswordWithDataPreservation(
     console.error('Password change failed:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Password change failed due to an unexpected error'
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Password change failed due to an unexpected error',
     };
   }
 }

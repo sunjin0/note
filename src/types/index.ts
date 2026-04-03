@@ -42,7 +42,15 @@ export interface FactorOption {
 }
 
 // 模板分类类型
-export type TemplateCategory = 'work' | 'study' | 'travel' | 'health' | 'life' | 'custom' | 'favorites' | 'recent';
+export type TemplateCategory =
+  | 'work'
+  | 'study'
+  | 'travel'
+  | 'health'
+  | 'life'
+  | 'custom'
+  | 'favorites'
+  | 'recent';
 
 // 日记模板接口
 export interface JournalTemplate {

@@ -35,7 +35,7 @@ export default function SmartReminder({ entries, onRemind }: SmartReminderProps)
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        setReminderState(prev => ({ ...prev, ...parsed }));
+        setReminderState((prev) => ({ ...prev, ...parsed }));
       } catch {
         // ignore
       }
@@ -43,11 +43,14 @@ export default function SmartReminder({ entries, onRemind }: SmartReminderProps)
   }, []);
 
   // 保存提醒设置
-  const saveReminderState = useCallback((state: Partial<ReminderState>) => {
-    const newState = { ...reminderState, ...state };
-    setReminderState(newState);
-    localStorage.setItem(REMINDER_KEY, JSON.stringify(newState));
-  }, [reminderState]);
+  const saveReminderState = useCallback(
+    (state: Partial<ReminderState>) => {
+      const newState = { ...reminderState, ...state };
+      setReminderState(newState);
+      localStorage.setItem(REMINDER_KEY, JSON.stringify(newState));
+    },
+    [reminderState]
+  );
 
   // 检查是否需要提醒
   useEffect(() => {
@@ -59,7 +62,7 @@ export default function SmartReminder({ entries, onRemind }: SmartReminderProps)
       const currentHour = now.getHours();
 
       // 检查今天是否已记录
-      const hasTodayEntry = entries.some(e => e.date === today);
+      const hasTodayEntry = entries.some((e) => e.date === today);
       if (hasTodayEntry) {
         setShowReminder(false);
         return;
@@ -72,7 +75,7 @@ export default function SmartReminder({ entries, onRemind }: SmartReminderProps)
       }
 
       // 分析用户的记录习惯
-      const recordHours = entries.map(e => {
+      const recordHours = entries.map((e) => {
         // 假设记录时间是随机的，基于日期生成一个模拟时间
         const date = new Date(e.date + 'T12:00:00');
         return date.getHours();
@@ -121,12 +124,8 @@ export default function SmartReminder({ entries, onRemind }: SmartReminderProps)
             <Bell className="h-5 w-5 text-primary animate-pulse" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-semibold text-foreground">
-              {t('reminder.title')}
-            </h4>
-            <p className="text-xs text-muted-foreground mt-1">
-              {t('reminder.message')}
-            </p>
+            <h4 className="text-sm font-semibold text-foreground">{t('reminder.title')}</h4>
+            <p className="text-xs text-muted-foreground mt-1">{t('reminder.message')}</p>
             <div className="flex items-center gap-2 mt-3">
               <button
                 onClick={handleRemindNow}
@@ -149,14 +148,12 @@ export default function SmartReminder({ entries, onRemind }: SmartReminderProps)
             <X className="h-4 w-4" />
           </button>
         </div>
-        
+
         {/* 连续记录提示 */}
         {entries.length > 0 && (
           <div className="mt-3 pt-3 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
-            <span>
-              {t('reminder.streakInfo', { count: calculateStreak(entries) })}
-            </span>
+            <span>{t('reminder.streakInfo', { count: calculateStreak(entries) })}</span>
           </div>
         )}
       </div>
@@ -167,22 +164,22 @@ export default function SmartReminder({ entries, onRemind }: SmartReminderProps)
 // 计算连续记录天数
 function calculateStreak(entries: { date: string }[]): number {
   if (entries.length === 0) return 0;
-  
+
   const sortedDates = [...entries]
-    .map(e => e.date)
+    .map((e) => e.date)
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-  
+
   const today = new Date().toISOString().split('T')[0];
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  
+
   // 如果今天没有记录，检查昨天是否有
   let streak = 0;
   let checkDate = sortedDates[0] === today ? today : yesterday;
-  
+
   if (sortedDates[0] !== today && sortedDates[0] !== yesterday) {
     return 0;
   }
-  
+
   for (const date of sortedDates) {
     if (date === checkDate) {
       streak++;
@@ -194,6 +191,6 @@ function calculateStreak(entries: { date: string }[]): number {
       break;
     }
   }
-  
+
   return streak;
 }

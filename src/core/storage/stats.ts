@@ -16,7 +16,7 @@ export function getStreak(): number {
   const entries = getEntries();
   if (entries.length === 0) return 0;
 
-  const dates = new Set(entries.map(e => e.date));
+  const dates = new Set(entries.map((e) => e.date));
   let streak = 0;
   const today = new Date();
 
@@ -41,7 +41,9 @@ export function getStreak(): number {
 export function getMoodStats(): MoodStats {
   const entries = getEntries();
   const stats: MoodStats = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
-  entries.forEach(e => { stats[e.mood] = (stats[e.mood] || 0) + 1; });
+  entries.forEach((e) => {
+    stats[e.mood] = (stats[e.mood] || 0) + 1;
+  });
   return stats;
 }
 
@@ -82,7 +84,7 @@ export function getCurrentMonthEntries(): number {
   const year = now.getFullYear();
   const month = now.getMonth();
   const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
-  return getEntries().filter(e => e.date.startsWith(prefix)).length;
+  return getEntries().filter((e) => e.date.startsWith(prefix)).length;
 }
 
 /**
@@ -95,8 +97,8 @@ export function getCurrentWeekEntries(): number {
   const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Adjust to get Monday
   const monday = new Date(now.setDate(diff));
   monday.setHours(0, 0, 0, 0);
-  
-  return getEntries().filter(e => {
+
+  return getEntries().filter((e) => {
     const entryDate = new Date(e.date);
     return entryDate >= monday;
   }).length;

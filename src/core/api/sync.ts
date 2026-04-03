@@ -116,10 +116,7 @@ function handleSyncError(error: unknown): SyncResult {
  */
 export async function apiSync(payload: SyncPayload): Promise<SyncResult> {
   try {
-    const response = await apiClient.post<BackendSyncResponse>(
-      API_ENDPOINTS.sync.sync,
-      payload
-    );
+    const response = await apiClient.post<BackendSyncResponse>(API_ENDPOINTS.sync.sync, payload);
 
     if (response.success && response.data) {
       return {

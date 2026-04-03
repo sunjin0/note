@@ -73,7 +73,7 @@ export function clearAllDraftData(): void {
       }
     }
 
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
   } catch (error) {
     console.error('Failed to clear draft data:', error);
   }

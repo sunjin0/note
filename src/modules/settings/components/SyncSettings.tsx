@@ -33,18 +33,29 @@ interface SyncSettingsProps {
 export default function SyncSettings({ className }: SyncSettingsProps) {
   const { t } = useTranslation();
   const { isLoggedIn, user, logout } = useAuth();
-  const { syncSettings, syncState, conflicts, updateSyncSettings, enableSync, disableSync, syncNow, refreshState } = useSync();
-  
+  const {
+    syncSettings,
+    syncState,
+    conflicts,
+    updateSyncSettings,
+    enableSync,
+    disableSync,
+    syncNow,
+    refreshState,
+  } = useSync();
+
   const [isLoading, setIsLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [networkStatus, setNetworkStatus] = useState<{ online: boolean; type?: string }>({ online: true });
+  const [networkStatus, setNetworkStatus] = useState<{ online: boolean; type?: string }>({
+    online: true,
+  });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [showConflictModal, setShowConflictModal] = useState(false);
 
   useEffect(() => {
     setNetworkStatus(checkNetworkStatus());
-    
+
     const handleOnline = () => setNetworkStatus(checkNetworkStatus());
     const handleOffline = () => setNetworkStatus(checkNetworkStatus());
 
@@ -111,10 +122,13 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
     try {
       const result = await syncNow();
       if (result.success) {
-        showNotification('success', t('sync.syncSuccess', { 
-          uploaded: result.uploaded, 
-          downloaded: result.downloaded 
-        }));
+        showNotification(
+          'success',
+          t('sync.syncSuccess', {
+            uploaded: result.uploaded,
+            downloaded: result.downloaded,
+          })
+        );
       } else {
         showNotification('error', result.error || t('sync.syncFailed'));
       }
@@ -141,7 +155,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    
+
     if (diff < 60000) return t('sync.justNow');
     if (diff < 3600000) return t('sync.minutesAgo', { count: Math.floor(diff / 60000) });
     if (diff < 86400000) return t('sync.hoursAgo', { count: Math.floor(diff / 3600000) });
@@ -165,13 +179,33 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
       case 'syncing':
         return { icon: RefreshCw, color: 'text-primary', text: t('sync.syncing'), animate: true };
       case 'success':
-        return { icon: CheckCircle2, color: 'text-green-500', text: t('sync.synced'), animate: false };
+        return {
+          icon: CheckCircle2,
+          color: 'text-green-500',
+          text: t('sync.synced'),
+          animate: false,
+        };
       case 'error':
-        return { icon: AlertCircle, color: 'text-destructive', text: t('sync.error'), animate: false };
+        return {
+          icon: AlertCircle,
+          color: 'text-destructive',
+          text: t('sync.error'),
+          animate: false,
+        };
       case 'conflict':
-        return { icon: AlertCircle, color: 'text-orange-500', text: t('sync.conflict'), animate: false };
+        return {
+          icon: AlertCircle,
+          color: 'text-orange-500',
+          text: t('sync.conflict'),
+          animate: false,
+        };
       default:
-        return { icon: CloudOff, color: 'text-muted-foreground', text: t('sync.notSynced'), animate: false };
+        return {
+          icon: CloudOff,
+          color: 'text-muted-foreground',
+          text: t('sync.notSynced'),
+          animate: false,
+        };
     }
   };
 
@@ -190,9 +224,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
                 <UserIcon className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">
-                  {user.nickname || user.username}
-                </h3>
+                <h3 className="font-semibold text-foreground">{user.nickname || user.username}</h3>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </div>
             </div>
@@ -231,10 +263,12 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
       <div className="bg-card border border-border rounded-xl p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className={cn(
-              'w-12 h-12 rounded-xl flex items-center justify-center',
-              syncSettings.enabled ? 'bg-primary/10' : 'bg-muted'
-            )}>
+            <div
+              className={cn(
+                'w-12 h-12 rounded-xl flex items-center justify-center',
+                syncSettings.enabled ? 'bg-primary/10' : 'bg-muted'
+              )}
+            >
               {syncSettings.enabled ? (
                 <Cloud className="h-6 w-6 text-primary" />
               ) : (
@@ -246,14 +280,13 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
                 {syncSettings.enabled ? t('sync.enabled') : t('sync.disabled')}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {syncSettings.enabled 
+                {syncSettings.enabled
                   ? t('sync.lastSync', { time: formatLastSync(syncState.lastSyncAt) })
-                  : t('sync.disabledDescription')
-                }
+                  : t('sync.disabledDescription')}
               </p>
             </div>
           </div>
-          
+
           <button
             onClick={() => handleToggleSync(!syncSettings.enabled)}
             disabled={!isLoggedIn}
@@ -276,14 +309,14 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
           <div className="mt-4 pt-4 border-t border-border">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <StatusIcon className={cn('h-5 w-5', syncStatus.color, syncStatus.animate && 'animate-spin')} />
+                <StatusIcon
+                  className={cn('h-5 w-5', syncStatus.color, syncStatus.animate && 'animate-spin')}
+                />
                 <span className={cn('text-sm font-medium', syncStatus.color)}>
                   {syncStatus.text}
                 </span>
                 {syncState.error && (
-                  <span className="text-sm text-destructive ml-2">
-                    ({syncState.error})
-                  </span>
+                  <span className="text-sm text-destructive ml-2">({syncState.error})</span>
                 )}
               </div>
               {syncState.pendingCount > 0 && (
@@ -307,9 +340,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
               <h3 className="font-medium text-sm text-foreground mb-1">
                 {t('sync.conflictTitle', { count: conflicts.length })}
               </h3>
-              <p className="text-sm text-muted-foreground">
-                {t('sync.conflictDescription')}
-              </p>
+              <p className="text-sm text-muted-foreground">{t('sync.conflictDescription')}</p>
             </div>
           </div>
           <div className="flex justify-end mt-3">
@@ -370,7 +401,12 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
               <Settings2 className="h-5 w-5 text-muted-foreground" />
               <span className="font-medium">{t('sync.advancedSettings')}</span>
             </div>
-            <span className={cn('text-muted-foreground transition-transform', showAdvanced && 'rotate-180')}>
+            <span
+              className={cn(
+                'text-muted-foreground transition-transform',
+                showAdvanced && 'rotate-180'
+              )}
+            >
               ▼
             </span>
           </button>
@@ -405,9 +441,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
               {/* 同步间隔 */}
               {syncSettings.autoSync && (
                 <div className="pl-7 space-y-2">
-                  <label className="text-sm text-muted-foreground">
-                    {t('sync.syncInterval')}
-                  </label>
+                  <label className="text-sm text-muted-foreground">{t('sync.syncInterval')}</label>
                   <select
                     value={syncSettings.syncInterval}
                     onChange={(e) => handleUpdateSettings({ syncInterval: Number(e.target.value) })}
@@ -454,23 +488,25 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
                 </label>
                 <select
                   value={syncSettings.conflictStrategy || 'timestamp'}
-                  onChange={(e) => handleUpdateSettings({ conflictStrategy: e.target.value as ConflictStrategy })}
+                  onChange={(e) =>
+                    handleUpdateSettings({ conflictStrategy: e.target.value as ConflictStrategy })
+                  }
                   className="w-full px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
                   <option value="timestamp">{t('sync.strategy.timestamp')}</option>
                   <option value="server-wins">{t('sync.strategy.serverWins')}</option>
                   <option value="client-wins">{t('sync.strategy.clientWins')}</option>
                 </select>
-                <p className="text-xs text-muted-foreground">
-                  {t('sync.conflictStrategyDesc')}
-                </p>
+                <p className="text-xs text-muted-foreground">{t('sync.conflictStrategyDesc')}</p>
               </div>
 
               {/* 设备信息 */}
               <div className="pt-3 border-t border-border">
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Smartphone className="h-4 w-4" />
-                  <span>{t('sync.deviceId')}: {syncSettings.deviceId.slice(0, 8)}...</span>
+                  <span>
+                    {t('sync.deviceId')}: {syncSettings.deviceId.slice(0, 8)}...
+                  </span>
                 </div>
               </div>
             </div>

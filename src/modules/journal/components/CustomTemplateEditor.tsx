@@ -5,17 +5,17 @@ import { cn } from '@/core/utils';
 import { JournalTemplate, TemplateCategory } from '@/types';
 import { CATEGORY_ICONS } from '@/core/config/templates';
 import { useTranslation } from '@/core/i18n';
-import { 
-  X, 
-  Save,
-  FileText,
-} from 'lucide-react';
+import { X, Save, FileText } from 'lucide-react';
 import { Button } from '@/core/ui/button';
 
 interface CustomTemplateEditorProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (template: { title: string; content: string; category: Exclude<TemplateCategory, 'favorites' | 'recent' | 'custom'> }) => void;
+  onSave: (template: {
+    title: string;
+    content: string;
+    category: Exclude<TemplateCategory, 'favorites' | 'recent' | 'custom'>;
+  }) => void;
   editingTemplate?: JournalTemplate | null;
 }
 
@@ -36,7 +36,8 @@ export default function CustomTemplateEditor({
   const { t } = useTranslation();
   const [title, setTitle] = React.useState('');
   const [content, setContent] = React.useState('');
-  const [category, setCategory] = React.useState<Exclude<TemplateCategory, 'favorites' | 'recent' | 'custom'>>('life');
+  const [category, setCategory] =
+    React.useState<Exclude<TemplateCategory, 'favorites' | 'recent' | 'custom'>>('life');
 
   // Reset form when opened
   React.useEffect(() => {
@@ -45,7 +46,9 @@ export default function CustomTemplateEditor({
         // 自定义模板的标题和内容存储在 titleKey 和 contentKey 中
         setTitle(editingTemplate.titleKey || '');
         setContent(editingTemplate.contentKey || '');
-        setCategory(editingTemplate.category as Exclude<TemplateCategory, 'favorites' | 'recent' | 'custom'>);
+        setCategory(
+          editingTemplate.category as Exclude<TemplateCategory, 'favorites' | 'recent' | 'custom'>
+        );
       } else {
         setTitle('');
         setContent('');
@@ -80,11 +83,12 @@ export default function CustomTemplateEditor({
             <h2 className="text-base font-semibold text-foreground">
               {editingTemplate ? t('templates.editCustom') : t('templates.createCustom')}
             </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {t('templates.customSubtitle')}
-            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('templates.customSubtitle')}</p>
           </div>
-          <button onClick={handleClose} className="rounded-lg p-1.5 hover:bg-accent transition-colors">
+          <button
+            onClick={handleClose}
+            className="rounded-lg p-1.5 hover:bg-accent transition-colors"
+          >
             <X className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
@@ -110,7 +114,7 @@ export default function CustomTemplateEditor({
               {t('templates.selectCategory')}
             </label>
             <div className="flex flex-wrap gap-2">
-              {AVAILABLE_CATEGORIES.map(cat => (
+              {AVAILABLE_CATEGORIES.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
@@ -153,14 +157,16 @@ export default function CustomTemplateEditor({
               {t('templates.availableVariables')}
             </h4>
             <div className="flex flex-wrap gap-2">
-              {['{{date}}', '{{year}}', '{{month}}', '{{day}}', '{{weekday}}', '{{weekdayZh}}'].map(variable => (
-                <code
-                  key={variable}
-                  className="px-2 py-1 text-xs bg-background border border-border rounded"
-                >
-                  {variable}
-                </code>
-              ))}
+              {['{{date}}', '{{year}}', '{{month}}', '{{day}}', '{{weekday}}', '{{weekdayZh}}'].map(
+                (variable) => (
+                  <code
+                    key={variable}
+                    className="px-2 py-1 text-xs bg-background border border-border rounded"
+                  >
+                    {variable}
+                  </code>
+                )
+              )}
             </div>
           </div>
         </div>
@@ -170,10 +176,7 @@ export default function CustomTemplateEditor({
           <Button variant="outline" onClick={handleClose}>
             {t('templates.cancel')}
           </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={!title.trim() || !content.trim()}
-          >
+          <Button onClick={handleSave} disabled={!title.trim() || !content.trim()}>
             <Save className="h-4 w-4 mr-2" />
             {t('templates.save')}
           </Button>

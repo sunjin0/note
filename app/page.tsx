@@ -23,7 +23,12 @@ export default function Home() {
     setEditorOpen(true);
   };
 
-  const handleSave = (data: { mood: Mood; journal: string; factors: string[]; photos: string[] }) => {
+  const handleSave = (data: {
+    mood: Mood;
+    journal: string;
+    factors: string[];
+    photos: string[];
+  }) => {
     saveEntry({
       date: editDate,
       mood: data.mood,
@@ -35,17 +40,14 @@ export default function Home() {
   };
 
   const existingEntry = React.useMemo(() => {
-    return entries.find(e => e.date === editDate);
+    return entries.find((e) => e.date === editDate);
   }, [entries, editDate]);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Smart Reminder */}
-      <SmartReminder 
-        entries={entries} 
-        onRemind={() => openEditor()} 
-      />
-      
+      <SmartReminder entries={entries} onRemind={() => openEditor()} />
+
       <Sidebar currentView={currentView} onViewChange={setCurrentView} />
 
       {/* Main content */}
@@ -59,10 +61,7 @@ export default function Home() {
             />
           )}
           {currentView === 'calendar' && (
-            <CalendarView
-              entries={entries}
-              onSelectDate={openEditor}
-            />
+            <CalendarView entries={entries} onSelectDate={openEditor} />
           )}
           {currentView === 'journal' && (
             <JournalList
@@ -72,9 +71,7 @@ export default function Home() {
               onDataChange={refreshEntries}
             />
           )}
-          {currentView === 'settings' && (
-            <SettingsView onDataChange={refreshEntries} />
-          )}
+          {currentView === 'settings' && <SettingsView onDataChange={refreshEntries} />}
         </div>
       </main>
 

@@ -24,7 +24,7 @@ function getPinyin(char: string): string {
 function matchesPinyin(tag: string, query: string): boolean {
   // 直接包含
   if (tag.toLowerCase().includes(query.toLowerCase())) return true;
-  
+
   // 拼音匹配
   let pinyinStr = '';
   for (const char of tag) {
@@ -35,7 +35,7 @@ function matchesPinyin(tag: string, query: string): boolean {
       pinyinStr += char;
     }
   }
-  
+
   return pinyinStr.toLowerCase().includes(query.toLowerCase());
 }
 
@@ -62,7 +62,7 @@ export const EMOJI_TAGS: Record<string, string[]> = {
   '📈': ['上升', 'up', '增长'],
   '📉': ['下降', 'down', '下跌'],
   '📋': ['清单', 'clipboard', '任务'],
-  
+
   // 家庭关系
   '👨‍👩‍👧‍👦': ['家庭', 'family', '家人'],
   '👥': ['人群', 'people', '团队'],
@@ -84,7 +84,7 @@ export const EMOJI_TAGS: Record<string, string[]> = {
   '👴': ['老人', 'old', '爷爷'],
   '👵': ['老奶奶', 'grandma'],
   '🧓': ['长者', 'older'],
-  
+
   // 健康运动
   '💪': ['强壮', 'muscle', '力量', '健身'],
   '🏃': ['跑步', 'running', '运动'],
@@ -117,7 +117,7 @@ export const EMOJI_TAGS: Record<string, string[]> = {
   '🏄': ['冲浪', 'surfing', 'surf'],
   '💆': ['按摩', 'massage'],
   '💇': ['理发', 'haircut'],
-  
+
   // 天气自然
   '🌤️': ['多云', 'sun', 'cloud'],
   '☀️': ['太阳', 'sun', '晴天', '阳光'],
@@ -164,7 +164,7 @@ export const EMOJI_TAGS: Record<string, string[]> = {
   '🌼': ['开花', 'blossom'],
   '🌻': ['向日葵', 'sunflower'],
   '💐': ['花束', 'bouquet', '鲜花'],
-  
+
   // 饮食
   '🍜': ['面条', 'noodles', '拉面'],
   '☕': ['咖啡', 'coffee', '热饮'],
@@ -279,7 +279,7 @@ export const EMOJI_TAGS: Record<string, string[]> = {
   '🧊': ['冰块', 'ice'],
   '🥢': ['筷子', 'chopsticks'],
   '🏺': ['陶罐', 'amphora'],
-  
+
   // 娱乐爱好
   '🎨': ['艺术', 'art', '绘画'],
   '📷': ['相机', 'camera', '拍照'],
@@ -368,7 +368,7 @@ export const EMOJI_TAGS: Record<string, string[]> = {
   '🪃': ['回旋镖', 'boomerang'],
   '🏹': ['弓箭', 'bow', 'arrow'],
   '🛡️': ['盾牌', 'shield'],
-  
+
   // 动物
   '🐶': ['狗', 'dog', '小狗', 'pet'],
   '🐱': ['猫', 'cat', '小猫'],
@@ -466,7 +466,7 @@ export const EMOJI_TAGS: Record<string, string[]> = {
   '🐾': ['爪印', 'paw', 'prints'],
   '🐉': ['龙', 'dragon'],
   '🐲': ['龙头', 'dragon', 'face'],
-  
+
   // 交通出行
   '🏠': ['房子', 'house', '家'],
   '🚗': ['汽车', 'car', '轿车'],
@@ -583,7 +583,7 @@ export const EMOJI_TAGS: Record<string, string[]> = {
   '🌌': ['银河', 'milky', 'way'],
   '🌉': ['夜桥', 'bridge', 'night'],
   '🌁': ['雾桥', 'foggy', 'bridge'],
-  
+
   // 情感心情
   '😀': ['笑脸', 'grinning', '开心'],
   '😃': ['大笑', 'grinning', 'big', 'eyes'],
@@ -697,7 +697,7 @@ export const EMOJI_TAGS: Record<string, string[]> = {
   '🙀': ['猫疲倦', 'weary', 'cat'],
   '😿': ['猫哭', 'crying', 'cat'],
   '😾': ['猫怒', 'pouting', 'cat'],
-  
+
   // 物品手势
   '👋': ['挥手', 'waving', 'hand', 'hi'],
   '🤚': ['举手背', 'raised', 'back'],
@@ -761,61 +761,738 @@ export const EMOJI_CATEGORIES: EmojiCategory[] = [
     id: 'work',
     name: '工作学习',
     nameEn: 'Work & Study',
-    emojis: ['💼', '💻', '📱', '💡', '🔥', '⭐', '🌟', '✨', '🎯', '🚀', '✏️', '📝', '📖', '📚', '🎓', '🏫', '📊', '📈', '📉', '📋', '⌨️', '🖥️', '🖨️', '📡', '🔋', '🔌'],
+    emojis: [
+      '💼',
+      '💻',
+      '📱',
+      '💡',
+      '🔥',
+      '⭐',
+      '🌟',
+      '✨',
+      '🎯',
+      '🚀',
+      '✏️',
+      '📝',
+      '📖',
+      '📚',
+      '🎓',
+      '🏫',
+      '📊',
+      '📈',
+      '📉',
+      '📋',
+      '⌨️',
+      '🖥️',
+      '🖨️',
+      '📡',
+      '🔋',
+      '🔌',
+    ],
   },
   {
     id: 'family',
     name: '家庭关系',
     nameEn: 'Family & Love',
-    emojis: ['👨‍👩‍👧‍👦', '👥', '❤️', '💕', '💖', '💙', '💚', '💛', '💜', '🤎', '👶', '👧', '🧒', '👦', '👩', '👨', '🧑', '👴', '👵', '🧓', '👪', '💑', '💏', '👫', '👭', '👬'],
+    emojis: [
+      '👨‍👩‍👧‍👦',
+      '👥',
+      '❤️',
+      '💕',
+      '💖',
+      '💙',
+      '💚',
+      '💛',
+      '💜',
+      '🤎',
+      '👶',
+      '👧',
+      '🧒',
+      '👦',
+      '👩',
+      '👨',
+      '🧑',
+      '👴',
+      '👵',
+      '🧓',
+      '👪',
+      '💑',
+      '💏',
+      '👫',
+      '👭',
+      '👬',
+    ],
   },
   {
     id: 'health',
     name: '健康运动',
     nameEn: 'Health & Sport',
-    emojis: ['💪', '🏃', '🚶', '💊', '🏥', '👨‍⚕️', '👩‍⚕️', '🧘', '🧘‍♂️', '🧘‍♀️', '🏋️', '🏋️‍♂️', '🏋️‍♀️', '🚴', '🚴‍♂️', '🚴‍♀️', '🏊', '🏊‍♂️', '🏊‍♀️', '⛹️', '🤸', '🤾', '🧗', '🤺', '🏌️', '🏇', '⛷️', '🏂', '🏄', '💆', '💇'],
+    emojis: [
+      '💪',
+      '🏃',
+      '🚶',
+      '💊',
+      '🏥',
+      '👨‍⚕️',
+      '👩‍⚕️',
+      '🧘',
+      '🧘‍♂️',
+      '🧘‍♀️',
+      '🏋️',
+      '🏋️‍♂️',
+      '🏋️‍♀️',
+      '🚴',
+      '🚴‍♂️',
+      '🚴‍♀️',
+      '🏊',
+      '🏊‍♂️',
+      '🏊‍♀️',
+      '⛹️',
+      '🤸',
+      '🤾',
+      '🧗',
+      '🤺',
+      '🏌️',
+      '🏇',
+      '⛷️',
+      '🏂',
+      '🏄',
+      '💆',
+      '💇',
+    ],
   },
   {
     id: 'weather',
     name: '天气自然',
     nameEn: 'Weather & Nature',
-    emojis: ['🌤️', '☀️', '🌙', '⭐', '☁️', '⛅', '🌧️', '⛈️', '❄️', '🌨️', '💨', '💧', '☔', '🌈', '⚡', '🌊', '🌍', '🌎', '🌏', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '🏖️', '🏜️', '🌵', '🎄', '🌲', '🌳', '🌴', '🌱', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃', '🌷', '🌹', '🥀', '🌺', '🌸', '🌼', '🌻', '💐'],
+    emojis: [
+      '🌤️',
+      '☀️',
+      '🌙',
+      '⭐',
+      '☁️',
+      '⛅',
+      '🌧️',
+      '⛈️',
+      '❄️',
+      '🌨️',
+      '💨',
+      '💧',
+      '☔',
+      '🌈',
+      '⚡',
+      '🌊',
+      '🌍',
+      '🌎',
+      '🌏',
+      '🌋',
+      '⛰️',
+      '🏔️',
+      '🗻',
+      '🏕️',
+      '🏖️',
+      '🏜️',
+      '🌵',
+      '🎄',
+      '🌲',
+      '🌳',
+      '🌴',
+      '🌱',
+      '🌿',
+      '☘️',
+      '🍀',
+      '🍁',
+      '🍂',
+      '🍃',
+      '🌷',
+      '🌹',
+      '🥀',
+      '🌺',
+      '🌸',
+      '🌼',
+      '🌻',
+      '💐',
+    ],
   },
   {
     id: 'food',
     name: '饮食',
     nameEn: 'Food & Drink',
-    emojis: ['🍜', '☕', '🍵', '🧃', '🥤', '🍺', '🍷', '🥂', '🍽️', '🍴', '🥄', '🔪', '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🍍', '🥝', '🍅', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🥒', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🍡', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '🫖', '🍶', '🍾', '🍸', '🍹', '🍻', '🥃', '🧋', '🧉', '🧊', '🥢'],
+    emojis: [
+      '🍜',
+      '☕',
+      '🍵',
+      '🧃',
+      '🥤',
+      '🍺',
+      '🍷',
+      '🥂',
+      '🍽️',
+      '🍴',
+      '🥄',
+      '🔪',
+      '🍏',
+      '🍎',
+      '🍐',
+      '🍊',
+      '🍋',
+      '🍌',
+      '🍉',
+      '🍇',
+      '🍓',
+      '🫐',
+      '🍈',
+      '🍒',
+      '🍑',
+      '🍍',
+      '🥝',
+      '🍅',
+      '🥑',
+      '🍆',
+      '🥔',
+      '🥕',
+      '🌽',
+      '🌶️',
+      '🥒',
+      '🥬',
+      '🥦',
+      '🧄',
+      '🧅',
+      '🍄',
+      '🥜',
+      '🌰',
+      '🍞',
+      '🥐',
+      '🥖',
+      '🥨',
+      '🥯',
+      '🥞',
+      '🧇',
+      '🧀',
+      '🍖',
+      '🍗',
+      '🥩',
+      '🥓',
+      '🍔',
+      '🍟',
+      '🍕',
+      '🌭',
+      '🥪',
+      '🌮',
+      '🌯',
+      '🥙',
+      '🧆',
+      '🥚',
+      '🍳',
+      '🥘',
+      '🍲',
+      '🥣',
+      '🥗',
+      '🍿',
+      '🧈',
+      '🧂',
+      '🥫',
+      '🍱',
+      '🍘',
+      '🍙',
+      '🍚',
+      '🍛',
+      '🍝',
+      '🍠',
+      '🍢',
+      '🍣',
+      '🍤',
+      '🍥',
+      '🍡',
+      '🍦',
+      '🍧',
+      '🍨',
+      '🍩',
+      '🍪',
+      '🎂',
+      '🍰',
+      '🧁',
+      '🥧',
+      '🍫',
+      '🍬',
+      '🍭',
+      '🍮',
+      '🍯',
+      '🍼',
+      '🥛',
+      '🫖',
+      '🍶',
+      '🍾',
+      '🍸',
+      '🍹',
+      '🍻',
+      '🥃',
+      '🧋',
+      '🧉',
+      '🧊',
+      '🥢',
+    ],
   },
   {
     id: 'entertainment',
     name: '娱乐爱好',
     nameEn: 'Entertainment',
-    emojis: ['🎨', '📷', '🎮', '🎵', '🎬', '🎤', '🎧', '🎹', '🥁', '🎷', '🎺', '🎸', '🎻', '🎲', '🎳', '🎰', '🕹️', '🎴', '🎪', '🎭', '🎼', '📺', '📻', '📼', '📸', '📹', '🎥', '📽️', '🎞️', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳'],
+    emojis: [
+      '🎨',
+      '📷',
+      '🎮',
+      '🎵',
+      '🎬',
+      '🎤',
+      '🎧',
+      '🎹',
+      '🥁',
+      '🎷',
+      '🎺',
+      '🎸',
+      '🎻',
+      '🎲',
+      '🎳',
+      '🎰',
+      '🕹️',
+      '🎴',
+      '🎪',
+      '🎭',
+      '🎼',
+      '📺',
+      '📻',
+      '📼',
+      '📸',
+      '📹',
+      '🎥',
+      '📽️',
+      '🎞️',
+      '🎙️',
+      '🎚️',
+      '🎛️',
+      '🧭',
+      '⏱️',
+      '⏲️',
+      '⏰',
+      '🕰️',
+      '⌛',
+      '⏳',
+    ],
   },
   {
     id: 'animals',
     name: '动物',
     nameEn: 'Animals',
-    emojis: ['🐶', '🐱', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷️', '🕸️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐈', '🐓', '🦃', '🕊️', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔', '🐾', '🐉', '🐲'],
+    emojis: [
+      '🐶',
+      '🐱',
+      '🐰',
+      '🦊',
+      '🐻',
+      '🐼',
+      '🐨',
+      '🐯',
+      '🦁',
+      '🐮',
+      '🐷',
+      '🐸',
+      '🐵',
+      '🐔',
+      '🐧',
+      '🐦',
+      '🐤',
+      '🦆',
+      '🦅',
+      '🦉',
+      '🦇',
+      '🐺',
+      '🐗',
+      '🐴',
+      '🦄',
+      '🐝',
+      '🐛',
+      '🦋',
+      '🐌',
+      '🐞',
+      '🐜',
+      '🦟',
+      '🦗',
+      '🕷️',
+      '🕸️',
+      '🦂',
+      '🐢',
+      '🐍',
+      '🦎',
+      '🦖',
+      '🦕',
+      '🐙',
+      '🦑',
+      '🦐',
+      '🦞',
+      '🦀',
+      '🐡',
+      '🐠',
+      '🐟',
+      '🐬',
+      '🐳',
+      '🐋',
+      '🦈',
+      '🐊',
+      '🐅',
+      '🐆',
+      '🦓',
+      '🦍',
+      '🦧',
+      '🐘',
+      '🦛',
+      '🦏',
+      '🐪',
+      '🐫',
+      '🦒',
+      '🦘',
+      '🐃',
+      '🐂',
+      '🐄',
+      '🐎',
+      '🐖',
+      '🐏',
+      '🐑',
+      '🦙',
+      '🐐',
+      '🦌',
+      '🐕',
+      '🐩',
+      '🦮',
+      '🐈',
+      '🐓',
+      '🦃',
+      '🕊️',
+      '🐇',
+      '🦝',
+      '🦨',
+      '🦡',
+      '🦦',
+      '🦥',
+      '🐁',
+      '🐀',
+      '🐿️',
+      '🦔',
+      '🐾',
+      '🐉',
+      '🐲',
+    ],
   },
   {
     id: 'transport',
     name: '交通出行',
     nameEn: 'Transport',
-    emojis: ['🏠', '🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵', '🏍️', '🛺', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🕍', '🛕', '🕋', '⛩️', '🛤️', '🛣️', '🗾', '🎑', '🏞️', '🌅', '🌄', '🌠', '🎇', '🎆', '🌇', '🌆', '🏙️', '🌃', '🌌', '🌉', '🌁'],
+    emojis: [
+      '🏠',
+      '🚗',
+      '🚕',
+      '🚙',
+      '🚌',
+      '🚎',
+      '🏎️',
+      '🚓',
+      '🚑',
+      '🚒',
+      '🚐',
+      '🛻',
+      '🚚',
+      '🚛',
+      '🚜',
+      '🛴',
+      '🚲',
+      '🛵',
+      '🏍️',
+      '🛺',
+      '🚨',
+      '🚔',
+      '🚍',
+      '🚘',
+      '🚖',
+      '🚡',
+      '🚠',
+      '🚟',
+      '🚃',
+      '🚋',
+      '🚞',
+      '🚝',
+      '🚄',
+      '🚅',
+      '🚈',
+      '🚂',
+      '🚆',
+      '🚇',
+      '🚊',
+      '🚉',
+      '✈️',
+      '🛫',
+      '🛬',
+      '🛩️',
+      '💺',
+      '🛰️',
+      '🚀',
+      '🛸',
+      '🚁',
+      '🛶',
+      '⛵',
+      '🚤',
+      '🛥️',
+      '🛳️',
+      '⛴️',
+      '🚢',
+      '⚓',
+      '⛽',
+      '🚧',
+      '🚦',
+      '🚥',
+      '🚏',
+      '🗺️',
+      '🗿',
+      '🗽',
+      '🗼',
+      '🏰',
+      '🏯',
+      '🏟️',
+      '🎡',
+      '🎢',
+      '🎠',
+      '⛲',
+      '⛱️',
+      '🏖️',
+      '🏝️',
+      '🏜️',
+      '🌋',
+      '⛰️',
+      '🏔️',
+      '🗻',
+      '🏕️',
+      '⛺',
+      '🏡',
+      '🏘️',
+      '🏚️',
+      '🏗️',
+      '🏭',
+      '🏢',
+      '🏬',
+      '🏣',
+      '🏤',
+      '🏥',
+      '🏦',
+      '🏨',
+      '🏪',
+      '🏫',
+      '🏩',
+      '💒',
+      '🏛️',
+      '⛪',
+      '🕌',
+      '🕍',
+      '🛕',
+      '🕋',
+      '⛩️',
+      '🛤️',
+      '🛣️',
+      '🗾',
+      '🎑',
+      '🏞️',
+      '🌅',
+      '🌄',
+      '🌠',
+      '🎇',
+      '🎆',
+      '🌇',
+      '🌆',
+      '🏙️',
+      '🌃',
+      '🌌',
+      '🌉',
+      '🌁',
+    ],
   },
   {
     id: 'emotion',
     name: '情感心情',
     nameEn: 'Emotions',
-    emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'],
+    emojis: [
+      '😀',
+      '😃',
+      '😄',
+      '😁',
+      '😆',
+      '😅',
+      '😂',
+      '🤣',
+      '😊',
+      '😇',
+      '🙂',
+      '🙃',
+      '😉',
+      '😌',
+      '😍',
+      '🥰',
+      '😘',
+      '😗',
+      '😙',
+      '😚',
+      '😋',
+      '😛',
+      '😝',
+      '😜',
+      '🤪',
+      '🤨',
+      '🧐',
+      '🤓',
+      '😎',
+      '🥸',
+      '🤩',
+      '🥳',
+      '😏',
+      '😒',
+      '😞',
+      '😔',
+      '😟',
+      '😕',
+      '🙁',
+      '☹️',
+      '😣',
+      '😖',
+      '😫',
+      '😩',
+      '🥺',
+      '😢',
+      '😭',
+      '😤',
+      '😠',
+      '😡',
+      '🤬',
+      '🤯',
+      '😳',
+      '🥵',
+      '🥶',
+      '😱',
+      '😨',
+      '😰',
+      '😥',
+      '😓',
+      '🤗',
+      '🤔',
+      '🤭',
+      '🤫',
+      '🤥',
+      '😶',
+      '😐',
+      '😑',
+      '😬',
+      '🙄',
+      '😯',
+      '😦',
+      '😧',
+      '😮',
+      '😲',
+      '🥱',
+      '😴',
+      '🤤',
+      '😪',
+      '😵',
+      '🤐',
+      '🥴',
+      '🤢',
+      '🤮',
+      '🤧',
+      '😷',
+      '🤒',
+      '🤕',
+      '🤑',
+      '🤠',
+      '😈',
+      '👿',
+      '👹',
+      '👺',
+      '🤡',
+      '💩',
+      '👻',
+      '💀',
+      '☠️',
+      '👽',
+      '👾',
+      '🤖',
+      '🎃',
+      '😺',
+      '😸',
+      '😹',
+      '😻',
+      '😼',
+      '😽',
+      '🙀',
+      '😿',
+      '😾',
+    ],
   },
   {
     id: 'objects',
     name: '物品手势',
     nameEn: 'Objects & Gestures',
-    emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💪', '💰', '💳', '💎', '⚖️', '🔧', '🔨', '💊'],
+    emojis: [
+      '👋',
+      '🤚',
+      '🖐️',
+      '✋',
+      '🖖',
+      '👌',
+      '🤌',
+      '🤏',
+      '✌️',
+      '🤞',
+      '🤟',
+      '🤘',
+      '🤙',
+      '👈',
+      '👉',
+      '👆',
+      '🖕',
+      '👇',
+      '☝️',
+      '👍',
+      '👎',
+      '✊',
+      '👊',
+      '🤛',
+      '🤜',
+      '👏',
+      '🙌',
+      '👐',
+      '🤲',
+      '🤝',
+      '🙏',
+      '✍️',
+      '💅',
+      '🤳',
+      '🦾',
+      '🦿',
+      '🦵',
+      '🦶',
+      '👂',
+      '🦻',
+      '👃',
+      '🧠',
+      '🦷',
+      '🦴',
+      '👀',
+      '👁️',
+      '👅',
+      '👄',
+      '💪',
+      '💰',
+      '💳',
+      '💎',
+      '⚖️',
+      '🔧',
+      '🔨',
+      '💊',
+    ],
   },
 ];
 
@@ -843,7 +1520,7 @@ export function saveRecentEmoji(emoji: string): void {
   try {
     const recent = getRecentEmojis();
     // 移除已存在的相同 emoji
-    const filtered = recent.filter(e => e !== emoji);
+    const filtered = recent.filter((e) => e !== emoji);
     // 添加到开头
     const updated = [emoji, ...filtered].slice(0, MAX_RECENT_EMOJIS);
     localStorage.setItem(RECENT_EMOJIS_KEY, JSON.stringify(updated));
@@ -863,10 +1540,15 @@ interface EmojiPickerProps {
 function getMatchingTags(emoji: string, query: string): string[] {
   const tags = EMOJI_TAGS[emoji] || [];
   const queryLower = query.toLowerCase().trim();
-  return tags.filter(tag => matchesPinyin(tag, queryLower)).slice(0, 2);
+  return tags.filter((tag) => matchesPinyin(tag, queryLower)).slice(0, 2);
 }
 
-export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }: EmojiPickerProps) {
+export default function EmojiPicker({
+  isOpen,
+  onClose,
+  onSelect,
+  selectedEmoji,
+}: EmojiPickerProps) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('recent');
@@ -895,16 +1577,16 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
   // 搜索过滤（支持中文、拼音、英文）
   const filteredEmojis = useMemo(() => {
     if (!searchQuery.trim()) return null;
-    
+
     const query = searchQuery.toLowerCase().trim();
     const results: string[] = [];
-    
+
     Object.entries(EMOJI_TAGS).forEach(([emoji, tags]) => {
-      if (tags.some(tag => matchesPinyin(tag, query))) {
+      if (tags.some((tag) => matchesPinyin(tag, query))) {
         results.push(emoji);
       }
     });
-    
+
     return results;
   }, [searchQuery]);
 
@@ -913,56 +1595,59 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
     if (activeCategory === 'recent') {
       return recentEmojis.length > 0 ? recentEmojis : EMOJI_CATEGORIES[1].emojis.slice(0, 32);
     }
-    const category = EMOJI_CATEGORIES.find(c => c.id === activeCategory);
+    const category = EMOJI_CATEGORIES.find((c) => c.id === activeCategory);
     return category?.emojis || [];
   }, [filteredEmojis, activeCategory, recentEmojis]);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (!isOpen) return;
-    const cols = window.innerWidth < 640 ? 8 : 10;
-    const total = currentEmojis.length;
-    
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setFocusedIndex(prev => {
-          const next = prev + cols;
-          return next < total ? next : prev;
-        });
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setFocusedIndex(prev => {
-          const next = prev - cols;
-          return next >= 0 ? next : -1;
-        });
-        break;
-      case 'ArrowLeft':
-        e.preventDefault();
-        setFocusedIndex(prev => (prev > 0 ? prev - 1 : prev));
-        break;
-      case 'ArrowRight':
-        e.preventDefault();
-        setFocusedIndex(prev => (prev < total - 1 ? prev + 1 : prev));
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (focusedIndex >= 0 && focusedIndex < total) {
-          handleSelect(currentEmojis[focusedIndex]);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        onClose();
-        break;
-      case '/':
-        if (document.activeElement !== searchInputRef.current) {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isOpen) return;
+      const cols = window.innerWidth < 640 ? 8 : 10;
+      const total = currentEmojis.length;
+
+      switch (e.key) {
+        case 'ArrowDown':
           e.preventDefault();
-          searchInputRef.current?.focus();
-        }
-        break;
-    }
-  }, [isOpen, currentEmojis, focusedIndex, onClose]);
+          setFocusedIndex((prev) => {
+            const next = prev + cols;
+            return next < total ? next : prev;
+          });
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setFocusedIndex((prev) => {
+            const next = prev - cols;
+            return next >= 0 ? next : -1;
+          });
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          setFocusedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          setFocusedIndex((prev) => (prev < total - 1 ? prev + 1 : prev));
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (focusedIndex >= 0 && focusedIndex < total) {
+            handleSelect(currentEmojis[focusedIndex]);
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          onClose();
+          break;
+        case '/':
+          if (document.activeElement !== searchInputRef.current) {
+            e.preventDefault();
+            searchInputRef.current?.focus();
+          }
+          break;
+      }
+    },
+    [isOpen, currentEmojis, focusedIndex, onClose]
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -973,7 +1658,10 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
 
   useEffect(() => {
     if (focusedIndex >= 0 && emojiButtonRefs.current[focusedIndex]) {
-      emojiButtonRefs.current[focusedIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      emojiButtonRefs.current[focusedIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
     }
   }, [focusedIndex]);
 
@@ -989,20 +1677,14 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
-        onClick={onClose}
-      />
-      
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
       {/* Picker Panel */}
       <div className="relative z-10 w-full max-w-2xl bg-card rounded-2xl shadow-elevated border border-border overflow-hidden animate-scale-in">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h3 className="text-xl font-semibold">{t('emojiPicker.title')}</h3>
-          <button 
-            onClick={onClose}
-            className="p-2 rounded-xl hover:bg-accent transition-colors"
-          >
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-accent transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -1066,7 +1748,9 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
               {currentEmojis.map((emoji, index) => (
                 <button
                   key={`${emoji}-${index}`}
-                  ref={el => { emojiButtonRefs.current[index] = el; }}
+                  ref={(el) => {
+                    emojiButtonRefs.current[index] = el;
+                  }}
                   onClick={() => handleSelect(emoji)}
                   onMouseEnter={() => setFocusedIndex(index)}
                   className={cn(
@@ -1074,8 +1758,8 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
                     selectedEmoji === emoji
                       ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
                       : focusedIndex === index
-                      ? 'bg-accent ring-2 ring-primary/50'
-                      : 'hover:bg-accent'
+                        ? 'bg-accent ring-2 ring-primary/50'
+                        : 'hover:bg-accent'
                   )}
                   title={EMOJI_TAGS[emoji]?.[0] || emoji}
                   tabIndex={-1}
@@ -1111,11 +1795,15 @@ export default function EmojiPicker({ isOpen, onClose, onSelect, selectedEmoji }
         <div className="p-4 border-t border-border bg-secondary/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">{t('emojiPicker.currentSelection')}:</span>
+              <span className="text-sm text-muted-foreground">
+                {t('emojiPicker.currentSelection')}:
+              </span>
               {selectedEmoji ? (
                 <span className="text-2xl">{selectedEmoji}</span>
               ) : (
-                <span className="text-sm text-muted-foreground">{t('emojiPicker.notSelected')}</span>
+                <span className="text-sm text-muted-foreground">
+                  {t('emojiPicker.notSelected')}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

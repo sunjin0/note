@@ -55,9 +55,12 @@ export function addCustomFactor(factor: Omit<FactorOption, 'isCustom'>): FactorO
  * @param updates - 要更新的字段部分数据
  * @returns 更新后的完整因素对象，如果未找到则返回 null
  */
-export function updateCustomFactor(id: string, updates: Partial<FactorOption>): FactorOption | null {
+export function updateCustomFactor(
+  id: string,
+  updates: Partial<FactorOption>
+): FactorOption | null {
   const customFactors = getCustomFactors();
-  const index = customFactors.findIndex(f => f.id === id);
+  const index = customFactors.findIndex((f) => f.id === id);
   if (index < 0) return null;
 
   customFactors[index] = { ...customFactors[index], ...updates };
@@ -72,7 +75,7 @@ export function updateCustomFactor(id: string, updates: Partial<FactorOption>): 
  */
 export function deleteCustomFactor(id: string): boolean {
   const customFactors = getCustomFactors();
-  const filtered = customFactors.filter(f => f.id !== id);
+  const filtered = customFactors.filter((f) => f.id !== id);
   if (filtered.length === customFactors.length) return false;
   saveCustomFactors(filtered);
   return true;

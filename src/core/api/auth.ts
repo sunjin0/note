@@ -1,18 +1,13 @@
 /**
  * 认证 API 模块
  * 提供与后端认证相关的API调用
- * 
+ *
  * @module api/auth
  */
 
 import { apiClient, ApiError } from './client';
 import { API_ENDPOINTS } from './config';
-import type {
-  User,
-  LoginRequest,
-  RegisterRequest,
-  AuthResponse,
-} from '@/core/storage';
+import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/core/storage';
 
 /**
  * 后端认证响应接口
@@ -37,15 +32,12 @@ interface BackendAuthResponse {
  */
 export async function apiRegister(request: RegisterRequest): Promise<AuthResponse> {
   try {
-    const response = await apiClient.post<BackendAuthResponse>(
-      API_ENDPOINTS.auth.register,
-      {
-        username: request.username,
-        email: request.email,
-        password: request.password,
-        nickname: request.nickname,
-      }
-    );
+    const response = await apiClient.post<BackendAuthResponse>(API_ENDPOINTS.auth.register, {
+      username: request.username,
+      email: request.email,
+      password: request.password,
+      nickname: request.nickname,
+    });
 
     if (response.success && response.data) {
       return {
@@ -78,14 +70,11 @@ export async function apiRegister(request: RegisterRequest): Promise<AuthRespons
  */
 export async function apiLogin(request: LoginRequest): Promise<AuthResponse> {
   try {
-    const response = await apiClient.post<BackendAuthResponse>(
-      API_ENDPOINTS.auth.login,
-      {
-        identifier: request.identifier,
-        password: request.password,
-        rememberMe: request.rememberMe,
-      }
-    );
+    const response = await apiClient.post<BackendAuthResponse>(API_ENDPOINTS.auth.login, {
+      identifier: request.identifier,
+      password: request.password,
+      rememberMe: request.rememberMe,
+    });
 
     if (response.success && response.data) {
       return {
@@ -127,10 +116,8 @@ export async function apiLogout(): Promise<void> {
  */
 export async function apiGetCurrentUser(): Promise<User | null> {
   try {
-    const response = await apiClient.get<{ success: boolean; data: User  }>(
-      API_ENDPOINTS.auth.me
-    );
-    
+    const response = await apiClient.get<{ success: boolean; data: User }>(API_ENDPOINTS.auth.me);
+
     if (response.success) {
       return response.data;
     }

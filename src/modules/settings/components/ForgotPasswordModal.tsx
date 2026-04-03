@@ -37,7 +37,7 @@ export default function ForgotPasswordModal({
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,48 +73,48 @@ export default function ForgotPasswordModal({
 
   const validateEmail = (): boolean => {
     const errors: Record<string, string> = {};
-    
+
     if (!email) {
       errors.email = t('auth.emailRequired');
     } else if (!isValidEmail(email)) {
       errors.email = t('auth.invalidEmail');
     }
-    
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const validateResetForm = (): boolean => {
     const errors: Record<string, string> = {};
-    
+
     if (!code) {
       errors.code = t('auth.codeRequired');
     }
-    
+
     if (!newPassword) {
       errors.newPassword = t('auth.passwordRequired');
     } else if (newPassword.length < 6) {
       errors.newPassword = t('auth.passwordTooShort');
     }
-    
+
     if (newPassword !== confirmPassword) {
       errors.confirmPassword = t('auth.passwordMismatch');
     }
-    
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSendCode = async () => {
     if (!validateEmail()) return;
-    
+
     setIsLoading(true);
     setError(null);
     setFieldErrors({});
-    
+
     try {
       const response = await apiSendEmailCode(email, 'forgot_password');
-      
+
       if (response.success) {
         setStep('reset');
         setCountdown(60);
@@ -139,14 +139,14 @@ export default function ForgotPasswordModal({
 
   const handleResetPassword = async () => {
     if (!validateResetForm()) return;
-    
+
     setIsLoading(true);
     setError(null);
     setFieldErrors({});
-    
+
     try {
       const response = await apiForgotPassword(email, code, newPassword);
-      
+
       if (response.success) {
         setSuccess(true);
         setTimeout(() => {
@@ -177,7 +177,7 @@ export default function ForgotPasswordModal({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
-      
+
       <div className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-elevated border border-border animate-scale-in">
         <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-card">
           <div className="flex items-center gap-2">
@@ -198,16 +198,13 @@ export default function ForgotPasswordModal({
                 {t('auth.forgotPasswordTitle')}
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {step === 'email' 
-                  ? t('auth.forgotPasswordSubtitle') 
+                {step === 'email'
+                  ? t('auth.forgotPasswordSubtitle')
                   : t('auth.resetPasswordSubtitle')}
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 hover:bg-accent transition-colors"
-          >
+          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-accent transition-colors">
             <X className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
@@ -229,17 +226,13 @@ export default function ForgotPasswordModal({
                 <p className="text-base font-medium text-foreground">
                   {t('auth.passwordResetSuccess')}
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t('auth.redirectingToLogin')}
-                </p>
+                <p className="text-sm text-muted-foreground mt-1">{t('auth.redirectingToLogin')}</p>
               </div>
             </div>
           ) : step === 'email' ? (
             <>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">
-                  {t('auth.email')}
-                </label>
+                <label className="text-sm font-medium text-foreground">{t('auth.email')}</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
@@ -300,9 +293,7 @@ export default function ForgotPasswordModal({
                     )}
                   />
                 </div>
-                {fieldErrors.code && (
-                  <p className="text-xs text-destructive">{fieldErrors.code}</p>
-                )}
+                {fieldErrors.code && <p className="text-xs text-destructive">{fieldErrors.code}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -359,7 +350,11 @@ export default function ForgotPasswordModal({
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
                 {fieldErrors.confirmPassword && (

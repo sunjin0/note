@@ -25,7 +25,7 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
   const [stats, setStats] = useState<MoodStats>(defaultStats);
   const [mounted, setMounted] = useState(false);
   const [allFactors, setAllFactors] = useState<FactorOption[]>(FACTOR_OPTIONS);
-  
+
   useEffect(() => {
     setMounted(true);
     setStreak(getStreak());
@@ -33,23 +33,25 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
     const customFactors = getCustomFactors();
     setAllFactors([...FACTOR_OPTIONS, ...customFactors]);
   }, [entries]);
-  
+
   const totalEntries = entries.length;
   const [todayStr, setTodayStr] = useState('');
-  const [last7Days, setLast7Days] = useState<{date: Date; label: string; dayNum: number; entry?: MoodEntry}[]>([]);
-  
+  const [last7Days, setLast7Days] = useState<
+    { date: Date; label: string; dayNum: number; entry?: MoodEntry }[]
+  >([]);
+
   useEffect(() => {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     setTodayStr(today);
-    
+
     // Last 7 days mood data
     const weekDays = t<string[]>('calendar.weekDays', {});
     const days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(now);
       d.setDate(d.getDate() - (6 - i));
       const dateStr = d.toISOString().split('T')[0];
-      const entry = entries.find(e => e.date === dateStr);
+      const entry = entries.find((e) => e.date === dateStr);
       return {
         date: d,
         label: weekDays[d.getDay()],
@@ -59,8 +61,8 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
     });
     setLast7Days(days);
   }, [entries, t]);
-  
-  const todayEntry = entries.find(e => e.date === todayStr);
+
+  const todayEntry = entries.find((e) => e.date === todayStr);
   const recentEntries = entries.slice(0, 5);
 
   const { moodToHeight, moodBarColor } = DASHBOARD_CHART;
@@ -80,13 +82,14 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/60 to-foreground/20 flex items-center">
           <div className="px-8">
             <h1 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
-              {!mounted ? t('settings.privacy.loading') : (todayEntry ? `${t('dashboard.todayMood')}  ${t(`mood.${todayEntry.mood}`)}` : t('dashboard.howAreYou'))}
+              {!mounted
+                ? t('settings.privacy.loading')
+                : todayEntry
+                  ? `${t('dashboard.todayMood')}  ${t(`mood.${todayEntry.mood}`)}`
+                  : t('dashboard.howAreYou')}
             </h1>
             <p className="text-primary-foreground/80 text-sm mb-4">{t('app.description')}</p>
-            <Button
-              onClick={() => onNewEntry(todayStr)}
-              className="shadow-medium"
-            >
+            <Button onClick={() => onNewEntry(todayStr)} className="shadow-medium">
               <Plus className="h-4 w-4 mr-2" />
               {todayEntry ? t('dashboard.updateMood') : t('dashboard.recordMood')}
             </Button>
@@ -138,7 +141,12 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">
-                {mounted ? (totalEntries > 0 ? Math.round((stats.great + stats.good) / totalEntries * 100) : 0) : '—'}%
+                {mounted
+                  ? totalEntries > 0
+                    ? Math.round(((stats.great + stats.good) / totalEntries) * 100)
+                    : 0
+                  : '—'}
+                %
               </p>
               <p className="text-xs text-muted-foreground">{t('dashboard.last7Days')}</p>
             </div>
@@ -160,7 +168,10 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                   <div className="w-full flex items-end justify-center h-24">
                     {day.entry ? (
                       <div
-                        className={cn('w-full max-w-[32px] rounded-t-lg transition-all duration-500', moodBarColor[day.entry.mood])}
+                        className={cn(
+                          'w-full max-w-[32px] rounded-t-lg transition-all duration-500',
+                          moodBarColor[day.entry.mood]
+                        )}
                         style={{ height: `${moodToHeight[day.entry.mood]}%` }}
                       />
                     ) : (
@@ -194,12 +205,32 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                   <RePieChart>
                     <Pie
                       data={[
-                        { name: t('mood.great'), value: stats.great, color: MOOD_CONFIG.great.color.replace('text-', '') },
-                        { name: t('mood.good'), value: stats.good, color: MOOD_CONFIG.good.color.replace('text-', '') },
-                        { name: t('mood.okay'), value: stats.okay, color: MOOD_CONFIG.okay.color.replace('text-', '') },
-                        { name: t('mood.sad'), value: stats.sad, color: MOOD_CONFIG.sad.color.replace('text-', '') },
-                        { name: t('mood.angry'), value: stats.angry, color: MOOD_CONFIG.angry.color.replace('text-', '') },
-                      ].filter(d => d.value > 0)}
+                        {
+                          name: t('mood.great'),
+                          value: stats.great,
+                          color: MOOD_CONFIG.great.color.replace('text-', ''),
+                        },
+                        {
+                          name: t('mood.good'),
+                          value: stats.good,
+                          color: MOOD_CONFIG.good.color.replace('text-', ''),
+                        },
+                        {
+                          name: t('mood.okay'),
+                          value: stats.okay,
+                          color: MOOD_CONFIG.okay.color.replace('text-', ''),
+                        },
+                        {
+                          name: t('mood.sad'),
+                          value: stats.sad,
+                          color: MOOD_CONFIG.sad.color.replace('text-', ''),
+                        },
+                        {
+                          name: t('mood.angry'),
+                          value: stats.angry,
+                          color: MOOD_CONFIG.angry.color.replace('text-', ''),
+                        },
+                      ].filter((d) => d.value > 0)}
                       cx="50%"
                       cy="50%"
                       innerRadius={30}
@@ -213,22 +244,24 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                         { value: stats.okay, fill: '#eab308' },
                         { value: stats.sad, fill: '#6b7280' },
                         { value: stats.angry, fill: '#ef4444' },
-                      ].filter(d => d.value > 0).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
+                      ]
+                        .filter((d) => d.value > 0)
+                        .map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value, name) => [`${value} ${t('journal.entries')}`, name]}
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '8px',
-                        fontSize: '12px'
+                        fontSize: '12px',
                       }}
                     />
-                    <Legend 
-                      verticalAlign="middle" 
-                      align="right" 
+                    <Legend
+                      verticalAlign="middle"
+                      align="right"
                       layout="vertical"
                       iconSize={8}
                       wrapperStyle={{ fontSize: '11px' }}
@@ -248,28 +281,36 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-5 gap-2">
-            {(Object.entries(MOOD_CONFIG) as [Mood, typeof MOOD_CONFIG[Mood]][]).map(([key, config]) => (
-              <button
-                key={key}
-                onClick={() => todayStr && onNewEntry(todayStr, key)}
-                disabled={!todayStr}
-                className={cn(
-                  'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 disabled:opacity-50',
-                  todayEntry?.mood === key
-                    ? `${config.bgClass} ${config.ringClass} border-transparent`
-                    : 'border-transparent hover:bg-accent'
-                )}
-              >
-                <span className="text-3xl">{config.emoji}</span>
-                <span className={cn('text-[10px] font-medium', todayEntry?.mood === key ? config.color : 'text-muted-foreground')}>
-                  {t(`mood.${key}`)}
-                </span>
-              </button>
-            ))}
+            {(Object.entries(MOOD_CONFIG) as [Mood, (typeof MOOD_CONFIG)[Mood]][]).map(
+              ([key, config]) => (
+                <button
+                  key={key}
+                  onClick={() => todayStr && onNewEntry(todayStr, key)}
+                  disabled={!todayStr}
+                  className={cn(
+                    'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 disabled:opacity-50',
+                    todayEntry?.mood === key
+                      ? `${config.bgClass} ${config.ringClass} border-transparent`
+                      : 'border-transparent hover:bg-accent'
+                  )}
+                >
+                  <span className="text-3xl">{config.emoji}</span>
+                  <span
+                    className={cn(
+                      'text-[10px] font-medium',
+                      todayEntry?.mood === key ? config.color : 'text-muted-foreground'
+                    )}
+                  >
+                    {t(`mood.${key}`)}
+                  </span>
+                </button>
+              )
+            )}
           </div>
           {todayEntry && (
             <p className="text-xs text-muted-foreground text-center mt-3">
-              {t('dashboard.todayMood')} · {MOOD_CONFIG[todayEntry.mood].emoji} {t(`mood.${todayEntry.mood}`)}
+              {t('dashboard.todayMood')} · {MOOD_CONFIG[todayEntry.mood].emoji}{' '}
+              {t(`mood.${todayEntry.mood}`)}
             </p>
           )}
         </CardContent>
@@ -279,7 +320,10 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
       <Card>
         <CardHeader className="pb-2 flex-row items-center justify-between">
           <CardTitle className="text-sm">{t('dashboard.recentEntries')}</CardTitle>
-          <button onClick={onViewJournal} className="text-xs text-primary hover:underline flex items-center gap-0.5">
+          <button
+            onClick={onViewJournal}
+            className="text-xs text-primary hover:underline flex items-center gap-0.5"
+          >
             {t('dashboard.viewAll')} <ChevronRight className="h-3 w-3" />
           </button>
         </CardHeader>
@@ -291,36 +335,48 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
             </div>
           ) : (
             <div className="space-y-2">
-              {recentEntries.map(entry => {
+              {recentEntries.map((entry) => {
                 const config = MOOD_CONFIG[entry.mood];
                 const d = new Date(entry.date + 'T00:00:00');
                 const dateLabel = `${d.getMonth() + 1}/${d.getDate()}`;
                 const plainText = entry.journal.replace(/<[^>]*>/g, '');
-                const entryFactors = entry.factors.map(f => allFactors.find(o => o.id === f)).filter(Boolean);
+                const entryFactors = entry.factors
+                  .map((f) => allFactors.find((o) => o.id === f))
+                  .filter(Boolean);
                 return (
                   <div
                     key={entry.id}
-                    className={cn('flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 hover:bg-accent/50', config.bgClass)}
+                    className={cn(
+                      'flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 hover:bg-accent/50',
+                      config.bgClass
+                    )}
                     onClick={() => onNewEntry(entry.date)}
                   >
                     <span className="text-xl flex-shrink-0 mt-0.5">{config.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-xs font-semibold text-foreground">{dateLabel}</span>
-                        <span className={cn('text-xs font-medium', config.color)}>{t(`mood.${entry.mood}`)}</span>
+                        <span className={cn('text-xs font-medium', config.color)}>
+                          {t(`mood.${entry.mood}`)}
+                        </span>
                       </div>
                       {plainText && (
                         <p className="text-xs text-muted-foreground truncate">{plainText}</p>
                       )}
                       {entryFactors.length > 0 && (
                         <div className="flex gap-1 mt-1.5">
-                          {entryFactors.slice(0, 3).map(f => (
-                            <span key={f!.id} className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-secondary-foreground">
+                          {entryFactors.slice(0, 3).map((f) => (
+                            <span
+                              key={f!.id}
+                              className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-secondary-foreground"
+                            >
                               {f!.emoji} {f!.isCustom ? f!.label : t(`factors.${f!.id}`)}
                             </span>
                           ))}
                           {entryFactors.length > 3 && (
-                            <span className="text-[10px] text-muted-foreground">+{entryFactors.length - 3}</span>
+                            <span className="text-[10px] text-muted-foreground">
+                              +{entryFactors.length - 3}
+                            </span>
                           )}
                         </div>
                       )}

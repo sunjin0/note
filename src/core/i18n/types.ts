@@ -8,7 +8,10 @@ import { ReactNode } from 'react';
 export type Locale = 'zh-CN' | 'en-US';
 
 /** 翻译函数类型 */
-export type TranslateFunction = <T = string>(key: string, params?: Record<string, string | number>) => T;
+export type TranslateFunction = <T = string>(
+  key: string,
+  params?: Record<string, string | number>
+) => T;
 
 /** i18n Context 类型 */
 export interface I18nContextType {

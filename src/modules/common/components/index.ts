@@ -1,7 +1,7 @@
 /**
  * 通用组件模块
  * 提供共享的UI组件
- * 
+ *
  * @module common/components
  */
 

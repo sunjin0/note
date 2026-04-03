@@ -48,12 +48,12 @@ export function I18nProvider({ children }: I18nProviderProps) {
     <T = string,>(key: string, params?: Record<string, string | number>): T => {
       const resource = resources[locale];
       const value = getNestedValue(resource, key);
-      
+
       // Return arrays as-is
       if (Array.isArray(value)) {
         return value as T;
       }
-      
+
       let text = typeof value === 'string' ? value : key;
 
       if (params) {
@@ -68,11 +68,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
   );
 
   // Always provide context, even during SSR
-  return (
-    <I18nContext.Provider value={{ locale, setLocale, t }}>
-      {children}
-    </I18nContext.Provider>
-  );
+  return <I18nContext.Provider value={{ locale, setLocale, t }}>{children}</I18nContext.Provider>;
 }
 
 export function useTranslation() {

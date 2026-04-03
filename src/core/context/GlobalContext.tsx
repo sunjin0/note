@@ -2,7 +2,12 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { MoodEntry } from '@/types';
-import type { User, SyncSettings as SyncSettingsType, SyncState, ConflictEntry } from '@/core/storage';
+import type {
+  User,
+  SyncSettings as SyncSettingsType,
+  SyncState,
+  ConflictEntry,
+} from '@/core/storage';
 import {
   getCurrentUser,
   isAuthenticated,
@@ -51,13 +56,13 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
     syncState: null,
     conflicts: [],
   });
-  
+
   const [isInitialized, setIsInitialized] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refreshEntries = useCallback(() => {
     const entries = getEntries();
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       entries,
     }));
@@ -65,7 +70,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
 
   const refreshState = useCallback(() => {
     const entries = getEntries();
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       entries,
       user: getCurrentUser(),
@@ -82,15 +87,15 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
       refreshState();
       setIsInitialized(true);
     };
-    
+
     initialize();
   }, [refreshState]);
 
   useEffect(() => {
     if (!isInitialized) return;
-    
+
     intervalRef.current = setInterval(refreshState, 3000);
-    
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -99,7 +104,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
   }, [isInitialized, refreshState]);
 
   const updateUser = useCallback((user: User | null) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       user,
       isLoggedIn: !!user,
@@ -110,7 +115,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
     const currentSettings = getSyncSettings();
     const newSettings = { ...currentSettings, ...updates };
     saveSyncSettings(newSettings);
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       syncSettings: newSettings,
     }));
@@ -172,7 +177,7 @@ export function useGlobal() {
 
 export function useEntries() {
   const { entries, refreshEntries } = useGlobal();
-  
+
   return {
     entries,
     refreshEntries,
@@ -180,8 +185,16 @@ export function useEntries() {
 }
 
 export function useSync() {
-  const { syncSettings, syncState, conflicts, updateSyncSettings, enableSync, disableSync, refreshState } = useGlobal();
-  
+  const {
+    syncSettings,
+    syncState,
+    conflicts,
+    updateSyncSettings,
+    enableSync,
+    disableSync,
+    refreshState,
+  } = useGlobal();
+
   const syncNow = useCallback(async () => {
     const result = await performSync();
     refreshState();
@@ -202,7 +215,7 @@ export function useSync() {
 
 export function useAuth() {
   const { user, isLoggedIn, updateUser, logout, refreshState } = useGlobal();
-  
+
   return {
     user,
     isLoggedIn,

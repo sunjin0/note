@@ -1,7 +1,7 @@
 /**
  * API 配置模块
  * 定义后端API的基础配置和常量
- * 
+ *
  * @module api/config
  */
 
@@ -72,15 +72,15 @@ export const HTTP_STATUS = {
  * API 错误码映射
  */
 export const API_ERROR_CODES: Record<string, string> = {
-  'AUTH_INVALID_CREDENTIALS': 'auth.invalidCredentials',
-  'AUTH_USER_EXISTS': 'auth.emailExists',
-  'AUTH_USERNAME_EXISTS': 'auth.usernameExists',
-  'AUTH_TOKEN_EXPIRED': 'auth.tokenExpired',
-  'AUTH_INVALID_TOKEN': 'auth.invalidToken',
-  'AUTH_UNAUTHORIZED': 'auth.unauthorized',
-  'VALIDATION_ERROR': 'api.validationError',
-  'RATE_LIMIT_EXCEEDED': 'api.rateLimitExceeded',
-  'SERVER_ERROR': 'api.serverError',
-  'NETWORK_ERROR': 'api.networkError',
-  'SYNC_CONFLICT': 'sync.conflictDetected',
+  AUTH_INVALID_CREDENTIALS: 'auth.invalidCredentials',
+  AUTH_USER_EXISTS: 'auth.emailExists',
+  AUTH_USERNAME_EXISTS: 'auth.usernameExists',
+  AUTH_TOKEN_EXPIRED: 'auth.tokenExpired',
+  AUTH_INVALID_TOKEN: 'auth.invalidToken',
+  AUTH_UNAUTHORIZED: 'auth.unauthorized',
+  VALIDATION_ERROR: 'api.validationError',
+  RATE_LIMIT_EXCEEDED: 'api.rateLimitExceeded',
+  SERVER_ERROR: 'api.serverError',
+  NETWORK_ERROR: 'api.networkError',
+  SYNC_CONFLICT: 'sync.conflictDetected',
 };
