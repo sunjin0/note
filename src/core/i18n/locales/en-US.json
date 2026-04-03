@@ -473,7 +473,8 @@
     "resolveError": "Error resolving conflict",
     "mood": {
       "value": "Mood: {value}"
-    }
+    },
+    "pendingCount": "{count} pending sync"
   },
   "api": {
     "networkError": "Network connection failed, please check your network settings",

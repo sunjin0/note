@@ -473,7 +473,8 @@
     "resolveError": "解决冲突出错",
     "mood": {
       "value": "心情：{value}"
-    }
+    },
+    "pendingCount": "{count} 条待同步"
   },
   "api": {
     "networkError": "网络连接失败，请检查网络设置",

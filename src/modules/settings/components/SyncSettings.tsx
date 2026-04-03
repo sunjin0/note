@@ -274,15 +274,25 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
 
         {syncSettings.enabled && (
           <div className="mt-4 pt-4 border-t border-border">
-            <div className="flex items-center gap-3">
-              <StatusIcon className={cn('h-5 w-5', syncStatus.color, syncStatus.animate && 'animate-spin')} />
-              <span className={cn('text-sm font-medium', syncStatus.color)}>
-                {syncStatus.text}
-              </span>
-              {syncState.error && (
-                <span className="text-sm text-destructive ml-2">
-                  ({syncState.error})
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <StatusIcon className={cn('h-5 w-5', syncStatus.color, syncStatus.animate && 'animate-spin')} />
+                <span className={cn('text-sm font-medium', syncStatus.color)}>
+                  {syncStatus.text}
                 </span>
+                {syncState.error && (
+                  <span className="text-sm text-destructive ml-2">
+                    ({syncState.error})
+                  </span>
+                )}
+              </div>
+              {syncState.pendingCount > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                  <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                  <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                    {t('sync.pendingCount', { count: syncState.pendingCount })}
+                  </span>
+                </div>
               )}
             </div>
           </div>
