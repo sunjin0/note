@@ -219,3 +219,79 @@ export async function apiChangePassword(
     return { success: false, error: 'api.networkError' };
   }
 }
+
+/**
+ * 发送邮箱验证码
+ */
+export async function apiSendEmailCode(
+  email: string,
+  purpose: string
+): Promise<{ success: boolean; error?: string; fieldErrors?: Record<string, string> }> {
+  try {
+    const response = await apiClient.post<{
+      success: boolean;
+      error?: { code: string; message: string; fieldErrors?: Record<string, string> };
+    }>(API_ENDPOINTS.auth.sendEmailCode, {
+      email,
+      purpose,
+    });
+
+    if (response.success) {
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      error: response.error?.code,
+      fieldErrors: response.error?.fieldErrors,
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return {
+        success: false,
+        error: error.errorCode || error.message,
+        fieldErrors: error.fieldErrors,
+      };
+    }
+    return { success: false, error: 'api.networkError' };
+  }
+}
+
+/**
+ * 忘记密码（通过邮箱验证码重置）
+ */
+export async function apiForgotPassword(
+  email: string,
+  code: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string; fieldErrors?: Record<string, string> }> {
+  try {
+    const response = await apiClient.post<{
+      success: boolean;
+      error?: { code: string; message: string; fieldErrors?: Record<string, string> };
+    }>(API_ENDPOINTS.auth.forgotPassword, {
+      email,
+      code,
+      newPassword,
+    });
+
+    if (response.success) {
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      error: response.error?.code,
+      fieldErrors: response.error?.fieldErrors,
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return {
+        success: false,
+        error: error.errorCode || error.message,
+        fieldErrors: error.fieldErrors,
+      };
+    }
+    return { success: false, error: 'api.networkError' };
+  }
+}

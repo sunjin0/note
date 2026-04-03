@@ -209,7 +209,7 @@
       "title": "关于",
       "appName": "心情日记 v1.0",
       "description": "一个简洁的心情追踪和日记应用。所有数据安全存储在你的本地设备上，不会上传到任何服务器。",
-      "storageNote": "所有数据仅保存在浏览器 localStorage 中"
+      "storageNote": "所有数据仅保存在浏览器中"
     },
     "security": {
       "title": "密码保护",
@@ -457,6 +457,22 @@
       "not_authenticated": "请先登录账号",
       "offline": "网络连接已断开",
       "wifi_required": "当前不是WiFi网络"
+    },
+    "conflictTitle": "检测到 {count} 个冲突",
+    "conflictDescription": "部分记录在多个设备上被修改。请查看并解决这些冲突。",
+    "resolveConflicts": "解决冲突",
+    "yourVersion": "您的版本",
+    "serverVersion": "服务器版本",
+    "resolveThis": "解决",
+    "resolveAll": "全部解决 ({count})",
+    "autoResolved": "自动建议",
+    "server": "服务器",
+    "client": "客户端",
+    "photosCount": "{count} 张照片",
+    "resolveFailed": "解决冲突失败",
+    "resolveError": "解决冲突出错",
+    "mood": {
+      "value": "心情：{value}"
     }
   },
   "api": {
@@ -520,6 +536,26 @@
     "veryStrong": "非常强",
     "passwordNeedMixedCase": "建议同时使用大小写字母",
     "passwordNeedNumber": "建议包含数字",
-    "passwordNeedSpecialChar": "建议包含特殊字符"
+    "passwordNeedSpecialChar": "建议包含特殊字符",
+    "forgotPasswordTitle": "忘记密码",
+    "forgotPasswordSubtitle": "输入您的邮箱地址，我们将发送验证码",
+    "resetPasswordSubtitle": "输入验证码和新密码",
+    "verificationCode": "验证码",
+    "codePlaceholder": "请输入6位验证码",
+    "codeRequired": "请输入验证码",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "请输入新密码",
+    "confirmNewPassword": "确认新密码",
+    "sendCode": "发送验证码",
+    "sendingCode": "发送中...",
+    "resendCodeIn": "{seconds}秒后重新发送",
+    "resetPasswordButton": "重置密码",
+    "resettingPassword": "重置中...",
+    "backToLogin": "返回登录",
+    "passwordResetSuccess": "密码重置成功",
+    "redirectingToLogin": "正在跳转到登录页面...",
+    "invalidCode": "验证码错误或已过期",
+    "userNotFound": "该邮箱未注册",
+    "unknownError": "发生未知错误"
   }
 }

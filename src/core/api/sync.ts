@@ -1,13 +1,52 @@
 /**
  * 同步 API 模块
  * 提供与后端数据同步相关的API调用
- * 
- * @module api/sync
+ * 符合 SYNC_DESIGN.md 规范
  */
 
 import { apiClient, ApiError } from './client';
 import { API_ENDPOINTS } from './config';
-import type { SyncPayload, SyncResponse, SyncResult } from '@/core/storage';
+import type { MoodEntry } from '@/types';
+
+/**
+ * 同步请求负载
+ */
+export interface SyncPayload {
+  deviceId: string;
+  lastSyncAt: string | null;
+  entries: MoodEntry[];
+  deletes: Array<{
+    id: string;
+    deletedAt: string;
+  }>;
+}
+
+/**
+ * 冲突详情
+ */
+export interface ConflictDetail {
+  id: string;
+  clientUpdatedAt: string;
+  serverUpdatedAt: string;
+  clientEntry: MoodEntry;
+  serverEntry: MoodEntry;
+  autoResolution: 'server' | 'client';
+}
+
+/**
+ * 同步结果
+ */
+export interface SyncResult {
+  success: boolean;
+  uploaded: number;
+  downloaded: number;
+  conflicts: number;
+  skipped: number;
+  deleted: number;
+  error?: string;
+  timestamp: string;
+  conflictDetails?: ConflictDetail[];
+}
 
 /**
  * 后端同步响应接口
@@ -15,21 +54,58 @@ import type { SyncPayload, SyncResponse, SyncResult } from '@/core/storage';
 interface BackendSyncResponse {
   success: boolean;
   data?: {
-    serverTimestamp: string;
-    entries: SyncPayload['data']['entries'];
-    settings: SyncPayload['data']['settings'];
-    customFactors: SyncPayload['data']['customFactors'];
-    customTemplates: SyncPayload['data']['customTemplates'];
-    deletedIds: string[];
-    conflicts: Array<{
-      entryId: string;
-      resolution: 'server' | 'client' | 'merged';
-      mergedEntry?: SyncPayload['data']['entries'][0];
+    serverTime: string;
+    entries: MoodEntry[];
+    deletes: Array<{
+      id: string;
+      deletedAt: string;
     }>;
+    conflicts: Array<{
+      id: string;
+      clientUpdatedAt: string;
+      serverUpdatedAt: string;
+      clientEntry: MoodEntry;
+      serverEntry: MoodEntry;
+      autoResolution: 'server' | 'client';
+    }>;
+    stats: {
+      uploaded: number;
+      downloaded: number;
+      deleted: number;
+      conflicts: number;
+    };
   };
   error?: {
     code: string;
     message: string;
+  };
+}
+
+/**
+ * 处理同步错误
+ */
+function handleSyncError(error: unknown): SyncResult {
+  if (error instanceof ApiError) {
+    return {
+      success: false,
+      uploaded: 0,
+      downloaded: 0,
+      conflicts: 0,
+      skipped: 0,
+      deleted: 0,
+      error: error.errorCode || error.message,
+      timestamp: new Date().toISOString(),
+    };
+  }
+  return {
+    success: false,
+    uploaded: 0,
+    downloaded: 0,
+    conflicts: 0,
+    skipped: 0,
+    deleted: 0,
+    error: 'api.networkError',
+    timestamp: new Date().toISOString(),
   };
 }
 
@@ -46,11 +122,13 @@ export async function apiSync(payload: SyncPayload): Promise<SyncResult> {
     if (response.success && response.data) {
       return {
         success: true,
-        uploaded: payload.data.entries.length,
-        downloaded: response.data.entries.length,
-        conflicts: response.data.conflicts.length,
+        uploaded: response.data.stats.uploaded,
+        downloaded: response.data.stats.downloaded,
+        conflicts: response.data.stats.conflicts,
         skipped: 0,
-        timestamp: response.data.serverTimestamp,
+        deleted: response.data.stats.deleted,
+        timestamp: response.data.serverTime,
+        conflictDetails: response.data.conflicts,
       };
     }
 
@@ -60,30 +138,12 @@ export async function apiSync(payload: SyncPayload): Promise<SyncResult> {
       downloaded: 0,
       conflicts: 0,
       skipped: 0,
+      deleted: 0,
       error: response.error?.code || 'sync.failed',
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    if (error instanceof ApiError) {
-      return {
-        success: false,
-        uploaded: 0,
-        downloaded: 0,
-        conflicts: 0,
-        skipped: 0,
-        error: error.errorCode || error.message,
-        timestamp: new Date().toISOString(),
-      };
-    }
-    return {
-      success: false,
-      uploaded: 0,
-      downloaded: 0,
-      conflicts: 0,
-      skipped: 0,
-      error: 'api.networkError',
-      timestamp: new Date().toISOString(),
-    };
+    return handleSyncError(error);
   }
 }
 
@@ -134,17 +194,16 @@ export async function apiGetSyncStatus(): Promise<{
  */
 export async function apiResolveConflict(
   entryId: string,
-  resolution: 'server' | 'client' | 'merged',
-  mergedEntry?: SyncPayload['data']['entries'][0]
+  resolution: 'server' | 'client',
+  entry?: MoodEntry
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const response = await apiClient.post<{
       success: boolean;
       error?: { code: string; message: string };
-    }>(API_ENDPOINTS.sync.resolveConflict, {
-      entryId,
+    }>(`${API_ENDPOINTS.sync.resolveConflict}/${entryId}/resolve`, {
       resolution,
-      mergedEntry,
+      entry,
     });
 
     if (response.success) {

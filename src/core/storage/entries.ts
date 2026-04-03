@@ -124,15 +124,33 @@ export function updateEntry(id: string, updates: Partial<MoodEntry>): MoodEntry 
 }
 
 /**
- * 删除日记条目
+ * 软删除日记条目（标记为 deletedAt，但不物理删除)
  * @param id - 要删除的条目 id
- * @returns 是否成功删除（找到并删除了条目返回 true，未找到返回 false）
+ * @returns 是否成功标记为删除（找到并标记为已删除）
  */
 export function deleteEntry(id: string): boolean {
   const entries = getEntries();
-  const filtered = entries.filter(e => e.id !== id);
-  if (filtered.length === entries.length) return false;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  const index = entries.findIndex(e => e.id === id);
+  if (index < 0) return false;
+  
+  const now = new Date().toISOString();
+  
+  // 标记为已删除
+  entries[index] = {
+    ...entries[index],
+    deletedAt: now,
+    updatedAt: now,
+  };
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  
+  // 追踪删除操作以便同步
+  import('./sync').then(({ trackDeletedId }) => {
+    trackDeletedId(id);
+  }).catch(() => {
+    // 同步追踪失败，忽略
+  });
+  
   return true;
 }
 

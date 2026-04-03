@@ -126,9 +126,11 @@ export {
   type SyncPayload,
   type SyncResponse,
   type ConflictStrategy,
+  type ConflictEntry,
   // 常量
   SYNC_SETTINGS_KEY,
   SYNC_STATE_KEY,
+  SYNC_CONFLICTS_KEY,
   DEFAULT_SYNC_SETTINGS,
   DEFAULT_SYNC_STATE,
   // 设置管理
@@ -150,6 +152,10 @@ export {
   collectSyncData,
   // 冲突解决
   resolveConflict,
+  getConflicts,
+  saveConflicts,
+  clearConflicts,
+  removeConflict,
   // 同步操作
   performSync,
   forceSync,

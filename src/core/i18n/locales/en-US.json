@@ -457,6 +457,22 @@
       "not_authenticated": "Please login first",
       "offline": "Network connection lost",
       "wifi_required": "WiFi connection required"
+    },
+    "conflictTitle": "{count} Conflict(s) Detected",
+    "conflictDescription": "Some entries were modified on multiple devices. Please review and resolve the conflicts.",
+    "resolveConflicts": "Resolve Conflicts",
+    "yourVersion": "Your Version",
+    "serverVersion": "Server Version",
+    "resolveThis": "Resolve",
+    "resolveAll": "Resolve All ({count})",
+    "autoResolved": "Auto-suggest",
+    "server": "Server",
+    "client": "Client",
+    "photosCount": "{count} photo(s)",
+    "resolveFailed": "Failed to resolve conflict",
+    "resolveError": "Error resolving conflict",
+    "mood": {
+      "value": "Mood: {value}"
     }
   },
   "api": {
@@ -520,6 +536,26 @@
     "veryStrong": "Very Strong",
     "passwordNeedMixedCase": "Consider using both uppercase and lowercase letters",
     "passwordNeedNumber": "Consider including numbers",
-    "passwordNeedSpecialChar": "Consider including special characters"
+    "passwordNeedSpecialChar": "Consider including special characters",
+    "forgotPasswordTitle": "Forgot Password",
+    "forgotPasswordSubtitle": "Enter your email address and we'll send you a verification code",
+    "resetPasswordSubtitle": "Enter the verification code and your new password",
+    "verificationCode": "Verification Code",
+    "codePlaceholder": "Enter 6-digit code",
+    "codeRequired": "Please enter verification code",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmNewPassword": "Confirm New Password",
+    "sendCode": "Send Code",
+    "sendingCode": "Sending...",
+    "resendCodeIn": "Resend in {seconds}s",
+    "resetPasswordButton": "Reset Password",
+    "resettingPassword": "Resetting...",
+    "backToLogin": "Back to Login",
+    "passwordResetSuccess": "Password Reset Successfully",
+    "redirectingToLogin": "Redirecting to login...",
+    "invalidCode": "Invalid or expired verification code",
+    "userNotFound": "This email is not registered",
+    "unknownError": "An unknown error occurred"
   }
 }

@@ -10,6 +10,7 @@ import type {
   SyncResult,
   ConflictStrategy,
   User,
+  ConflictEntry,
 } from '@/core/storage';
 import {
   getSyncSettings,
@@ -26,6 +27,8 @@ import {
   getCurrentUser,
   isAuthenticated,
   logout,
+  getConflicts,
+  clearConflicts,
 } from '@/core/storage';
 import {
   Cloud,
@@ -41,8 +44,10 @@ import {
   Clock,
   User as UserIcon,
   LogOut,
+  AlertTriangle,
 } from 'lucide-react';
 import AuthModal from './AuthModal';
+import ConflictResolution from './ConflictResolution';
 
 interface SyncSettingsProps {
   className?: string;
@@ -62,6 +67,8 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [isClient, setIsClient] = useState(false);
+  const [conflicts, setConflicts] = useState<ConflictEntry[]>([]);
+  const [showConflictModal, setShowConflictModal] = useState(false);
 
   // 刷新状态
   const refreshState = useCallback(() => {
@@ -70,6 +77,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
     setNetworkStatus(checkNetworkStatus());
     setUser(getCurrentUser());
     setIsLoggedIn(isAuthenticated());
+    setConflicts(getConflicts());
   }, []);
 
   // 初始加载和监听网络状态变化
@@ -146,10 +154,16 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
   const handleAuthSuccess = (authenticatedUser: User) => {
     setUser(authenticatedUser);
     setIsLoggedIn(true);
-    // 自动启用同步
     enableSync();
     startAutoSync();
     refreshState();
+  };
+
+  const handleConflictResolved = () => {
+    refreshState();
+    if (conflicts.length === 0) {
+      setShowConflictModal(false);
+    }
   };
 
   // 处理立即同步
@@ -359,6 +373,27 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
         )}
       </div>
 
+      {syncState.status === 'conflict' && conflicts.length > 0 && (
+        <div className="bg-orange-50 border border-orange-500 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-medium text-sm text-foreground mb-1">
+                {t('sync.conflictTitle', { count: conflicts.length })}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t('sync.conflictDescription')}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end mt-3">
+            <Button size="sm" onClick={() => setShowConflictModal(true)}>
+              {t('sync.resolveConflicts')}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* 网络状态 */}
       <div className="flex items-center gap-3 px-1">
         {networkStatus.online ? (
@@ -532,6 +567,13 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
         onClose={() => setShowAuthModal(false)}
         defaultMode={authModalMode}
         onAuthSuccess={handleAuthSuccess}
+      />
+
+      <ConflictResolution
+        isOpen={showConflictModal}
+        onClose={() => setShowConflictModal(false)}
+        conflicts={conflicts}
+        onResolved={handleConflictResolved}
       />
     </div>
   );

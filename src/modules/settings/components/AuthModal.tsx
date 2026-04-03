@@ -30,6 +30,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react';
+import ForgotPasswordModal from './ForgotPasswordModal';
 
 type AuthMode = 'login' | 'register';
 
@@ -48,6 +49,7 @@ export default function AuthModal({
 }: AuthModalProps) {
   const { t } = useTranslation();
   const [mode, setMode] = useState<AuthMode>(defaultMode);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   // 表单状态
   const [username, setUsername] = useState('');
@@ -221,276 +223,290 @@ export default function AuthModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      {/* 遮罩层 */}
-      <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
-      
-      {/* 模态框 */}
-      <div className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-elevated border border-border animate-scale-in">
-        {/* 头部 */}
-        <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-card">
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">
-              {mode === 'login' ? t('auth.loginTitle') : t('auth.registerTitle')}
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {mode === 'login' ? t('auth.loginSubtitle') : t('auth.registerSubtitle')}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 hover:bg-accent transition-colors"
-          >
-            <X className="h-5 w-5 text-muted-foreground" />
-          </button>
-        </div>
-
-        {/* 表单 */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {/* 错误提示 */}
-          {error && (
-            <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
-          )}
-
-          {/* 用户名（仅注册） */}
-          {mode === 'register' && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">
-                {t('auth.username')}
-              </label>
-              <div className="relative">
-                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder={t('auth.usernamePlaceholder')}
-                  className={cn(
-                    'w-full pl-10 pr-3 py-2.5 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 transition-all',
-                    fieldErrors.username
-                      ? 'border-destructive focus:ring-destructive/20'
-                      : 'border-input focus:ring-primary/20 focus:border-primary'
-                  )}
-                />
+    <>
+      {/* 登录/注册模态框 - 只在不显示忘记密码时才显示 */}
+      {!showForgotPassword && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          {/* 遮罩层 */}
+          <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
+          
+          {/* 模态框 */}
+          <div className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-elevated border border-border animate-scale-in">
+            {/* 头部 */}
+            <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-card">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  {mode === 'login' ? t('auth.loginTitle') : t('auth.registerTitle')}
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {mode === 'login' ? t('auth.loginSubtitle') : t('auth.registerSubtitle')}
+                </p>
               </div>
-              {fieldErrors.username && (
-                <p className="text-xs text-destructive">{fieldErrors.username}</p>
-              )}
-            </div>
-          )}
-
-          {/* 邮箱 */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
-              {t('auth.email')}
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('auth.emailPlaceholder')}
-                className={cn(
-                  'w-full pl-10 pr-3 py-2.5 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 transition-all',
-                  fieldErrors.email
-                    ? 'border-destructive focus:ring-destructive/20'
-                    : 'border-input focus:ring-primary/20 focus:border-primary'
-                )}
-              />
-            </div>
-            {fieldErrors.email && (
-              <p className="text-xs text-destructive">{fieldErrors.email}</p>
-            )}
-          </div>
-
-          {/* 昵称（仅注册，可选） */}
-          {mode === 'register' && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">
-                {t('auth.nickname')} <span className="text-muted-foreground font-normal">({t('auth.optional')})</span>
-              </label>
-              <div className="relative">
-                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  placeholder={t('auth.nicknamePlaceholder')}
-                  className="w-full pl-10 pr-3 py-2.5 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* 密码 */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
-              {t('auth.password')}
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('auth.passwordPlaceholder')}
-                className={cn(
-                  'w-full pl-10 pr-10 py-2.5 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 transition-all',
-                  fieldErrors.password
-                    ? 'border-destructive focus:ring-destructive/20'
-                    : 'border-input focus:ring-primary/20 focus:border-primary'
-                )}
-              />
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                onClick={onClose}
+                className="rounded-lg p-1.5 hover:bg-accent transition-colors"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
-            {fieldErrors.password && (
-              <p className="text-xs text-destructive">{fieldErrors.password}</p>
-            )}
-            
-            {/* 密码强度指示器（仅注册） */}
-            {mode === 'register' && password && (
-              <div className="space-y-1.5 pt-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={cn('h-full transition-all duration-300', getStrengthColor(passwordStrength.score))}
-                      style={{ width: getStrengthWidth(passwordStrength.score) }}
+
+            {/* 表单 */}
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              {/* 错误提示 */}
+              {error && (
+                <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
+
+              {/* 用户名（仅注册） */}
+              {mode === 'register' && (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground">
+                    {t('auth.username')}
+                  </label>
+                  <div className="relative">
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder={t('auth.usernamePlaceholder')}
+                      className={cn(
+                        'w-full pl-10 pr-3 py-2.5 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 transition-all',
+                        fieldErrors.username
+                          ? 'border-destructive focus:ring-destructive/20'
+                          : 'border-input focus:ring-primary/20 focus:border-primary'
+                      )}
                     />
                   </div>
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {t(passwordStrength.label)}
-                  </span>
+                  {fieldErrors.username && (
+                    <p className="text-xs text-destructive">{fieldErrors.username}</p>
+                  )}
                 </div>
-                {passwordStrength.feedback.length > 0 && (
-                  <ul className="text-xs text-muted-foreground space-y-0.5">
-                    {passwordStrength.feedback.map((item, index) => (
-                      <li key={index}>• {t(item)}</li>
-                    ))}
-                  </ul>
+              )}
+
+              {/* 邮箱 */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">
+                  {t('auth.email')}
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t('auth.emailPlaceholder')}
+                    className={cn(
+                      'w-full pl-10 pr-3 py-2.5 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 transition-all',
+                      fieldErrors.email
+                        ? 'border-destructive focus:ring-destructive/20'
+                        : 'border-input focus:ring-primary/20 focus:border-primary'
+                    )}
+                  />
+                </div>
+                {fieldErrors.email && (
+                  <p className="text-xs text-destructive">{fieldErrors.email}</p>
                 )}
               </div>
-            )}
-          </div>
 
-          {/* 确认密码（仅注册） */}
-          {mode === 'register' && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">
-                {t('auth.confirmPassword')}
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder={t('auth.confirmPasswordPlaceholder')}
-                  className={cn(
-                    'w-full pl-10 pr-10 py-2.5 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 transition-all',
-                    fieldErrors.confirmPassword
-                      ? 'border-destructive focus:ring-destructive/20'
-                      : 'border-input focus:ring-primary/20 focus:border-primary'
-                  )}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {fieldErrors.confirmPassword && (
-                <p className="text-xs text-destructive">{fieldErrors.confirmPassword}</p>
+              {/* 昵称（仅注册，可选） */}
+              {mode === 'register' && (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground">
+                    {t('auth.nickname')} <span className="text-muted-foreground font-normal">({t('auth.optional')})</span>
+                  </label>
+                  <div className="relative">
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      placeholder={t('auth.nicknamePlaceholder')}
+                      className="w-full pl-10 pr-3 py-2.5 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    />
+                  </div>
+                </div>
               )}
-            </div>
-          )}
 
-          {/* 记住我（仅登录） */}
-          {mode === 'login' && (
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-input text-primary focus:ring-primary"
-                />
-                <span className="text-sm text-muted-foreground">{t('auth.rememberMe')}</span>
-              </label>
-              <button
-                type="button"
-                className="text-sm text-primary hover:underline"
-                onClick={() => alert(t('auth.forgotPasswordHint'))}
+              {/* 密码 */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">
+                  {t('auth.password')}
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t('auth.passwordPlaceholder')}
+                    className={cn(
+                      'w-full pl-10 pr-10 py-2.5 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 transition-all',
+                      fieldErrors.password
+                        ? 'border-destructive focus:ring-destructive/20'
+                        : 'border-input focus:ring-primary/20 focus:border-primary'
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {fieldErrors.password && (
+                  <p className="text-xs text-destructive">{fieldErrors.password}</p>
+                )}
+                
+                {/* 密码强度指示器（仅注册） */}
+                {mode === 'register' && password && (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={cn('h-full transition-all duration-300', getStrengthColor(passwordStrength.score))}
+                          style={{ width: getStrengthWidth(passwordStrength.score) }}
+                        />
+                      </div>
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {t(passwordStrength.label)}
+                      </span>
+                    </div>
+                    {passwordStrength.feedback.length > 0 && (
+                      <ul className="text-xs text-muted-foreground space-y-0.5">
+                        {passwordStrength.feedback.map((item, index) => (
+                          <li key={index}>• {t(item)}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 确认密码（仅注册） */}
+              {mode === 'register' && (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground">
+                    {t('auth.confirmPassword')}
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t('auth.confirmPasswordPlaceholder')}
+                      className={cn(
+                        'w-full pl-10 pr-10 py-2.5 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 transition-all',
+                        fieldErrors.confirmPassword
+                          ? 'border-destructive focus:ring-destructive/20'
+                          : 'border-input focus:ring-primary/20 focus:border-primary'
+                      )}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {fieldErrors.confirmPassword && (
+                    <p className="text-xs text-destructive">{fieldErrors.confirmPassword}</p>
+                  )}
+                </div>
+              )}
+
+              {/* 记住我（仅登录） */}
+              {mode === 'login' && (
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-4 h-4 rounded border-input text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm text-muted-foreground">{t('auth.rememberMe')}</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="text-sm text-primary hover:underline"
+                    onClick={() => setShowForgotPassword(true)}
+                  >
+                    {t('auth.forgotPassword')}
+                  </button>
+                </div>
+              )}
+
+              {/* 提交按钮 */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full"
+                size="lg"
               >
-                {t('auth.forgotPassword')}
-              </button>
-            </div>
-          )}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {mode === 'login' ? t('auth.loggingIn') : t('auth.registering')}
+                  </>
+                ) : mode === 'login' ? (
+                  t('auth.loginButton')
+                ) : (
+                  t('auth.registerButton')
+                )}
+              </Button>
 
-          {/* 提交按钮 */}
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full"
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {mode === 'login' ? t('auth.loggingIn') : t('auth.registering')}
-              </>
-            ) : mode === 'login' ? (
-              t('auth.loginButton')
-            ) : (
-              t('auth.registerButton')
-            )}
-          </Button>
-
-          {/* 切换模式 */}
-          <div className="text-center text-sm text-muted-foreground">
-            {mode === 'login' ? (
-              <>
-                {t('auth.noAccount')}{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode('register');
-                    resetForm();
-                  }}
-                  className="text-primary hover:underline font-medium"
-                >
-                  {t('auth.registerNow')}
-                </button>
-              </>
-            ) : (
-              <>
-                {t('auth.hasAccount')}{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode('login');
-                    resetForm();
-                  }}
-                  className="text-primary hover:underline font-medium"
-                >
-                  {t('auth.loginNow')}
-                </button>
-              </>
-            )}
+              {/* 切换模式 */}
+              <div className="text-center text-sm text-muted-foreground">
+                {mode === 'login' ? (
+                  <>
+                    {t('auth.noAccount')}{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('register');
+                        resetForm();
+                      }}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      {t('auth.registerNow')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {t('auth.hasAccount')}{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('login');
+                        resetForm();
+                      }}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      {t('auth.loginNow')}
+                    </button>
+                  </>
+                )}
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      )}
+
+      {/* 忘记密码模态框 */}
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        onBackToLogin={() => {
+          setShowForgotPassword(false);
+        }}
+      />
+    </>
   );
 }

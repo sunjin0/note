@@ -23,12 +23,14 @@ export const API_ENDPOINTS = {
     refresh: '/auth/refresh',
     me: '/auth/me',
     changePassword: '/auth/change-password',
+    sendEmailCode: '/auth/send-email-code',
+    forgotPassword: '/auth/forgot-password',
   },
   // 同步相关
   sync: {
-    sync: '/sync',
-    status: '/sync/status',
-    resolveConflict: '/sync/resolve-conflict',
+    sync: '/api/v1/sync',
+    status: '/api/v1/sync/status',
+    resolveConflict: '/api/v1/sync/conflicts',
   },
   // 用户数据
   user: {
