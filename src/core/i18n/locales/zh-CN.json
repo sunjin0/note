@@ -98,7 +98,19 @@
     "draftHoursAgo": "{hours}小时前",
     "draftDaysAgo": "{days}天前",
     "template": "使用模板",
-    "useTemplate": "使用日记模板快速开始写作"
+    "useTemplate": "使用日记模板快速开始写作",
+    "heading1": "标题 1",
+    "heading2": "标题 2",
+    "highlight": "高亮",
+    "bulletList": "无序列表",
+    "orderedList": "有序列表",
+    "taskList": "任务列表",
+    "blockquote": "引用",
+    "codeBlock": "代码块",
+    "link": "链接",
+    "insertLink": "插入链接",
+    "linkUrl": "链接地址",
+    "confirm": "确认"
   },
   "mood": {
     "great": "很棒",

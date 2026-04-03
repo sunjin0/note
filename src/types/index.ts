@@ -3,8 +3,8 @@
  * 包含应用中使用的基础类型和接口
  */
 
-// 心情类型 (1-5)
-export type Mood = number;
+// 心情类型
+export type Mood = 'great' | 'good' | 'okay' | 'sad' | 'angry';
 
 // 日记条目接口
 export interface MoodEntry {

@@ -98,7 +98,19 @@
     "draftHoursAgo": "{hours}h ago",
     "draftDaysAgo": "{days}d ago",
     "template": "Template",
-    "useTemplate": "Use a journal template to start writing quickly"
+    "useTemplate": "Use a journal template to start writing quickly",
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "highlight": "Highlight",
+    "bulletList": "Bullet List",
+    "orderedList": "Ordered List",
+    "taskList": "Task List",
+    "blockquote": "Quote",
+    "codeBlock": "Code Block",
+    "link": "Link",
+    "insertLink": "Insert Link",
+    "linkUrl": "Link URL",
+    "confirm": "Confirm"
   },
   "mood": {
     "great": "Great",
