@@ -4,32 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/core/utils';
 import { useTranslation } from '@/core/i18n';
 import { Button } from '@/core/ui/button';
-import type {
-  SyncSettings as SyncSettingsType,
-  SyncState,
-  SyncResult,
-  ConflictStrategy,
-  User,
-  ConflictEntry,
-} from '@/core/storage';
-import {
-  getSyncSettings,
-  saveSyncSettings,
-  getSyncState,
-  enableSync,
-  disableSync,
-  isSyncEnabled,
-  performSync,
-  canSync,
-  checkNetworkStatus,
-  startAutoSync,
-  stopAutoSync,
-  getCurrentUser,
-  isAuthenticated,
-  logout,
-  getConflicts,
-  clearConflicts,
-} from '@/core/storage';
+import type { ConflictStrategy } from '@/core/storage';
+import { useGlobal, useSync, useAuth } from '@/core/context';
+import { canSync, checkNetworkStatus, saveSyncSettings } from '@/core/storage';
 import {
   Cloud,
   CloudOff,
@@ -55,46 +32,18 @@ interface SyncSettingsProps {
 
 export default function SyncSettings({ className }: SyncSettingsProps) {
   const { t } = useTranslation();
-  const [settings, setSettings] = useState<SyncSettingsType | null>(null);
-  const [syncState, setSyncState] = useState<SyncState | null>(null);
+  const { isLoggedIn, user, logout } = useAuth();
+  const { syncSettings, syncState, conflicts, updateSyncSettings, enableSync, disableSync, syncNow, refreshState } = useSync();
+  
   const [isLoading, setIsLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [networkStatus, setNetworkStatus] = useState<{ online: boolean; type?: string }>({ online: true });
-  
-  // 认证状态
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
-  const [isClient, setIsClient] = useState(false);
-  const [conflicts, setConflicts] = useState<ConflictEntry[]>([]);
   const [showConflictModal, setShowConflictModal] = useState(false);
 
-  // 刷新状态
-  const refreshState = useCallback(() => {
-    setSettings(getSyncSettings());
-    setSyncState(getSyncState());
-    setNetworkStatus(checkNetworkStatus());
-    setUser(getCurrentUser());
-    setIsLoggedIn(isAuthenticated());
-    setConflicts(getConflicts());
-  }, []);
-
-  // 初始加载和监听网络状态变化
   useEffect(() => {
-    // 标记为客户端并立即加载状态
-    setIsClient(true);
-    
-    // 立即加载本地存储的状态（不等待定时器）
-    const loadInitialState = () => {
-      setSettings(getSyncSettings());
-      setSyncState(getSyncState());
-      setNetworkStatus(checkNetworkStatus());
-      setUser(getCurrentUser());
-      setIsLoggedIn(isAuthenticated());
-    };
-    
-    loadInitialState();
+    setNetworkStatus(checkNetworkStatus());
     
     const handleOnline = () => setNetworkStatus(checkNetworkStatus());
     const handleOffline = () => setNetworkStatus(checkNetworkStatus());
@@ -102,75 +51,51 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // 定期刷新状态
-    const interval = setInterval(refreshState, 5000);
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      clearInterval(interval);
     };
-  }, [refreshState]);
+  }, []);
 
-  // 监听登录状态变化，退出登录时自动关闭同步并隐藏高级设置
   useEffect(() => {
-    if (!isLoggedIn && settings?.enabled) {
+    if (!isLoggedIn && syncSettings?.enabled) {
       disableSync();
-      stopAutoSync();
       setShowAdvanced(false);
-      setConflicts([]);
       setShowConflictModal(false);
-      refreshState();
     }
-  }, [isLoggedIn, settings?.enabled, refreshState]);
+  }, [isLoggedIn, syncSettings?.enabled, disableSync]);
 
-  // 处理同步开关
   const handleToggleSync = async (enabled: boolean) => {
     if (enabled) {
-      // 检查是否已登录
       if (!isLoggedIn) {
         setAuthModalMode('login');
         setShowAuthModal(true);
         return;
       }
       enableSync();
-      startAutoSync();
     } else {
       disableSync();
-      stopAutoSync();
     }
-    refreshState();
   };
 
-  // 处理登录
   const handleLogin = () => {
     setAuthModalMode('login');
     setShowAuthModal(true);
   };
 
-  // 处理注册
   const handleRegister = () => {
     setAuthModalMode('register');
     setShowAuthModal(true);
   };
 
-  // 处理登出
   const handleLogout = async () => {
     await logout();
-    disableSync();
-    stopAutoSync();
     setShowAdvanced(false);
-    setConflicts([]);
     setShowConflictModal(false);
-    refreshState();
   };
 
-  // 认证成功回调
-  const handleAuthSuccess = (authenticatedUser: User) => {
-    setUser(authenticatedUser);
-    setIsLoggedIn(true);
+  const handleAuthSuccess = () => {
     enableSync();
-    startAutoSync();
     refreshState();
   };
 
@@ -181,13 +106,10 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
     }
   };
 
-  // 处理立即同步
   const handleSyncNow = async () => {
     setIsLoading(true);
     try {
-      const result = await performSync();
-      refreshState();
-      // 显示结果提示
+      const result = await syncNow();
       if (result.success) {
         showNotification('success', t('sync.syncSuccess', { 
           uploaded: result.uploaded, 
@@ -203,48 +125,30 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
     }
   };
 
-  // 处理设置更新
-  const handleUpdateSettings = (updates: Partial<SyncSettingsType>) => {
-    if (!settings) return;
-    const newSettings: SyncSettingsType = { ...settings, ...updates };
+  const handleUpdateSettings = (updates: Partial<typeof syncSettings>) => {
+    if (!syncSettings) return;
+    const newSettings = { ...syncSettings, ...updates };
     saveSyncSettings(newSettings);
-    setSettings(newSettings);
-    
-    // 如果修改了自动同步设置，重新配置
-    if ('autoSync' in updates || 'syncInterval' in updates) {
-      if (newSettings.enabled && newSettings.autoSync) {
-        startAutoSync();
-      } else {
-        stopAutoSync();
-      }
-    }
+    refreshState();
   };
 
-  // 简单的通知提示（实际项目中可以使用 toast）
   const showNotification = (type: 'success' | 'error', message: string) => {
-    // 这里可以集成 toast 通知系统
     console.log(`[${type}] ${message}`);
   };
 
-  // 格式化上次同步时间
   const formatLastSync = (timestamp: string | null) => {
     if (!timestamp) return t('sync.never');
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     
-    // 小于1分钟
     if (diff < 60000) return t('sync.justNow');
-    // 小于1小时
     if (diff < 3600000) return t('sync.minutesAgo', { count: Math.floor(diff / 60000) });
-    // 小于24小时
     if (diff < 86400000) return t('sync.hoursAgo', { count: Math.floor(diff / 3600000) });
-    // 其他情况显示日期
     return date.toLocaleDateString();
   };
 
-  // 客户端加载完成前显示加载状态
-  if (!isClient || !settings || !syncState) {
+  if (!syncSettings || !syncState) {
     return (
       <div className={cn('space-y-6', className)}>
         <div className="bg-card border border-border rounded-xl p-5">
@@ -256,7 +160,6 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
     );
   }
 
-  // 获取同步状态图标和颜色
   const getSyncStatusDisplay = () => {
     switch (syncState.status) {
       case 'syncing':
@@ -330,9 +233,9 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
           <div className="flex items-center gap-4">
             <div className={cn(
               'w-12 h-12 rounded-xl flex items-center justify-center',
-              settings.enabled ? 'bg-primary/10' : 'bg-muted'
+              syncSettings.enabled ? 'bg-primary/10' : 'bg-muted'
             )}>
-              {settings.enabled ? (
+              {syncSettings.enabled ? (
                 <Cloud className="h-6 w-6 text-primary" />
               ) : (
                 <CloudOff className="h-6 w-6 text-muted-foreground" />
@@ -340,10 +243,10 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
             </div>
             <div>
               <h3 className="font-semibold text-foreground">
-                {settings.enabled ? t('sync.enabled') : t('sync.disabled')}
+                {syncSettings.enabled ? t('sync.enabled') : t('sync.disabled')}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {settings.enabled 
+                {syncSettings.enabled 
                   ? t('sync.lastSync', { time: formatLastSync(syncState.lastSyncAt) })
                   : t('sync.disabledDescription')
                 }
@@ -351,27 +254,25 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
             </div>
           </div>
           
-          {/* 同步开关 */}
           <button
-            onClick={() => handleToggleSync(!settings.enabled)}
+            onClick={() => handleToggleSync(!syncSettings.enabled)}
             disabled={!isLoggedIn}
             className={cn(
               'relative inline-flex h-7 w-12 items-center rounded-full transition-colors',
-              settings.enabled ? 'bg-primary' : 'bg-muted-foreground/30',
+              syncSettings.enabled ? 'bg-primary' : 'bg-muted-foreground/30',
               !isLoggedIn && 'opacity-50 cursor-not-allowed'
             )}
           >
             <span
               className={cn(
                 'inline-block h-5 w-5 transform rounded-full bg-white transition-transform',
-                settings.enabled ? 'translate-x-6' : 'translate-x-1'
+                syncSettings.enabled ? 'translate-x-6' : 'translate-x-1'
               )}
             />
           </button>
         </div>
 
-        {/* 同步状态指示器 */}
-        {settings.enabled && (
+        {syncSettings.enabled && (
           <div className="mt-4 pt-4 border-t border-border">
             <div className="flex items-center gap-3">
               <StatusIcon className={cn('h-5 w-5', syncStatus.color, syncStatus.animate && 'animate-spin')} />
@@ -428,7 +329,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
       </div>
 
       {/* 立即同步按钮 */}
-      {settings.enabled && (
+      {syncSettings.enabled && (
         <Button
           onClick={handleSyncNow}
           disabled={isLoading || !canPerformSync}
@@ -441,7 +342,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
       )}
 
       {/* 无法同步的原因 */}
-      {settings.enabled && !canPerformSync && reason && (
+      {syncSettings.enabled && !canPerformSync && reason && (
         <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
           <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
           <p className="text-sm text-destructive">{t(`sync.reason.${reason}`)}</p>
@@ -449,7 +350,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
       )}
 
       {/* 高级设置 */}
-      {settings.enabled && isLoggedIn && (
+      {syncSettings.enabled && isLoggedIn && (
         <div className="border border-border rounded-xl overflow-hidden">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
@@ -476,29 +377,29 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
                   </div>
                 </div>
                 <button
-                  onClick={() => handleUpdateSettings({ autoSync: !settings.autoSync })}
+                  onClick={() => handleUpdateSettings({ autoSync: !syncSettings.autoSync })}
                   className={cn(
                     'relative inline-flex h-6 w-10 items-center rounded-full transition-colors',
-                    settings.autoSync ? 'bg-primary' : 'bg-muted-foreground/30'
+                    syncSettings.autoSync ? 'bg-primary' : 'bg-muted-foreground/30'
                   )}
                 >
                   <span
                     className={cn(
                       'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                      settings.autoSync ? 'translate-x-5' : 'translate-x-1'
+                      syncSettings.autoSync ? 'translate-x-5' : 'translate-x-1'
                     )}
                   />
                 </button>
               </div>
 
               {/* 同步间隔 */}
-              {settings.autoSync && (
+              {syncSettings.autoSync && (
                 <div className="pl-7 space-y-2">
                   <label className="text-sm text-muted-foreground">
                     {t('sync.syncInterval')}
                   </label>
                   <select
-                    value={settings.syncInterval}
+                    value={syncSettings.syncInterval}
                     onChange={(e) => handleUpdateSettings({ syncInterval: Number(e.target.value) })}
                     className="w-full px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                   >
@@ -521,16 +422,16 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
                   </div>
                 </div>
                 <button
-                  onClick={() => handleUpdateSettings({ wifiOnly: !settings.wifiOnly })}
+                  onClick={() => handleUpdateSettings({ wifiOnly: !syncSettings.wifiOnly })}
                   className={cn(
                     'relative inline-flex h-6 w-10 items-center rounded-full transition-colors',
-                    settings.wifiOnly ? 'bg-primary' : 'bg-muted-foreground/30'
+                    syncSettings.wifiOnly ? 'bg-primary' : 'bg-muted-foreground/30'
                   )}
                 >
                   <span
                     className={cn(
                       'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                      settings.wifiOnly ? 'translate-x-5' : 'translate-x-1'
+                      syncSettings.wifiOnly ? 'translate-x-5' : 'translate-x-1'
                     )}
                   />
                 </button>
@@ -542,7 +443,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
                   {t('sync.conflictStrategy')}
                 </label>
                 <select
-                  value={settings.conflictStrategy || 'timestamp'}
+                  value={syncSettings.conflictStrategy || 'timestamp'}
                   onChange={(e) => handleUpdateSettings({ conflictStrategy: e.target.value as ConflictStrategy })}
                   className="w-full px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
@@ -559,7 +460,7 @@ export default function SyncSettings({ className }: SyncSettingsProps) {
               <div className="pt-3 border-t border-border">
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Smartphone className="h-4 w-4" />
-                  <span>{t('sync.deviceId')}: {settings.deviceId.slice(0, 8)}...</span>
+                  <span>{t('sync.deviceId')}: {syncSettings.deviceId.slice(0, 8)}...</span>
                 </div>
               </div>
             </div>

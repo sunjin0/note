@@ -4,6 +4,7 @@ import React, { useState, useEffect, createContext, useContext, useCallback } fr
 import { I18nProvider } from '@/core/i18n';
 import PasswordLock from '@/modules/settings/components/PasswordLock';
 import { isPasswordEnabled, isSessionValid, initAuth } from '@/core/storage';
+import { GlobalProvider } from '@/core/context';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -70,7 +71,6 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(THEME_STORAGE_KEY, newTheme);
   };
 
-  // Prevent flash of wrong theme
   if (!mounted) {
     return <>{children}</>;
   }
@@ -95,7 +95,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 初始化认证状态
     const initialize = async () => {
       await initAuth();
       
@@ -124,11 +123,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ThemeProvider>
-      <I18nProvider>
-        {!isUnlocked && <PasswordLock onUnlock={handleUnlock} />}
-        {isUnlocked && children}
-      </I18nProvider>
-    </ThemeProvider>
+    <GlobalProvider>
+      <ThemeProvider>
+        <I18nProvider>
+          {!isUnlocked && <PasswordLock onUnlock={handleUnlock} />}
+          {isUnlocked && children}
+        </I18nProvider>
+      </ThemeProvider>
+    </GlobalProvider>
   );
 }

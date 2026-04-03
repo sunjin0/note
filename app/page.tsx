@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { ViewType, MoodEntry, Mood } from '@/types';
-import { getEntries, saveEntry, getEntryByDate } from '@/core/storage';
+import { ViewType, Mood, MoodEntry } from '@/types';
+import { saveEntry } from '@/core/storage';
+import { useEntries } from '@/core/context';
 import { Sidebar } from '@/modules/common/components';
 import { Dashboard } from '@/modules/dashboard';
 import { CalendarView } from '@/modules/calendar';
@@ -11,18 +12,10 @@ import { Settings as SettingsView } from '@/modules/settings';
 
 export default function Home() {
   const [currentView, setCurrentView] = React.useState<ViewType>('dashboard');
-  const [entries, setEntries] = React.useState<MoodEntry[]>([]);
+  const { entries, refreshEntries } = useEntries();
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editDate, setEditDate] = React.useState<string>(new Date().toISOString().split('T')[0]);
   const [initialMood, setInitialMood] = React.useState<Mood | undefined>(undefined);
-
-  const refreshEntries = React.useCallback(() => {
-    setEntries(getEntries());
-  }, []);
-
-  React.useEffect(() => {
-    refreshEntries();
-  }, [refreshEntries]);
 
   const openEditor = (date?: string, mood?: Mood) => {
     setEditDate(date || new Date().toISOString().split('T')[0]);
