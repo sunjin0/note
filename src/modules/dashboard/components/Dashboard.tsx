@@ -17,8 +17,6 @@ import {
   PieChart,
   Target,
   Calendar,
-  Settings,
-  Check,
 } from 'lucide-react';
 import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
@@ -35,7 +33,6 @@ type TrendPeriod = 7 | 30 | 90;
 export default function Dashboard({ onNewEntry, onViewJournal, entries }: DashboardProps) {
   const { t } = useTranslation();
   const [weeklyGoal, setWeeklyGoal] = useState<number>(5);
-  const [showGoalModal, setShowGoalModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [allFactors, setAllFactors] = useState<FactorOption[]>(FACTOR_OPTIONS);
   const [trendPeriod, setTrendPeriod] = useState<TrendPeriod>(7);
@@ -496,19 +493,11 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
 
       {/* Weekly Goal - Full Width */}
       <Card>
-        <CardHeader className="pb-2 flex-row items-center justify-between">
+        <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <Target className="h-4 w-4" />
             {t('dashboard.weeklyGoal')}
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowGoalModal(true)}
-            className="h-8 w-8"
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -532,9 +521,8 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                   }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">{t('dashboard.weeklyGoalDesc')}</p>
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2">
               {[3, 5, 7].map((days) => (
                 <button
                   key={days}
@@ -545,9 +533,9 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                     setWeeklyGoal(days);
                   }}
                   className={cn(
-                    'px-3 py-1.5 text-xs rounded-full transition-all',
+                    'px-4 py-2 text-sm rounded-lg transition-all font-medium',
                     weeklyGoal === days
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-primary text-primary-foreground shadow-medium'
                       : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   )}
                 >
