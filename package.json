@@ -30,6 +30,7 @@
     "clsx": "latest",
     "lowlight": "^3.3.0",
     "lucide-react": "latest",
+    "lunar-javascript": "^1.7.7",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",

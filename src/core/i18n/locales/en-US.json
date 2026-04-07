@@ -65,7 +65,9 @@
     "longestStreak": "Longest Streak",
     "daysUnit": "days",
     "streakKeepGoing": "Keep going!",
-    "streakStartToday": "Start recording today"
+    "streakStartToday": "Start recording today",
+    "showLunar": "Show Lunar",
+    "hideLunar": "Hide Lunar"
   },
   "journal": {
     "title": "Journal",

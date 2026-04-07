@@ -7,7 +7,15 @@ import { Button } from '@/core/ui/button';
 import { Mood, MoodEntry } from '@/types';
 import { MOOD_CONFIG, CALENDAR_COLORS, HEATMAP_VALUE } from '@/core/config/mood';
 import { useTranslation } from '@/core/i18n';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Grid3X3 } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Calendar as CalendarIcon,
+  Grid3X3,
+  Moon,
+} from 'lucide-react';
+import { getLunarDate, isLunarFestival } from '@/core/utils/lunar';
 
 interface CalendarViewProps {
   entries: MoodEntry[];
@@ -18,6 +26,7 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = React.useState(new Date());
   const [daysRange, setDaysRange] = React.useState<90 | 180 | 365>(90);
+  const [showLunar, setShowLunar] = React.useState(false);
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = React.useState<string | null>(todayStr);
@@ -41,12 +50,30 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
     return map;
   }, [monthEntries]);
 
-  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
-  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+  const prevMonth = () => {
+    if (viewMode === 'year') {
+      setCurrentDate(new Date(year - 1, 0, 1));
+    } else {
+      setCurrentDate(new Date(year, month - 1, 1));
+    }
+  };
+
+  const nextMonth = () => {
+    if (viewMode === 'year') {
+      setCurrentDate(new Date(year + 1, 0, 1));
+    } else {
+      setCurrentDate(new Date(year, month + 1, 1));
+    }
+  };
+
   const goToday = () => {
     const now = new Date();
-    setCurrentDate(now);
-    setSelectedDate(todayStr);
+    if (viewMode === 'year') {
+      setCurrentDate(new Date(now.getFullYear(), 0, 1));
+    } else {
+      setCurrentDate(now);
+      setSelectedDate(todayStr);
+    }
   };
 
   const { moodDotColor, moodCellBg } = CALENDAR_COLORS;
@@ -112,6 +139,15 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
               <span className="hidden sm:inline">{t('calendar.yearView') || '年'}</span>
             </button>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowLunar(!showLunar)}
+            className={cn(showLunar && 'bg-primary/10 border-primary')}
+            title={showLunar ? t('calendar.hideLunar') : t('calendar.showLunar')}
+          >
+            <Moon className="h-4 w-4" />
+          </Button>
           <Button variant="outline" size="sm" onClick={goToday}>
             {t('calendar.today')}
           </Button>
@@ -193,6 +229,11 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
                       >
                         {day}
                       </span>
+                      {showLunar && (
+                        <span className="text-[9px] text-muted-foreground mt-0.5 truncate w-full text-center">
+                          {getLunarDate(dateStr)}
+                        </span>
+                      )}
                       {entry && (
                         <span className="text-xs mt-0.5">{MOOD_CONFIG[entry.mood].emoji}</span>
                       )}
