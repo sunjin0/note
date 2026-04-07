@@ -17,6 +17,7 @@ interface CalendarViewProps {
 export default function CalendarView({ entries, onSelectDate }: CalendarViewProps) {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = React.useState(new Date());
+  const [daysRange, setDaysRange] = React.useState<90 | 180 | 365>(90);
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = React.useState<string | null>(todayStr);
@@ -225,10 +226,28 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
       {/* Heatmap */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">{t('calendar.heatmap')}</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">{t('calendar.heatmap')}</CardTitle>
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5">
+              {([90, 180, 365] as const).map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setDaysRange(range)}
+                  className={cn(
+                    'px-2 py-1 rounded text-xs font-medium transition-all',
+                    daysRange === range
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {t(`calendar.heatmapDays${range}`)}
+                </button>
+              ))}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <HeatmapView entries={entries} />
+          <HeatmapView entries={entries} daysRange={daysRange} />
         </CardContent>
       </Card>
     </div>
@@ -392,7 +411,7 @@ function YearView({
   );
 }
 
-function HeatmapView({ entries }: { entries: MoodEntry[] }) {
+function HeatmapView({ entries, daysRange }: { entries: MoodEntry[]; daysRange: 90 | 180 | 365 }) {
   const { t } = useTranslation();
 
   const moodValue = HEATMAP_VALUE;
@@ -406,10 +425,9 @@ function HeatmapView({ entries }: { entries: MoodEntry[] }) {
     return 'bg-mood-angry';
   };
 
-  // Last 90 days
-  const days = Array.from({ length: 90 }, (_, i) => {
+  const days = Array.from({ length: daysRange }, (_, i) => {
     const d = new Date();
-    d.setDate(d.getDate() - (89 - i));
+    d.setDate(d.getDate() - (daysRange - 1 - i));
     return d.toISOString().split('T')[0];
   });
 

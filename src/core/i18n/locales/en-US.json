@@ -54,10 +54,13 @@
     "weekDaysShort": ["S", "M", "T", "W", "T", "F", "S"],
     "monthSuffix": "",
     "monthSummary": "Monthly Summary",
-    "heatmap": "Last 3 Months Heatmap",
+    "heatmap": "Mood Heatmap",
     "heatmapLess": "Less",
     "heatmapMore": "More",
-    "noRecord": "No record"
+    "noRecord": "No record",
+    "heatmapDays90": "90 Days",
+    "heatmapDays180": "180 Days",
+    "heatmapDays365": "365 Days"
   },
   "journal": {
     "title": "Journal",

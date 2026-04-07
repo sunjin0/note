@@ -67,10 +67,13 @@
     "weekDaysShort": ["日", "一", "二", "三", "四", "五", "六"],
     "monthSuffix": "月",
     "monthSummary": "本月心情统计",
-    "heatmap": "最近三个月心情热图",
+    "heatmap": "心情热图",
     "heatmapLess": "少",
     "heatmapMore": "好",
-    "noRecord": "未记录"
+    "noRecord": "未记录",
+    "heatmapDays90": "90天",
+    "heatmapDays180": "180天",
+    "heatmapDays365": "365天"
   },
   "journal": {
     "title": "日记本",
