@@ -332,27 +332,27 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                         {
                           name: t('mood.great'),
                           value: stats.great,
-                          color: MOOD_CONFIG.great.color.replace('text-', ''),
+                          fill: '#f59e0b',
                         },
                         {
                           name: t('mood.good'),
                           value: stats.good,
-                          color: MOOD_CONFIG.good.color.replace('text-', ''),
+                          fill: '#22c55e',
                         },
                         {
                           name: t('mood.okay'),
                           value: stats.okay,
-                          color: MOOD_CONFIG.okay.color.replace('text-', ''),
+                          fill: '#06b6d4',
                         },
                         {
                           name: t('mood.sad'),
                           value: stats.sad,
-                          color: MOOD_CONFIG.sad.color.replace('text-', ''),
+                          fill: '#6366f1',
                         },
                         {
                           name: t('mood.angry'),
                           value: stats.angry,
-                          color: MOOD_CONFIG.angry.color.replace('text-', ''),
+                          fill: '#ef4444',
                         },
                       ].filter((d) => d.value > 0)}
                       cx="50%"
@@ -363,10 +363,10 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
                       dataKey="value"
                     >
                       {[
-                        { value: stats.great, fill: '#22c55e' },
-                        { value: stats.good, fill: '#3b82f6' },
-                        { value: stats.okay, fill: '#eab308' },
-                        { value: stats.sad, fill: '#6b7280' },
+                        { value: stats.great, fill: '#f59e0b' },
+                        { value: stats.good, fill: '#22c55e' },
+                        { value: stats.okay, fill: '#06b6d4' },
+                        { value: stats.sad, fill: '#6366f1' },
                         { value: stats.angry, fill: '#ef4444' },
                       ]
                         .filter((d) => d.value > 0)
