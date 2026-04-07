@@ -14,6 +14,7 @@ import {
   Calendar as CalendarIcon,
   Grid3X3,
   Moon,
+  Camera,
 } from 'lucide-react';
 import { getLunarDate, isLunarFestival } from '@/core/utils/lunar';
 
@@ -241,6 +242,9 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
                       {entry && (
                         <span className="text-xs mt-0.5">{MOOD_CONFIG[entry.mood].emoji}</span>
                       )}
+                      {entry && entry.photos && entry.photos.length > 0 && (
+                        <Camera className="absolute top-1 right-1 h-3 w-3 text-foreground/60" />
+                      )}
                       {isToday && !entry && <Plus className="h-3 w-3 text-primary mt-0.5" />}
                     </button>
                   );
@@ -411,7 +415,7 @@ function YearView({
                       }}
                       disabled={isFuture}
                       className={cn(
-                        'aspect-square flex items-center justify-center rounded text-[10px] transition-colors',
+                        'aspect-square flex items-center justify-center rounded text-[10px] transition-colors relative',
                         entry && CALENDAR_COLORS.moodCellBg[entry.mood],
                         isToday && 'ring-1 ring-primary font-bold',
                         !entry && 'text-muted-foreground',
@@ -421,11 +425,14 @@ function YearView({
                       )}
                       title={
                         entry
-                          ? `${month + 1}/${day} ${t(`mood.${entry.mood}`)}`
+                          ? `${month + 1}/${day} ${t(`mood.${entry.mood}`)}${entry.photos && entry.photos.length > 0 ? ` (${entry.photos.length} ${t('calendar.photos') || '张照片'})` : ''}`
                           : `${month + 1}/${day}`
                       }
                     >
-                      {day}
+                      <span>{day}</span>
+                      {entry && entry.photos && entry.photos.length > 0 && (
+                        <Camera className="absolute top-0 right-0 h-2 w-2 text-foreground/70" />
+                      )}
                     </button>
                   );
                 })}
