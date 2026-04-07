@@ -5,8 +5,9 @@ import { cn } from '@/core/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/core/ui/card';
 import { Button } from '@/core/ui/button';
 import { Mood, MoodEntry } from '@/types';
-import { MOOD_CONFIG, CALENDAR_COLORS, HEATMAP_VALUE } from '@/core/config/mood';
+import { MOOD_CONFIG, CALENDAR_COLORS, HEATMAP_VALUE, FACTOR_OPTIONS } from '@/core/config/mood';
 import { useTranslation } from '@/core/i18n';
+import { getAllFactors } from '@/core/storage/factors';
 import {
   ChevronLeft,
   ChevronRight,
@@ -23,6 +24,87 @@ interface CalendarViewProps {
   onSelectDate: (date: string) => void;
 }
 
+interface DayTooltipProps {
+  entry: MoodEntry;
+  dateStr: string;
+  visible: boolean;
+  position: { x: number; y: number };
+}
+
+function DayTooltip({ entry, dateStr, visible, position }: DayTooltipProps) {
+  const { t } = useTranslation();
+
+  if (!visible) return null;
+
+  const allFactors = getAllFactors();
+  const factorMap = new Map(allFactors.map((f) => [f.id, f]));
+
+  const date = new Date(dateStr + 'T00:00:00');
+  const dateDisplay = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+
+
+  return (
+    <div
+      className="fixed z-50 pointer-events-none animate-fade-in"
+      style={{
+        left: position.x,
+        top: position.y,
+        transform: 'translate(-50%, -100%) translateY(-10px)',
+      }}
+    >
+      <div className="bg-card border border-border rounded-lg shadow-xl p-3 min-w-[200px] max-w-[300px]">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 font-semibold text-foreground">
+            <span className="text-lg">{MOOD_CONFIG[entry.mood].emoji}</span>
+            <span>{t(`mood.${entry.mood}`)}</span>
+          </div>
+
+          <div className="text-xs text-muted-foreground">{dateDisplay}</div>
+
+          {entry.factors && entry.factors.length > 0 && (
+            <div className="space-y-1">
+              <div className="text-xs text-muted-foreground">{t('editor.factors')}</div>
+              <div className="flex flex-wrap gap-1">
+                {entry.factors.map((factorId, index) => {
+                  const factor = factorMap.get(factorId);
+                  return factor ? (
+                    <span
+                      key={factorId+index}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted rounded-full text-xs"
+                    >
+                      <span>{factor.emoji}</span>
+                      <span>{factor.isCustom ? factor.label : t(`factors.${factorId}`)}</span>
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            </div>
+          )}
+
+          {entry.photos && entry.photos.length > 0 && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Camera className="h-3 w-3" />
+              <span>
+                {entry.photos.length} {t('calendar.photos')}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+      <div
+        className="mx-auto w-0 h-0"
+        style={{
+          borderLeft: '6px solid transparent',
+          borderRight: '6px solid transparent',
+          borderTop: '6px solid hsl(var(--border))',
+          width: '12px',
+          marginTop: '-1px',
+        }}
+      />
+    </div>
+  );
+}
+
 export default function CalendarView({ entries, onSelectDate }: CalendarViewProps) {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = React.useState(new Date());
@@ -32,6 +114,17 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
   const todayStr = today.toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = React.useState<string | null>(todayStr);
   const [viewMode, setViewMode] = React.useState<'month' | 'year'>('month');
+  const [tooltipData, setTooltipData] = React.useState<{
+    visible: boolean;
+    entry: MoodEntry | null;
+    dateStr: string;
+    position: { x: number; y: number };
+  }>({
+    visible: false,
+    entry: null,
+    dateStr: '',
+    position: { x: 0, y: 0 },
+  });
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -75,6 +168,23 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
       setCurrentDate(now);
       setSelectedDate(todayStr);
     }
+  };
+
+  const handleMouseEnter = (e: React.MouseEvent, entry: MoodEntry, dateStr: string) => {
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setTooltipData({
+      visible: true,
+      entry,
+      dateStr,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      },
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTooltipData((prev) => ({ ...prev, visible: false }));
   };
 
   const { moodDotColor, moodCellBg } = CALENDAR_COLORS;
@@ -212,6 +322,8 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
                           onSelectDate(dateStr);
                         }
                       }}
+                      onMouseEnter={entry ? (e) => handleMouseEnter(e, entry, dateStr) : undefined}
+                      onMouseLeave={entry ? handleMouseLeave : undefined}
                       disabled={isFuture}
                       className={cn(
                         'relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm transition-all duration-200',
@@ -299,6 +411,15 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
           <HeatmapView entries={entries} daysRange={daysRange} />
         </CardContent>
       </Card>
+
+      {tooltipData.visible && tooltipData.entry && (
+        <DayTooltip
+          entry={tooltipData.entry}
+          dateStr={tooltipData.dateStr}
+          visible={tooltipData.visible}
+          position={tooltipData.position}
+        />
+      )}
     </div>
   );
 }
