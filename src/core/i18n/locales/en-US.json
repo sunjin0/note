@@ -60,7 +60,12 @@
     "noRecord": "No record",
     "heatmapDays90": "90 Days",
     "heatmapDays180": "180 Days",
-    "heatmapDays365": "365 Days"
+    "heatmapDays365": "365 Days",
+    "currentStreak": "Current Streak",
+    "longestStreak": "Longest Streak",
+    "daysUnit": "days",
+    "streakKeepGoing": "Keep going!",
+    "streakStartToday": "Start recording today"
   },
   "journal": {
     "title": "Journal",

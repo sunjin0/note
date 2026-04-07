@@ -436,6 +436,51 @@ function HeatmapView({ entries, daysRange }: { entries: MoodEntry[]; daysRange: 
     entryMap[e.date] = e;
   });
 
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  const calculateStreaks = () => {
+    const allDates = Object.keys(entryMap).sort().reverse();
+    if (allDates.length === 0) return { current: 0, longest: 0 };
+
+    let currentStreak = 0;
+    const checkDate = new Date(today);
+
+    for (let i = 0; i < 365 * 2; i++) {
+      const dateStr = checkDate.toISOString().split('T')[0];
+      if (entryMap[dateStr]) {
+        currentStreak++;
+      } else {
+        break;
+      }
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    let longestStreak = 0;
+    let tempStreak = 1;
+    const sortedDates = allDates.sort();
+
+    for (let i = 1; i < sortedDates.length; i++) {
+      const prevDate = new Date(sortedDates[i - 1] + 'T00:00:00');
+      const currDate = new Date(sortedDates[i] + 'T00:00:00');
+      const diffDays = Math.floor(
+        (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffDays === 1) {
+        tempStreak++;
+      } else {
+        longestStreak = Math.max(longestStreak, tempStreak);
+        tempStreak = 1;
+      }
+    }
+    longestStreak = Math.max(longestStreak, tempStreak);
+
+    return { current: currentStreak, longest: longestStreak };
+  };
+
+  const streaks = calculateStreaks();
+
   // Group by weeks
   const weeks: (string | null)[][] = [];
   let currentWeek: (string | null)[] = [];
@@ -482,6 +527,43 @@ function HeatmapView({ entries, daysRange }: { entries: MoodEntry[]; daysRange: 
 
   return (
     <div className="space-y-3">
+      {/* Streak Stats */}
+      <div className="flex gap-3">
+        <div className="flex-1 bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🔥</span>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('calendar.currentStreak')}</p>
+              <p className="text-xl font-bold text-foreground">
+                {streaks.current}{' '}
+                <span className="text-sm font-normal text-muted-foreground">
+                  {t('calendar.daysUnit')}
+                </span>
+              </p>
+            </div>
+          </div>
+          {streaks.current > 0 && (
+            <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-1">
+              {t('calendar.streakKeepGoing')}
+            </p>
+          )}
+        </div>
+        <div className="flex-1 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🏆</span>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('calendar.longestStreak')}</p>
+              <p className="text-xl font-bold text-foreground">
+                {streaks.longest}{' '}
+                <span className="text-sm font-normal text-muted-foreground">
+                  {t('calendar.daysUnit')}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Month labels row */}
       <div className="flex gap-1">
         <div className="w-6 md:w-8 flex-shrink-0" /> {/* Space for weekday labels */}

@@ -73,7 +73,12 @@
     "noRecord": "未记录",
     "heatmapDays90": "90天",
     "heatmapDays180": "180天",
-    "heatmapDays365": "365天"
+    "heatmapDays365": "365天",
+    "currentStreak": "当前连续",
+    "longestStreak": "最长连续",
+    "daysUnit": "天",
+    "streakKeepGoing": "继续保持！",
+    "streakStartToday": "开始今天的记录吧"
   },
   "journal": {
     "title": "日记本",
