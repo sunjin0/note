@@ -42,7 +42,6 @@ function DayTooltip({ entry, dateStr, visible, position }: DayTooltipProps) {
   const date = new Date(dateStr + 'T00:00:00');
   const dateDisplay = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
 
-
   return (
     <div
       className="fixed z-50 pointer-events-none animate-fade-in"
@@ -69,7 +68,7 @@ function DayTooltip({ entry, dateStr, visible, position }: DayTooltipProps) {
                   const factor = factorMap.get(factorId);
                   return factor ? (
                     <span
-                      key={factorId+index}
+                      key={factorId + index}
                       className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted rounded-full text-xs"
                     >
                       <span>{factor.emoji}</span>
@@ -189,11 +188,62 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
 
   const { moodDotColor, moodCellBg } = CALENDAR_COLORS;
 
-  // Mood stats for this month
   const moodCounts: Record<Mood, number> = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
   monthEntries.forEach((e) => {
     moodCounts[e.mood]++;
   });
+
+  const recordRate = Math.round((monthEntries.length / daysInMonth) * 100);
+
+  const avgMoodScore =
+    monthEntries.length > 0
+      ? monthEntries.reduce((sum, e) => {
+          const values: Record<Mood, number> = {
+            great: 5,
+            good: 4,
+            okay: 3,
+            sad: 2,
+            angry: 1,
+          };
+          return sum + values[e.mood];
+        }, 0) / monthEntries.length
+      : 0;
+
+  const mostCommonMood = (Object.entries(moodCounts) as [Mood, number][]).sort(
+    (a, b) => b[1] - a[1]
+  )[0];
+
+  const allFactors = monthEntries.flatMap((e) => e.factors || []);
+  const factorCounts: Record<string, number> = {};
+  allFactors.forEach((f) => {
+    factorCounts[f] = (factorCounts[f] || 0) + 1;
+  });
+  const mostCommonFactor = Object.entries(factorCounts).sort((a, b) => b[1] - a[1])[0];
+
+  const moodTrend =
+    monthEntries.length >= 2
+      ? (() => {
+          const sorted = [...monthEntries].sort((a, b) => a.date.localeCompare(b.date));
+          const firstHalf = sorted.slice(0, Math.floor(sorted.length / 2));
+          const secondHalf = sorted.slice(Math.floor(sorted.length / 2));
+
+          if (firstHalf.length === 0 || secondHalf.length === 0) return null;
+
+          const avgFirst =
+            firstHalf.reduce((sum, e) => {
+              const values: Record<Mood, number> = { great: 5, good: 4, okay: 3, sad: 2, angry: 1 };
+              return sum + values[e.mood];
+            }, 0) / firstHalf.length;
+
+          const avgSecond =
+            secondHalf.reduce((sum, e) => {
+              const values: Record<Mood, number> = { great: 5, good: 4, okay: 3, sad: 2, angry: 1 };
+              return sum + values[e.mood];
+            }, 0) / secondHalf.length;
+
+          return avgSecond > avgFirst ? 'up' : avgSecond < avgFirst ? 'down' : 'stable';
+        })()
+      : null;
 
   const days = [];
   // Fill blanks for first week
@@ -364,6 +414,114 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
               </div>
             </CardContent>
           </Card>
+
+          {/* Enhanced Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">📊</span>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-muted-foreground">{t('calendar.recordRate')}</p>
+                    <p className="text-xl font-bold text-foreground">{recordRate}%</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {monthEntries.length}/{daysInMonth} {t('calendar.daysUnit')}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">⭐</span>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-muted-foreground">{t('calendar.avgMood')}</p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-xl font-bold text-foreground">{avgMoodScore.toFixed(1)}</p>
+                      {moodTrend && (
+                        <span className="text-sm">
+                          {moodTrend === 'up' ? '📈' : moodTrend === 'down' ? '📉' : '➡️'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {moodTrend && (
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {moodTrend === 'up' ? '↗️ 上升' : moodTrend === 'down' ? '↘️ 下降' : '➡️ 稳定'}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-500/10 to-yellow-500/10 border-orange-500/20">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">
+                    {mostCommonMood && mostCommonMood[1] > 0
+                      ? MOOD_CONFIG[mostCommonMood[0]].emoji
+                      : '❓'}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-muted-foreground">
+                      {t('calendar.mostCommonMood')}
+                    </p>
+                    <p className="text-xl font-bold text-foreground">
+                      {mostCommonMood && mostCommonMood[1] > 0
+                        ? t(`mood.${mostCommonMood[0]}`)
+                        : t('calendar.noData')}
+                    </p>
+                  </div>
+                </div>
+                {mostCommonMood && mostCommonMood[1] > 0 && (
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {mostCommonMood[1]} {t('dashboard.times')}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">
+                    {mostCommonFactor
+                      ? (() => {
+                          const allFactors = getAllFactors();
+                          const factor = allFactors.find((f) => f.id === mostCommonFactor[0]);
+                          return factor ? factor.emoji : '❓';
+                        })()
+                      : '❓'}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-muted-foreground">
+                      {t('calendar.mostCommonFactor')}
+                    </p>
+                    <p className="text-sm font-bold text-foreground truncate">
+                      {mostCommonFactor
+                        ? (() => {
+                            const allFactors = getAllFactors();
+                            const factor = allFactors.find((f) => f.id === mostCommonFactor[0]);
+                            return factor
+                              ? factor.isCustom
+                                ? factor.label
+                                : t(`factors.${factor.id}`)
+                              : t('calendar.noData');
+                          })()
+                        : t('calendar.noData')}
+                    </p>
+                  </div>
+                </div>
+                {mostCommonFactor && (
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {mostCommonFactor[1]} {t('dashboard.times')}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Month Summary */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">

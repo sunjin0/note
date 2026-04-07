@@ -81,7 +81,16 @@
     "streakStartToday": "开始今天的记录吧",
     "showLunar": "显示农历",
     "hideLunar": "隐藏农历",
-    "photos": "张照片"
+    "photos": "张照片",
+    "recordRate": "记录率",
+    "avgMood": "平均心情",
+    "mostCommonMood": "最常见心情",
+    "mostCommonFactor": "最常见因素",
+    "moodTrend": "心情趋势",
+    "trendUp": "上升",
+    "trendDown": "下降",
+    "trendStable": "稳定",
+    "noData": "暂无数据"
   },
   "journal": {
     "title": "日记本",
