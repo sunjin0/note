@@ -199,6 +199,9 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
 
                   const isSelected = selectedDate === dateStr;
 
+                  const dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
+                  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
                   return (
                     <button
                       key={dateStr}
@@ -214,7 +217,8 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
                         isSelected && 'ring-2 ring-primary',
                         entry && moodCellBg[entry.mood],
                         !isFuture && !entry && 'hover:bg-accent',
-                        isFuture && 'opacity-30 cursor-not-allowed'
+                        isFuture && 'opacity-30 cursor-not-allowed',
+                        isWeekend && !entry && 'bg-blue-100/60 dark:bg-blue-900/30'
                       )}
                     >
                       <span
@@ -393,6 +397,8 @@ function YearView({
                   const entry = entryMap[dateStr];
                   const isToday = dateStr === todayStr;
                   const isFuture = new Date(dateStr + 'T00:00:00') > today;
+                  const dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
+                  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
                   return (
                     <button
@@ -410,7 +416,8 @@ function YearView({
                         isToday && 'ring-1 ring-primary font-bold',
                         !entry && 'text-muted-foreground',
                         !isFuture && 'hover:bg-accent cursor-pointer',
-                        isFuture && 'opacity-30 cursor-not-allowed'
+                        isFuture && 'opacity-30 cursor-not-allowed',
+                        isWeekend && !entry && 'bg-blue-100/60 dark:bg-blue-900/30'
                       )}
                       title={
                         entry
