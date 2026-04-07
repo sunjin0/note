@@ -25,8 +25,22 @@
     "viewAll": "View All",
     "noRecords": "No records yet. Start your first entry!",
     "last7Days": "Last 7 Days Mood Trend",
+    "trend": "Mood Trend",
+    "moodTrend": "Mood Trend",
     "moodDistribution": "Mood Distribution",
-    "noDataYet": "No data yet"
+    "noDataYet": "No data yet",
+    "days7": "7 Days",
+    "days30": "30 Days",
+    "days90": "90 Days",
+    "avgMoodIndex": "Average Mood Index",
+    "commonFactors": "Common Factors",
+    "bestDayOfWeek": "Best Day of Week",
+    "bestDayOfWeekDesc": "Day with highest average mood",
+    "weeklyGoal": "Weekly Goal",
+    "weeklyGoalProgress": "Weekly Progress",
+    "weeklyGoalSuccess": "/ {goal} days",
+    "weeklyGoalDays": "Goal Days",
+    "weeklyGoalDesc": "Set a weekly recording goal"
   },
   "calendar": {
     "title": "{month}/{year}",

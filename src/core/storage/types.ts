@@ -13,6 +13,8 @@ export interface AppSettings {
   encrypted: boolean;
   /** 创建时间 */
   createdAt: string;
+  /** 每周心情目标天数 */
+  weeklyGoalDays?: number;
 }
 
 /**

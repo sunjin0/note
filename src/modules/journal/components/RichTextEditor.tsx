@@ -38,7 +38,7 @@ import {
   Heading2,
   GripHorizontal,
 } from 'lucide-react';
-import {InputDialog} from "@/modules/common/components";
+import { InputDialog } from '@/modules/common/components';
 
 const lowlight = createLowlight(common);
 
@@ -175,7 +175,6 @@ export default function RichTextEditor({
     setIsLinkDialogOpen(false);
     setLinkUrl('');
   };
-
 
   if (!editor) {
     return null;

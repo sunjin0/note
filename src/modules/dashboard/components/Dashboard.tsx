@@ -6,9 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/core/ui/card';
 import { Button } from '@/core/ui/button';
 import { Mood, MoodEntry, MoodStats, FactorOption } from '@/types';
 import { MOOD_CONFIG, FACTOR_OPTIONS, DASHBOARD_CHART } from '@/core/config/mood';
-import { getStreak, getMoodStats, getCustomFactors } from '@/core/storage';
+import { getStreak, getMoodStats, getCustomFactors, getSettings } from '@/core/storage';
 import { useTranslation } from '@/core/i18n';
-import { Plus, Flame, BookOpen, TrendingUp, ChevronRight, PieChart } from 'lucide-react';
+import {
+  Plus,
+  Flame,
+  BookOpen,
+  TrendingUp,
+  ChevronRight,
+  PieChart,
+  Target,
+  Calendar,
+  Settings,
+  Check,
+} from 'lucide-react';
 import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 interface DashboardProps {
@@ -19,12 +30,21 @@ interface DashboardProps {
 
 const defaultStats: MoodStats = { great: 0, good: 0, okay: 0, sad: 0, angry: 0 };
 
+type TrendPeriod = 7 | 30 | 90;
+
 export default function Dashboard({ onNewEntry, onViewJournal, entries }: DashboardProps) {
   const { t } = useTranslation();
-  const [streak, setStreak] = useState(0);
-  const [stats, setStats] = useState<MoodStats>(defaultStats);
+  const [weeklyGoal, setWeeklyGoal] = useState<number>(5);
+  const [showGoalModal, setShowGoalModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [allFactors, setAllFactors] = useState<FactorOption[]>(FACTOR_OPTIONS);
+  const [trendPeriod, setTrendPeriod] = useState<TrendPeriod>(7);
+  const [trendData, setTrendData] = useState<
+    { date: Date; label: string; dayNum: number; entry?: MoodEntry }[]
+  >([]);
+  const [streak, setStreak] = useState(0);
+  const [stats, setStats] = useState<MoodStats>(defaultStats);
+  const [todayStr, setTodayStr] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -32,24 +52,22 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
     setStats(getMoodStats());
     const customFactors = getCustomFactors();
     setAllFactors([...FACTOR_OPTIONS, ...customFactors]);
+
+    const settings = getSettings();
+    setWeeklyGoal(settings.weeklyGoalDays || 5);
   }, [entries]);
 
   const totalEntries = entries.length;
-  const [todayStr, setTodayStr] = useState('');
-  const [last7Days, setLast7Days] = useState<
-    { date: Date; label: string; dayNum: number; entry?: MoodEntry }[]
-  >([]);
 
   useEffect(() => {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     setTodayStr(today);
 
-    // Last 7 days mood data
     const weekDays = t<string[]>('calendar.weekDays', {});
-    const days = Array.from({ length: 7 }, (_, i) => {
+    const days = Array.from({ length: trendPeriod }, (_, i) => {
       const d = new Date(now);
-      d.setDate(d.getDate() - (6 - i));
+      d.setDate(d.getDate() - (trendPeriod - 1 - i));
       const dateStr = d.toISOString().split('T')[0];
       const entry = entries.find((e) => e.date === dateStr);
       return {
@@ -59,16 +77,82 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
         entry,
       };
     });
-    setLast7Days(days);
-  }, [entries, t]);
+    setTrendData(days);
+  }, [entries, t, trendPeriod]);
 
   const todayEntry = entries.find((e) => e.date === todayStr);
   const recentEntries = entries.slice(0, 5);
 
   const { moodToHeight, moodBarColor } = DASHBOARD_CHART;
-
-  // Most common mood
   const topMood = (Object.entries(stats) as [Mood, number][]).sort((a, b) => b[1] - a[1])[0];
+
+  const moodToScore: Record<Mood, number> = {
+    great: 5,
+    good: 4,
+    okay: 3,
+    sad: 2,
+    angry: 1,
+  };
+
+  const avgMoodIndex: number =
+    totalEntries > 0
+      ? Number(
+          (entries.reduce((sum, entry) => sum + moodToScore[entry.mood], 0) / totalEntries).toFixed(
+            1
+          )
+        )
+      : 0;
+
+  const getWeekStart = (date: Date): Date => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day;
+    return new Date(d.setDate(diff));
+  };
+
+  const weekStart = getWeekStart(new Date());
+  const weeklySuccess = entries.filter((e) => {
+    const entryDate = new Date(e.date + 'T00:00:00');
+    return entryDate >= weekStart;
+  }).length;
+
+  const factorCounts: Record<string, number> = {};
+  entries.forEach((entry) => {
+    entry.factors.forEach((factor) => {
+      factorCounts[factor] = (factorCounts[factor] || 0) + 1;
+    });
+  });
+  const topFactors = Object.entries(factorCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([id, count]) => {
+      const factor = allFactors.find((f) => f.id === id);
+      return factor ? ([id, count] as [string, number]) : null;
+    })
+    .filter((item): item is [string, number] => item !== null);
+
+  const dayOfWeekStats: Record<number, { count: number; totalScore: number }> = {};
+  entries.forEach((entry) => {
+    const day = new Date(entry.date).getDay();
+    if (!dayOfWeekStats[day]) {
+      dayOfWeekStats[day] = { count: 0, totalScore: 0 };
+    }
+    dayOfWeekStats[day].count++;
+    dayOfWeekStats[day].totalScore += moodToScore[entry.mood];
+  });
+  const bestDayOfWeek = Object.entries(dayOfWeekStats)
+    .map(([day, data]) => ({
+      day: parseInt(day),
+      avgScore: data.totalScore / data.count,
+      count: data.count,
+    }))
+    .sort((a, b) => b.avgScore - a.avgScore)[0] as
+    | {
+        day: number;
+        avgScore: number;
+        count: number;
+      }
+    | undefined;
 
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl">
@@ -154,34 +238,74 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
         </Card>
       </div>
 
-      {/* Weekly Chart + Mood Distribution */}
+      {/* Trend Chart + Mood Distribution */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Weekly Mood Chart */}
+        {/* Trend Mood Chart with Period Selector */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">{t('dashboard.last7Days')}</CardTitle>
+          <CardHeader className="pb-2 flex-row items-center justify-between">
+            <CardTitle className="text-sm">{t('dashboard.moodTrend')}</CardTitle>
+            <div className="flex gap-1">
+              {[7, 30, 90].map((days) => (
+                <button
+                  key={days}
+                  onClick={() => setTrendPeriod(days as TrendPeriod)}
+                  className={cn(
+                    'px-2 py-1 text-xs rounded-md transition-all',
+                    trendPeriod === days
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  )}
+                >
+                  {t(`dashboard.days${days}`)}
+                </button>
+              ))}
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="flex items-end justify-between gap-2 h-32">
-              {last7Days.map((day, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full flex items-end justify-center h-24">
+            <div className="h-32">
+              <div className="flex items-end h-24 gap-px">
+                {trendData.map((day, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-1 flex-col items-center justify-end h-full"
+                    title={
+                      day.entry
+                        ? `${day.date.toLocaleDateString()} - ${t(`mood.${day.entry.mood}`)}`
+                        : day.date.toLocaleDateString()
+                    }
+                  >
                     {day.entry ? (
                       <div
                         className={cn(
-                          'w-full max-w-[32px] rounded-t-lg transition-all duration-500',
+                          'w-full rounded-t-sm transition-all duration-300 hover:opacity-80',
                           moodBarColor[day.entry.mood]
                         )}
                         style={{ height: `${moodToHeight[day.entry.mood]}%` }}
                       />
                     ) : (
-                      <div className="w-full max-w-[32px] h-2 rounded-full bg-muted" />
+                      <div className="w-full h-px bg-muted/30" />
                     )}
                   </div>
-                  <span className="text-[10px] text-muted-foreground">{day.label}</span>
-                  <span className="text-[10px] font-medium text-foreground">{day.dayNum}</span>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="flex h-6 gap-px mt-1">
+                {trendData.map((day, i) => {
+                  const showLabel =
+                    trendPeriod <= 7 ||
+                    (trendPeriod === 30 && i % 7 === 0) ||
+                    (trendPeriod === 90 && (i === 0 || i % 15 === 0 || i === trendPeriod - 1));
+
+                  return (
+                    <div key={i} className="flex-1 flex items-start justify-center">
+                      {showLabel && (
+                        <span className="text-[8px] text-muted-foreground leading-none">
+                          {trendPeriod <= 7 ? day.label : day.dayNum}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -273,6 +397,167 @@ export default function Dashboard({ onNewEntry, onViewJournal, entries }: Dashbo
           </CardContent>
         </Card>
       </div>
+
+      {/* Advanced Statistics - Row 1 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Average Mood Index */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              {t('dashboard.avgMoodIndex')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center h-20">
+              <span className="text-3xl font-bold text-foreground">
+                {mounted && totalEntries > 0 ? avgMoodIndex.toFixed(1) : '—'}
+              </span>
+              <span className="text-xs text-muted-foreground ml-2">/ 5.0</span>
+            </div>
+            <div className="mt-2 flex items-center gap-1">
+              <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-500"
+                  style={{ width: `${(avgMoodIndex / 5) * 100}%` }}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Most Common Factors */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              {t('dashboard.commonFactors')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topFactors.length === 0 ? (
+              <div className="text-sm text-muted-foreground text-center py-6">
+                {t('dashboard.noDataYet')}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {topFactors.slice(0, 4).map(([factorId, count]) => {
+                  const factor = allFactors.find((f) => f.id === factorId);
+                  if (!factor) return null;
+                  return (
+                    <div key={factorId} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span>{factor.emoji}</span>
+                        <span className="text-xs text-foreground">
+                          {factor.isCustom ? factor.label : t(`factors.${factorId}`)}
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {count} {t('dashboard.days')}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Best Day of Week */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              {t('dashboard.bestDayOfWeek')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {bestDayOfWeek && bestDayOfWeek.count > 0 ? (
+              <div className="text-center py-4">
+                <div className="text-2xl font-bold text-foreground mb-1">
+                  {t('calendar.weekDays')[bestDayOfWeek.day]}
+                </div>
+                <div className="text-xs text-muted-foreground mb-2">
+                  {t('dashboard.bestDayOfWeekDesc')}
+                </div>
+                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-sm">
+                  <span>{t('dashboard.avgMoodIndex')}:</span>
+                  <span className="font-semibold">{bestDayOfWeek.avgScore.toFixed(1)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground text-center py-6">
+                {t('dashboard.noDataYet')}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Weekly Goal - Full Width */}
+      <Card>
+        <CardHeader className="pb-2 flex-row items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            {t('dashboard.weeklyGoal')}
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowGoalModal(true)}
+            className="h-8 w-8"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">
+                  {t('dashboard.weeklyGoalProgress')}
+                </span>
+                <span className="text-lg font-bold text-foreground">
+                  {weeklySuccess} / {weeklyGoal} {t('dashboard.days')}
+                </span>
+              </div>
+              <div className="h-3 bg-secondary rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full rounded-full transition-all duration-500',
+                    weeklySuccess >= weeklyGoal ? 'bg-green-500' : 'bg-primary'
+                  )}
+                  style={{
+                    width: `${Math.min((weeklySuccess / weeklyGoal) * 100, 100)}%`,
+                  }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">{t('dashboard.weeklyGoalDesc')}</p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {[3, 5, 7].map((days) => (
+                <button
+                  key={days}
+                  onClick={() => {
+                    const settings = getSettings();
+                    settings.weeklyGoalDays = days;
+                    localStorage.setItem('mood_journal_settings', JSON.stringify(settings));
+                    setWeeklyGoal(days);
+                  }}
+                  className={cn(
+                    'px-3 py-1.5 text-xs rounded-full transition-all',
+                    weeklyGoal === days
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  )}
+                >
+                  {days} {t('dashboard.days')}
+                </button>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Mood Selection */}
       <Card>

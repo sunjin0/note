@@ -93,10 +93,11 @@ export {
   getStreak,
   getMoodStats,
   getTotalEntries,
-  getLastEntryDate,
-  getFirstEntryDate,
-  getCurrentMonthEntries,
   getCurrentWeekEntries,
+  getThisWeekSuccess,
+  getMostCommonFactor,
+  getAverageMoodScore,
+  getBestDayOfWeek,
 } from '@/core/storage/stats';
 
 // 数据备份与导出
