@@ -101,7 +101,36 @@
     "sortByMood": "Mood",
     "sortByWordCount": "Word Count",
     "ascending": "Ascending",
-    "descending": "Descending"
+    "descending": "Descending",
+    "batchMode": "Batch Mode",
+    "exitBatchMode": "Exit Batch",
+    "selectedCount": "{count} selected",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "selectAllFiltered": "Select All Filtered",
+    "clearSelection": "Clear",
+    "batchExport": "Batch Export",
+    "batchDelete": "Batch Delete",
+    "confirmBatchDelete": "Confirm Batch Delete",
+    "batchDeleteConfirmMessage": "Are you sure you want to delete {count} selected entries? This action cannot be undone.",
+    "exporting": "Exporting Date",
+    "exportSuccess": "Export Successful",
+    "pdfExportFailed": "PDF export failed, automatically switched to JSON format",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "exportFormat": {
+      "title": "Choose Export Format",
+      "description": "Please select your preferred export format:",
+      "pdf": {
+        "title": "PDF Format",
+        "description": "Ideal for printing and sharing with clear layout. Supports Chinese characters with automatic font loading."
+      },
+      "json": {
+        "title": "JSON Format",
+        "description": "Preserves all data completely (including Chinese, HTML formatting, photos, etc.), easy for import or data analysis.",
+        "recommended": "Recommended"
+      }
+    }
   },
   "dateJump": {
     "title": "Jump to Date",

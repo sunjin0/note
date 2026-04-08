@@ -131,7 +131,36 @@
     "sortByMood": "心情",
     "sortByWordCount": "字数",
     "ascending": "升序",
-    "descending": "降序"
+    "descending": "降序",
+    "batchMode": "批量操作",
+    "exitBatchMode": "退出批量",
+    "selectedCount": "已选择 {count} 条",
+    "selectAll": "全选",
+    "deselectAll": "取消全选",
+    "selectAllFiltered": "全选所有",
+    "clearSelection": "清空",
+    "batchExport": "批量导出",
+    "batchDelete": "批量删除",
+    "confirmBatchDelete": "确认批量删除",
+    "batchDeleteConfirmMessage": "确定要删除选中的 {count} 条日记吗？此操作无法撤销。",
+    "exporting": "导出时间",
+    "exportSuccess": "导出成功",
+    "pdfExportFailed": "PDF 导出失败,已自动切换为 JSON 格式导出",
+    "createdAt": "创建",
+    "updatedAt": "更新",
+    "exportFormat": {
+      "title": "选择导出格式",
+      "description": "请选择您需要的导出格式:",
+      "pdf": {
+        "title": "PDF 格式",
+        "description": "适合打印和分享,布局清晰美观。支持中文显示,自动加载中文字体。"
+      },
+      "json": {
+        "title": "JSON 格式",
+        "description": "完整保留所有数据(包括中文、HTML格式、图片信息等),便于后续导入或数据分析。",
+        "recommended": "推荐"
+      }
+    }
   },
   "editor": {
     "title": "记录心情",

@@ -1,33 +1,35 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { cn } from '@/core/utils';
-import { Card, CardContent } from '@/core/ui/card';
-import { Button } from '@/core/ui/button';
-import { Mood, MoodEntry, FactorOption } from '@/types';
-import { MOOD_CONFIG, FACTOR_OPTIONS } from '@/core/config/mood';
-import { deleteEntry, getCustomFactors } from '@/core/storage';
-import { useTranslation } from '@/core/i18n';
+import React, {useEffect, useMemo, useState} from 'react';
+import {cn} from '@/core/utils';
+import {Card, CardContent} from '@/core/ui/card';
+import {Button} from '@/core/ui/button';
+import {FactorOption, Mood, MoodEntry} from '@/types';
+import {FACTOR_OPTIONS, MOOD_CONFIG} from '@/core/config/mood';
+import {deleteEntry, getCustomFactors} from '@/core/storage';
+import {useTranslation} from '@/core/i18n';
 import {
-  Search,
-  Plus,
-  Trash2,
-  Edit3,
-  X,
-  Image as ImageIcon,
-  Calendar,
-  Filter,
-  ChevronDown,
-  ChevronRight,
-  CalendarDays,
-  ChevronLeft,
-  ChevronLast,
-  ChevronFirst,
-  ArrowUpDown,
-  ArrowUp,
   ArrowDown,
+  CalendarDays,
+  CheckCircle2,
+  CheckSquare,
+  ChevronDown,
+  ChevronFirst,
+  ChevronLast,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Edit3,
+  Filter,
+  Image as ImageIcon,
+  Plus,
+  Search,
+  Square,
+  Trash2,
+  X,
 } from 'lucide-react';
-import { ConfirmDialog } from '@/modules/common/components';
+import {ConfirmDialog, ExportFormatDialog, useToast} from '@/modules/common/components';
+import jsPDF from "jspdf";
 
 interface JournalListProps {
   entries: MoodEntry[];
@@ -92,6 +94,8 @@ function getTimeGroupKey(dateStr: string): { year: number; month: number; week: 
   };
 }
 
+
+
 export default function JournalList({
   entries,
   onNewEntry,
@@ -99,11 +103,16 @@ export default function JournalList({
   onDataChange,
 }: JournalListProps) {
   const { t } = useTranslation();
+  const toast = useToast();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
+  const [exportFormatDialogOpen, setExportFormatDialogOpen] = useState(false);
 
   // Get all factors (preset + custom)
   const [allFactors, setAllFactors] = useState<FactorOption[]>(FACTOR_OPTIONS);
@@ -289,6 +298,617 @@ export default function JournalList({
     setEntryToDelete(null);
   };
 
+  const toggleBatchMode = () => {
+    setIsBatchMode(!isBatchMode);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelectEntry = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const selectAll = () => {
+    if (isAllSelected) {
+      clearSelection();
+      return;
+    }
+    const allIds = filteredEntries.map((e) => e.id);
+    setSelectedIds(new Set(allIds));
+  };
+
+  const isAllSelected = filteredEntries.length > 0 && selectedIds.size === filteredEntries.length;
+
+  // 获取特定分组的条目ID列表
+  const getGroupEntryIds = (year?: string, month?: string, week?: string): string[] => {
+    if (!year) return [];
+    
+    if (!month && !week) {
+      // 选择整个年份
+      const yearData = groupedEntries.archived.get(year);
+      if (!yearData) return [];
+      const ids: string[] = [];
+      yearData.forEach((weeks:any) => {
+        weeks.forEach((entries: MoodEntry[]) => {
+          entries.forEach((entry:MoodEntry) => ids.push(entry.id));
+        });
+      });
+      return ids;
+    }
+    
+    if (year && month && !week) {
+      // 选择整个月份
+      const yearData = groupedEntries.archived.get(year);
+      if (!yearData) return [];
+      const monthData = yearData.get(month);
+      if (!monthData) return [];
+      const ids: string[] = [];
+      monthData.forEach((entries: MoodEntry[]) => {
+        entries.forEach((entry: MoodEntry) => ids.push(entry.id));
+      });
+      return ids;
+    }
+    
+    if (year && month && week) {
+      // 选择整个周
+      const yearData = groupedEntries.archived.get(year);
+      if (!yearData) return [];
+      const monthData = yearData.get(month);
+      if (!monthData) return [];
+      const weekData = monthData.get(week);
+      if (!weekData) return [];
+      return weekData.map((entry: MoodEntry) => entry.id);
+    }
+    
+    return [];
+  };
+
+  // 检查分组是否全部选中
+  const isGroupFullySelected = (year?: string, month?: string, week?: string): boolean => {
+    const groupIds = getGroupEntryIds(year, month, week);
+    if (groupIds.length === 0) return false;
+    return groupIds.every((id) => selectedIds.has(id));
+  };
+
+  // 检查分组是否部分选中
+  const isGroupPartiallySelected = (year?: string, month?: string, week?: string): boolean => {
+    const groupIds = getGroupEntryIds(year, month, week);
+    if (groupIds.length === 0) return false;
+    const selectedCount = groupIds.filter((id) => selectedIds.has(id)).length;
+    return selectedCount > 0 && selectedCount < groupIds.length;
+  };
+
+  // 切换分组选择状态
+  const toggleGroupSelection = (year?: string, month?: string, week?: string) => {
+    const groupIds = getGroupEntryIds(year, month, week);
+    if (groupIds.length === 0) return;
+    
+    const allSelected = isGroupFullySelected(year, month, week);
+    const newSelected = new Set(selectedIds);
+    
+    if (allSelected) {
+      // 取消全选
+      groupIds.forEach((id) => newSelected.delete(id));
+    } else {
+      // 全选
+      groupIds.forEach((id) => newSelected.add(id));
+    }
+    
+    setSelectedIds(newSelected);
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  const handleBatchDelete = () => {
+    selectedIds.forEach((id) => deleteEntry(id));
+    setBatchDeleteDialogOpen(false);
+    setSelectedIds(new Set());
+    setIsBatchMode(false);
+    onDataChange();
+  };
+
+  const handleBatchExport = () => {
+    if (selectedIds.size === 0) return;
+    setExportFormatDialogOpen(true);
+  };
+  function getPlainText(entry: MoodEntry) {
+    return entry.journal
+        // 换行标签
+        .replace(/<br\s*\/?\s*>/gi, '\n')
+        .replace(/<br>/gi, '\n')
+        // 段落标签
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<p[^>]*>/gi, '')
+        // div 标签
+        .replace(/<div[^>]*>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        // 标题标签
+        .replace(/<h1[^>]*>/gi, '\n')
+        .replace(/<\/h1>/gi, '\n\n')
+        .replace(/<h2[^>]*>/gi, '\n')
+        .replace(/<\/h2>/gi, '\n\n')
+        .replace(/<h3[^>]*>/gi, '\n')
+        .replace(/<\/h3>/gi, '\n\n')
+        .replace(/<h4[^>]*>/gi, '\n')
+        .replace(/<\/h4>/gi, '\n\n')
+        .replace(/<h5[^>]*>/gi, '\n')
+        .replace(/<\/h5>/gi, '\n\n')
+        .replace(/<h6[^>]*>/gi, '\n')
+        .replace(/<\/h6>/gi, '\n\n')
+        // 列表标签
+        .replace(/<li[^>]*>/gi, '\n• ')
+        .replace(/<\/li>/gi, '')
+        .replace(/<ul[^>]*>/gi, '\n')
+        .replace(/<\/ul>/gi, '\n')
+        .replace(/<ol[^>]*>/gi, '\n')
+        .replace(/<\/ol>/gi, '\n')
+        // 表格标签
+        .replace(/<tr[^>]*>/gi, '\n')
+        .replace(/<\/tr>/gi, '\n')
+        .replace(/<td[^>]*>/gi, ' ')
+        .replace(/<\/td>/gi, ' ')
+        .replace(/<th[^>]*>/gi, '\n')
+        .replace(/<\/th>/gi, '\n')
+        .replace(/<table[^>]*>/gi, '\n')
+        .replace(/<\/table>/gi, '\n')
+        // 格式化标签
+        .replace(/<b[^>]*>/gi, '')
+        .replace(/<\/b>/gi, '')
+        .replace(/<strong[^>]*>/gi, '')
+        .replace(/<\/strong>/gi, '')
+        .replace(/<i[^>]*>/gi, '')
+        .replace(/<\/i>/gi, '')
+        .replace(/<em[^>]*>/gi, '')
+        .replace(/<\/em>/gi, '')
+        .replace(/<u[^>]*>/gi, '')
+        .replace(/<\/u>/gi, '')
+        .replace(/<s[^>]*>/gi, '')
+        .replace(/<\/s>/gi, '')
+        .replace(/<del[^>]*>/gi, '')
+        .replace(/<\/del>/gi, '')
+        .replace(/<mark[^>]*>/gi, '')
+        .replace(/<\/mark>/gi, '')
+        .replace(/<code[^>]*>/gi, '')
+        .replace(/<\/code>/gi, '')
+        .replace(/<pre[^>]*>/gi, '\n')
+        .replace(/<\/pre>/gi, '\n')
+        // 引用标签
+        .replace(/<blockquote[^>]*>/gi, '\n「')
+        .replace(/<\/blockquote>/gi, '」\n')
+        // 链接和图片
+        .replace(/<a[^>]*href=["']([^"']*)["'][^>]*>/gi, '链接: $1 ')
+        .replace(/<\/a>/gi, '')
+        .replace(/<img[^>]*>/gi, '[图片]')
+        // 水平线
+        .replace(/<hr[^>]*>/gi, '\n---\n')
+        // 其他所有 HTML 标签
+        .replace(/<[^>]*>/g, '')
+        // HTML 实体转换
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&mdash;/g, '—')
+        .replace(/&ndash;/g, '–')
+        .replace(/&laquo;/g, '«')
+        .replace(/&raquo;/g, '»')
+        .replace(/&copy;/g, '©')
+        .replace(/&reg;/g, '®')
+        .replace(/&trade;/g, '™')
+        .replace(/&hellip;/g, '…')
+        .replace(/&bull;/g, '•')
+        // 限制连续换行
+        .replace(/\n{3,}/g, '\n\n')
+        // 去除首尾空格
+        .trim();
+  }
+  // PDF 导出
+  const handleExportPDF = async () => {
+    const selectedEntries = entries.filter((e) => selectedIds.has(e.id));
+    if (selectedEntries.length === 0) return;
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 25; // 页边距
+      const contentWidth = pageWidth - margin * 2;
+      let yPos = margin;
+
+      // 辅助函数: 检测文本是否包含中文
+      const hasChinese = (text: string) => /[一-龥]/.test(text);
+
+
+      // 辅助函数: 将中文文本转换为图片并添加到 PDF
+      const addTextWithFallback = async (
+        text: string,
+        x: number,
+        y: number,
+        fontSize: number,
+        options: { bold?: boolean; color?: [number, number, number]; maxWidth?: number } = {}
+      ): Promise<number> => {
+        if (!hasChinese(text)) {
+          // 纯英文/数字,直接使用 jsPDF
+          doc.setFontSize(fontSize);
+          doc.setFont('helvetica', options.bold ? 'bold' : 'normal');
+          if (options.color) {
+            doc.setTextColor(options.color[0], options.color[1], options.color[2]);
+          }
+          
+          // 自动换行处理
+          if (options.maxWidth) {
+            const lines = doc.splitTextToSize(text, options.maxWidth);
+            let totalHeight = 0;
+            lines.forEach((line: string, index: number) => {
+              if (yPos + totalHeight + fontSize * 0.5 > pageHeight - margin) {
+                doc.addPage();
+                yPos = margin;
+                totalHeight = 0;
+              }
+              doc.text(line, x, yPos + totalHeight);
+              totalHeight += fontSize * 0.5;
+            });
+            return totalHeight;
+          } else {
+            doc.text(text, x, y);
+            return fontSize * 0.5;
+          }
+        }
+
+        // 包含中文,使用 Canvas 渲染为图片
+        const scale = 2; // 提高清晰度
+        const lineHeight = fontSize * 1.35; // 行高 1.35 倍，更紧凑
+        const maxWidthPx = options.maxWidth ? options.maxWidth / 0.352778 : 10000;
+        const topPadding = fontSize * 0.25; // 增加顶部内边距防止遮挡
+        
+        // 使用传入的 y 参数，而不是全局 yPos
+        const renderY = y;
+        
+        // 先计算需要的行数和每行内容
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          doc.setFontSize(fontSize);
+          doc.setFont('helvetica', 'normal');
+          doc.text('[Chinese Text]', x, y);
+          return fontSize * 0.5;
+        }
+
+        ctx.scale(scale, scale);
+        ctx.font = `${options.bold ? 'bold' : 'normal'} ${fontSize}px "Microsoft YaHei", "SimHei", sans-serif`;
+        ctx.textBaseline = 'top'; // 使用 top 基线，配合顶部内边距
+        
+        // 计算每行应该包含的字符
+        const lines: string[] = [];
+        let currentLine = '';
+        
+        for (const char of text) {
+          const testLine = currentLine + char;
+          const metrics = ctx.measureText(testLine);
+          
+          if (metrics.width > maxWidthPx && currentLine) {
+            lines.push(currentLine);
+            currentLine = char;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        
+        // 如果没有内容,添加空行
+        if (lines.length === 0) {
+          lines.push('');
+        }
+        
+        // 分批渲染(避免单页内容过多)
+        let totalHeight = 0;
+        let currentLineIndex = 0;
+        let currentRenderY = renderY; // 使用局部变量追踪当前 Y 位置
+        
+        while (currentLineIndex < lines.length) {
+          // 计算当前批次可以渲染的行数
+          const remainingHeight = pageHeight - margin - currentRenderY;
+          const maxLinesInBatch = Math.floor(remainingHeight / (lineHeight * 0.352778));
+          const linesInBatch = Math.min(maxLinesInBatch, lines.length - currentLineIndex);
+          
+          if (linesInBatch <= 0) {
+            doc.addPage();
+            currentRenderY = margin;
+            continue;
+          }
+          
+          // 创建临时 Canvas 渲染当前批次
+          const batchCanvas = document.createElement('canvas');
+          const batchCtx = batchCanvas.getContext('2d');
+          if (!batchCtx) break;
+          
+          const batchCanvasWidth = (options.maxWidth || 1000) / 0.352778 * scale;
+          const batchCanvasHeight = (topPadding + lineHeight * linesInBatch) * scale;
+          
+          batchCanvas.width = batchCanvasWidth;
+          batchCanvas.height = batchCanvasHeight;
+          
+          batchCtx.scale(scale, scale);
+          batchCtx.font = `${options.bold ? 'bold' : 'normal'} ${fontSize}px "Microsoft YaHei", "SimHei", sans-serif`;
+          batchCtx.fillStyle = options.color 
+            ? `rgb(${options.color[0]}, ${options.color[1]}, ${options.color[2]})`
+            : 'rgb(0, 0, 0)';
+          batchCtx.textBaseline = 'top'; // 使用 top 基线
+          
+          // 渲染当前批次的行(从 topPadding 开始)
+          for (let i = 0; i < linesInBatch; i++) {
+            batchCtx.fillText(lines[currentLineIndex + i], 0, topPadding + i * lineHeight);
+          }
+          
+          // 添加到 PDF（使用 currentRenderY）
+          const imgData = batchCanvas.toDataURL('image/png');
+          const imgWidth = (batchCanvasWidth / scale) * 0.352778;
+          const imgHeight = (batchCanvasHeight / scale) * 0.352778;
+          doc.addImage(imgData, 'PNG', x, currentRenderY, imgWidth, imgHeight);
+          
+          totalHeight += imgHeight;
+          currentRenderY += imgHeight;
+          currentLineIndex += linesInBatch;
+          
+          // 如果还有更多行,创建新页面
+          if (currentLineIndex < lines.length) {
+            doc.addPage();
+            currentRenderY = margin;
+          }
+        }
+        
+        return totalHeight;
+      };
+
+      // 标题
+      const titleHeight = await addTextWithFallback(t('journal.title') as string, margin, yPos, 20, { 
+        bold: true,
+        maxWidth: contentWidth 
+      });
+      yPos += titleHeight + 4;
+
+      // 导出信息
+      const exportInfo = `${t('journal.exporting') || '导出日期'}: ${new Date().toLocaleString('zh-CN')}`;
+      const infoHeight = await addTextWithFallback(exportInfo, margin, yPos, 9, { 
+        color: [100, 100, 100],
+        maxWidth: contentWidth
+      });
+      yPos += infoHeight + 2;
+      
+      const countText = t('journal.selectedCount', { count: selectedEntries.length });
+      const countHeight = await addTextWithFallback(countText, margin, yPos, 9, { 
+        color: [100, 100, 100],
+        maxWidth: contentWidth
+      });
+      yPos += countHeight + 5;
+
+      // 分隔线
+      doc.setDrawColor(200);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 5;
+
+      // 导出每条日记
+      for (let index = 0; index < selectedEntries.length; index++) {
+        const entry = selectedEntries[index];
+        const config = MOOD_CONFIG[entry.mood as Mood];
+        // 处理 HTML 内容：保留换行和段落
+        const plainText = getPlainText(entry);
+
+        const moodLabel = t(`mood.${entry.mood}`) as string;
+        const factorLabels = entry.factors
+          .map((f: string) => {
+            const factor = allFactors.find((o) => o.id === f);
+            return factor ? (factor.isCustom ? factor.label : t(`factors.${factor.id}`)) : '';
+          })
+          .filter(Boolean)
+          .join(', ');
+
+        // 检查是否需要新页面
+        if (yPos > pageHeight - margin - 15) {
+          doc.addPage();
+          yPos = margin;
+        }
+
+        // 日期和心情
+        const headerText = `${entry.date} - ${config.emoji} ${moodLabel}`;
+        const headerHeight = await addTextWithFallback(headerText, margin, yPos, 13, { 
+          bold: true,
+          maxWidth: contentWidth
+        });
+        yPos += headerHeight + 3;
+
+        // 因素（带图标）
+        if (factorLabels) {
+          const factorsWithIcons = entry.factors
+            .map((f: string) => {
+              const factor = allFactors.find((o) => o.id === f);
+              if (factor) {
+                const label = factor.isCustom ? factor.label : t(`factors.${factor.id}`);
+                const emoji = factor.emoji || '📌';
+                return `${emoji} ${label}`;
+              }
+              return '';
+            })
+            .filter(Boolean)
+            .join('，');
+          
+          const factorText = `${t('editor.factors')}: ${factorsWithIcons}`;
+          const factorHeight = await addTextWithFallback(factorText, margin, yPos, 9, { 
+            color: [80, 80, 80],
+            maxWidth: contentWidth
+          });
+          yPos += factorHeight + 2;
+        }
+
+        // 照片信息
+        if (entry.photos && entry.photos.length > 0) {
+          const photoText = `📷 ${entry.photos.length} ${t('calendar.photos')}`;
+          const photoHeight = await addTextWithFallback(photoText, margin, yPos, 8, { 
+            color: [100, 100, 100],
+            maxWidth: contentWidth
+          });
+          yPos += photoHeight + 2;
+        }
+
+        // 时间戳
+        const timestampY = yPos;
+        
+        // 日记内容(处理换行和段落)
+        const contentText = plainText || '(无内容)';
+        // 按行分割内容，保留空行作为段落间隔
+        const lines = contentText.split('\n');
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          
+          // 跳过空行，但保留段落间距
+          if (!line) {
+            yPos += 3; // 空行间距
+            continue;
+          }
+          
+          const lineHeight = await addTextWithFallback(line, margin, yPos, 10, { 
+            color: [40, 40, 40],
+            maxWidth: contentWidth
+          });
+          yPos += lineHeight + 2; // 行间距 2mm
+          
+          // 检查是否需要换页
+          if (yPos > pageHeight - margin - 15) {
+            doc.addPage();
+            yPos = margin;
+          }
+        }
+        
+        // 时间戳位置在内容之后
+        const timestampFinalY = yPos;
+        
+        if (entry.createdAt || entry.updatedAt) {
+          // 左侧：创建日期
+          let leftHeight = 0;
+          if (entry.createdAt) {
+            const createdDate = new Date(entry.createdAt).toLocaleDateString('zh-CN');
+            leftHeight = await addTextWithFallback(
+              `${t('journal.createdAt')}: ${createdDate}`,
+              margin, 
+              timestampFinalY,
+              8, 
+              { 
+                color: [150, 150, 150],
+                maxWidth: contentWidth / 2 - 2
+              }
+            );
+          }
+          
+          // 右侧：更新日期
+          let rightHeight = 0;
+          if (entry.updatedAt) {
+            const updatedDate = new Date(entry.updatedAt).toLocaleDateString('zh-CN');
+            rightHeight = await addTextWithFallback(
+              `${t('journal.updatedAt')}: ${updatedDate}`,
+              margin + contentWidth / 2, 
+              timestampFinalY, 
+              8, 
+              { 
+                color: [150, 150, 150],
+                maxWidth: contentWidth / 2 - 2
+              }
+            );
+          }
+          
+          // 计算总高度（取两者中较高的）
+          yPos = timestampFinalY + Math.max(leftHeight, rightHeight) + 4;
+        }
+
+        // 条目分隔线
+        if (index < selectedEntries.length - 1) {
+          if (yPos > pageHeight - margin - 15) {
+            doc.addPage();
+            yPos = margin;
+          }
+          doc.setDrawColor(220);
+          doc.setLineWidth(0.3);
+          doc.line(margin, yPos, pageWidth - margin, yPos);
+          yPos += 5;
+        }
+      }
+
+      // 保存 PDF
+      doc.save(`日记导出-${new Date().toISOString().split('T')[0]}.pdf`);
+      setExportFormatDialogOpen(false);
+      toast.success(t('journal.exportSuccess') || '导出成功');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.warning(t('journal.pdfExportFailed') || 'PDF 导出失败,已自动切换为 JSON 格式导出');
+      handleExportJSON();
+    }
+  };
+
+  // JSON 导出
+  const handleExportJSON = () => {
+    const selectedEntries = entries.filter((e) => selectedIds.has(e.id));
+    if (selectedEntries.length === 0) return;
+
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      count: selectedEntries.length,
+      entries: selectedEntries.map((entry) => {
+        const config = MOOD_CONFIG[entry.mood];
+        const plainText = entry.journal.replace(/<[^>]*>/g, '');
+        const moodLabel = t(`mood.${entry.mood}`);
+        const factorLabels = entry.factors
+          .map((f) => {
+            const factor = allFactors.find((o) => o.id === f);
+            return factor ? (factor.isCustom ? factor.label : t(`factors.${factor.id}`)) : '';
+          })
+          .filter(Boolean)
+          .join(', ');
+
+        return {
+          date: entry.date,
+          mood: entry.mood,
+          moodLabel: moodLabel,
+          moodEmoji: config.emoji,
+          factors: factorLabels,
+          journal: entry.journal,
+          journalPlainText: plainText,
+          photos: entry.photos,
+          photoCount: entry.photos?.length || 0,
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt,
+          deletedAt: entry.deletedAt,
+          id: entry.id,
+        };
+      }),
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `journal-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExportFormatDialogOpen(false);
+  };
+
   const formatDate = (dateStr: string, showFullDate?: string | boolean) => {
     const d = new Date(dateStr + 'T00:00:00');
     const now = new Date();
@@ -368,6 +988,7 @@ export default function JournalList({
     const config = MOOD_CONFIG[entry.mood];
     const plainText = entry.journal.replace(/<[^>]*>/g, '');
     const isExpanded = expandedId === entry.id;
+    const isSelected = selectedIds.has(entry.id);
     const entryFactors = entry.factors
       .map((f) => allFactors.find((o) => o.id === f))
       .filter(Boolean);
@@ -378,12 +999,35 @@ export default function JournalList({
         key={entry.id}
         className={cn(
           'cursor-pointer transition-all duration-200',
-          isExpanded && 'shadow-elevated'
+          isExpanded && 'shadow-elevated',
+          isSelected && 'ring-2 ring-primary'
         )}
-        onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+        onClick={() => {
+          if (isBatchMode) {
+            toggleSelectEntry(entry.id);
+          } else {
+            setExpandedId(isExpanded ? null : entry.id);
+          }
+        }}
       >
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
+            {isBatchMode && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSelectEntry(entry.id);
+                }}
+                className="flex-shrink-0 mt-1"
+              >
+                {isSelected ? (
+                  <CheckSquare className="h-5 w-5 text-primary" />
+                ) : (
+                  <Square className="h-5 w-5 text-muted-foreground" />
+                )}
+              </button>
+            )}
+
             <div
               className={cn(
                 'w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0',
@@ -512,10 +1156,31 @@ export default function JournalList({
             {hasActiveFilters && ` (${t('journal.filtered')})`}
           </p>
         </div>
-        <Button onClick={() => onNewEntry()}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t('journal.newEntry')}
-        </Button>
+        <div className="flex items-center gap-2">
+          {filteredEntries.length > 0 && (
+            <Button
+              variant={isBatchMode ? 'default' : 'outline'}
+              size="sm"
+              onClick={toggleBatchMode}
+            >
+              {isBatchMode ? (
+                <>
+                  <X className="h-4 w-4 mr-2" />
+                  {t('journal.exitBatchMode') || '退出批量'}
+                </>
+              ) : (
+                <>
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  {t('journal.batchMode') || '批量操作'}
+                </>
+              )}
+            </Button>
+          )}
+          <Button onClick={() => onNewEntry()}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('journal.newEntry')}
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filter */}
@@ -677,6 +1342,50 @@ export default function JournalList({
           </Card>
         )}
       </div>
+
+      {/* Batch Operations Toolbar */}
+      {isBatchMode && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-foreground">
+                  {t('journal.selectedCount', { count: selectedIds.size }) ||
+                    `已选择 ${selectedIds.size} 条`}
+                </span>
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="sm" onClick={selectAll}>
+                    <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                    {isAllSelected
+                      ? t('journal.deselectAll') || '取消全选'
+                      : t('journal.selectAll') || '全选所有'}
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBatchExport}
+                  disabled={selectedIds.size === 0}
+                >
+                  <Download className="h-3.5 w-3.5 mr-1.5" />
+                  {t('journal.batchExport') || '批量导出'}
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setBatchDeleteDialogOpen(true)}
+                  disabled={selectedIds.size === 0}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  {t('journal.batchDelete') || '批量删除'}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Entries */}
       {filteredEntries.length === 0 ? (
@@ -843,6 +1552,23 @@ export default function JournalList({
                     })()}{' '}
                     {t('journal.entries')}
                   </span>
+                  {isBatchMode && (<button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupSelection(year);
+                      }}
+                      className="ml-auto flex-shrink-0"
+                    >
+                      {isGroupFullySelected(year) ? (
+                        <CheckSquare className="h-5 w-5 text-primary" />
+                      ) : isGroupPartiallySelected(year) ? (
+                        <div className="h-5 w-5 rounded border-2 border-primary flex items-center justify-center">
+                          <div className="h-2 w-2 bg-primary rounded-sm" />
+                        </div>
+                      ) : (
+                        <Square className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </button>)}
                 </button>
 
                 {expandedGroups.has(year) && (
@@ -878,6 +1604,25 @@ export default function JournalList({
                             )}{' '}
                             {t('journal.entries')}
                           </span>
+                          {isBatchMode && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleGroupSelection(year, month);
+                              }}
+                              className="ml-auto flex-shrink-0"
+                            >
+                              {isGroupFullySelected(year, month) ? (
+                                <CheckSquare className="h-4 w-4 text-primary" />
+                              ) : isGroupPartiallySelected(year, month) ? (
+                                <div className="h-4 w-4 rounded border-2 border-primary flex items-center justify-center">
+                                  <div className="h-1.5 w-1.5 bg-primary rounded-sm" />
+                                </div>
+                              ) : (
+                                <Square className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </button>
+                          )}
                         </button>
 
                         {expandedGroups.has(`${year}-${month}`) && (
@@ -909,6 +1654,25 @@ export default function JournalList({
                                   <span className="text-xs text-muted-foreground/70 bg-muted/40 px-1.5 py-0.5 rounded-full">
                                     {weekEntries.length} {t('journal.entries')}
                                   </span>
+                                  {isBatchMode && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleGroupSelection(year, month, week);
+                                      }}
+                                      className="ml-auto flex-shrink-0"
+                                    >
+                                      {isGroupFullySelected(year, month, week) ? (
+                                        <CheckSquare className="h-4 w-4 text-primary" />
+                                      ) : isGroupPartiallySelected(year, month, week) ? (
+                                        <div className="h-4 w-4 rounded border-2 border-primary flex items-center justify-center">
+                                          <div className="h-1.5 w-1.5 bg-primary rounded-sm" />
+                                        </div>
+                                      ) : (
+                                        <Square className="h-4 w-4 text-muted-foreground" />
+                                      )}
+                                    </button>
+                                  )}
                                 </button>
 
                                 {expandedGroups.has(`${year}-${month}-${week}`) && (
@@ -939,6 +1703,29 @@ export default function JournalList({
         confirmVariant="destructive"
         onConfirm={() => entryToDelete && handleDelete(entryToDelete)}
         onCancel={closeDeleteDialog}
+      />
+
+      {/* Batch Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={batchDeleteDialogOpen}
+        title={t('journal.confirmBatchDelete') || '确认批量删除'}
+        message={
+          t('journal.batchDeleteConfirmMessage', { count: selectedIds.size }) ||
+          `确定要删除选中的 ${selectedIds.size} 条日记吗？此操作无法撤销。`
+        }
+        confirmText={t('journal.batchDelete') || '批量删除'}
+        cancelText={t('journal.cancel')}
+        confirmVariant="destructive"
+        onConfirm={handleBatchDelete}
+        onCancel={() => setBatchDeleteDialogOpen(false)}
+      />
+
+      {/* Export Format Selection Dialog */}
+      <ExportFormatDialog
+        isOpen={exportFormatDialogOpen}
+        onExportPDF={handleExportPDF}
+        onExportJSON={handleExportJSON}
+        onCancel={() => setExportFormatDialogOpen(false)}
       />
     </div>
   );
