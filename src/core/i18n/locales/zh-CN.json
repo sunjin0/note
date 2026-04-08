@@ -126,7 +126,12 @@
     "withinWeek": "一周内",
     "entries": "条记录",
     "pageSize": "每页显示",
-    "page": "页"
+    "page": "页",
+    "sortByDate": "日期",
+    "sortByMood": "心情",
+    "sortByWordCount": "字数",
+    "ascending": "升序",
+    "descending": "降序"
   },
   "editor": {
     "title": "记录心情",

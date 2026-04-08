@@ -96,7 +96,12 @@
     "withinWeek": "Within a week",
     "entries": "entries",
     "pageSize": "Per page",
-    "page": "Page"
+    "page": "Page",
+    "sortByDate": "Date",
+    "sortByMood": "Mood",
+    "sortByWordCount": "Word Count",
+    "ascending": "Ascending",
+    "descending": "Descending"
   },
   "dateJump": {
     "title": "Jump to Date",

@@ -23,6 +23,9 @@ import {
   ChevronLeft,
   ChevronLast,
   ChevronFirst,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { ConfirmDialog } from '@/modules/common/components';
 
@@ -45,6 +48,22 @@ interface PaginationState {
   pageSize: number;
   currentPage: number;
 }
+
+type SortField = 'date' | 'mood' | 'wordCount';
+type SortOrder = 'asc' | 'desc';
+
+interface SortState {
+  field: SortField;
+  order: SortOrder;
+}
+
+const moodScore: Record<Mood, number> = {
+  great: 5,
+  good: 4,
+  okay: 3,
+  sad: 2,
+  angry: 1,
+};
 
 // 获取周数
 function getWeekNumber(date: Date): number {
@@ -108,9 +127,14 @@ export default function JournalList({
     currentPage: 1,
   });
 
-  // 过滤条目
+  const [sort, setSort] = useState<SortState>({
+    field: 'date',
+    order: 'desc',
+  });
+
+  // 过滤和排序条目
   const filteredEntries = useMemo(() => {
-    return entries.filter((entry) => {
+    const filtered = entries.filter((entry) => {
       // 全文搜索
       if (filters.search) {
         const q = filters.search.toLowerCase();
@@ -146,7 +170,28 @@ export default function JournalList({
 
       return true;
     });
-  }, [entries, filters, allFactors, t]);
+
+    // 排序
+    return filtered.sort((a, b) => {
+      let compareResult = 0;
+
+      switch (sort.field) {
+        case 'date':
+          compareResult = a.date.localeCompare(b.date);
+          break;
+        case 'mood':
+          compareResult = moodScore[a.mood] - moodScore[b.mood];
+          break;
+        case 'wordCount':
+          const aLength = a.journal.replace(/<[^>]*>/g, '').length;
+          const bLength = b.journal.replace(/<[^>]*>/g, '').length;
+          compareResult = aLength - bLength;
+          break;
+      }
+
+      return sort.order === 'asc' ? compareResult : -compareResult;
+    });
+  }, [entries, filters, sort, allFactors, t]);
 
   // 分页计算
   const totalPages = Math.ceil(filteredEntries.length / pagination.pageSize);
@@ -496,7 +541,7 @@ export default function JournalList({
         </div>
 
         {/* Filter Toggle */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
@@ -507,6 +552,39 @@ export default function JournalList({
             {t('journal.filters')}
             {hasActiveFilters && <span className="ml-1 w-2 h-2 rounded-full bg-primary" />}
           </Button>
+
+          {/* Sort Options */}
+          <div className="flex items-center gap-1">
+            {(['date', 'mood', 'wordCount'] as SortField[]).map((field) => (
+              <button
+                key={field}
+                onClick={() => setSort((prev) => ({ ...prev, field }))}
+                className={cn(
+                  'h-8 px-3 text-xs rounded-lg border transition-colors',
+                  sort.field === field
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-input bg-background hover:bg-accent text-foreground'
+                )}
+              >
+                {field === 'date' && t('journal.sortByDate')}
+                {field === 'mood' && t('journal.sortByMood')}
+                {field === 'wordCount' && t('journal.sortByWordCount')}
+              </button>
+            ))}
+            <button
+              onClick={() =>
+                setSort((prev) => ({ ...prev, order: prev.order === 'asc' ? 'desc' : 'asc' }))
+              }
+              className={cn(
+                'h-8 w-8 flex items-center justify-center rounded-lg border transition-colors',
+                sort.order === 'asc' ? 'rotate-0' : 'rotate-180'
+              )}
+              title={sort.order === 'asc' ? t('journal.ascending') : t('journal.descending')}
+            >
+              <ArrowDown className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
               <X className="h-4 w-4 mr-1" />
