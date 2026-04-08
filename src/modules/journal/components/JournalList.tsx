@@ -357,7 +357,9 @@ export default function JournalList({
                   <span className="text-xs text-muted-foreground">{weekDay(entry.date)}</span>
                 )}
                 <span className={cn('text-xs font-medium', config.color)}>
-                  {t(`mood.${entry.mood}`)}
+                  {searchQuery
+                    ? highlightText(t(`mood.${entry.mood}`), searchQuery)
+                    : t(`mood.${entry.mood}`)}
                 </span>
               </div>
 
@@ -385,14 +387,18 @@ export default function JournalList({
 
               {entryFactors.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {entryFactors.map((f) => (
-                    <span
-                      key={f!.id}
-                      className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-secondary-foreground"
-                    >
-                      {f!.emoji} {f!.isCustom ? f!.label : t(`factors.${f!.id}`)}
-                    </span>
-                  ))}
+                  {entryFactors.map((f) => {
+                    const factorLabel = f!.isCustom ? f!.label : t(`factors.${f!.id}`);
+                    return (
+                      <span
+                        key={f!.id}
+                        className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-secondary-foreground"
+                      >
+                        {f!.emoji}{' '}
+                        {searchQuery ? highlightText(factorLabel, searchQuery) : factorLabel}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
 
