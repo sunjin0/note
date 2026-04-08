@@ -5,6 +5,7 @@ import { I18nProvider } from '@/core/i18n';
 import PasswordLock from '@/modules/settings/components/PasswordLock';
 import { isPasswordEnabled, isSessionValid, initAuth } from '@/core/storage';
 import { GlobalProvider } from '@/core/context';
+import ToastContainer, { ToastMessage, ToastType } from '@/modules/common/components/Toast';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -90,6 +91,68 @@ export function useTheme() {
   return context;
 }
 
+// Toast Context
+interface ToastContextType {
+  showToast: (message: string, type: ToastType, duration?: number) => void;
+  success: (message: string, duration?: number) => void;
+  error: (message: string, duration?: number) => void;
+  warning: (message: string, duration?: number) => void;
+  info: (message: string, duration?: number) => void;
+}
+
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
+
+function ToastProvider({ children }: { children: React.ReactNode }) {
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const showToast = useCallback(
+    (message: string, type: ToastType, duration?: number) => {
+      const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      setToasts((prev) => [...prev, { id, message, type, duration }]);
+    },
+    []
+  );
+
+  const success = useCallback(
+    (message: string, duration?: number) => showToast(message, 'success', duration),
+    [showToast]
+  );
+
+  const error = useCallback(
+    (message: string, duration?: number) => showToast(message, 'error', duration),
+    [showToast]
+  );
+
+  const warning = useCallback(
+    (message: string, duration?: number) => showToast(message, 'warning', duration),
+    [showToast]
+  );
+
+  const info = useCallback(
+    (message: string, duration?: number) => showToast(message, 'info', duration),
+    [showToast]
+  );
+
+  return (
+    <ToastContext.Provider value={{ showToast, success, error, warning, info }}>
+      {children}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+    </ToastContext.Provider>
+  );
+}
+
+export function useToast() {
+  const context = useContext(ToastContext);
+  if (context === undefined) {
+    throw new Error('useToast must be used within a ToastProvider');
+  }
+  return context;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -126,8 +189,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <GlobalProvider>
       <ThemeProvider>
         <I18nProvider>
-          {!isUnlocked && <PasswordLock onUnlock={handleUnlock} />}
-          {isUnlocked && children}
+          <ToastProvider>
+            {!isUnlocked && <PasswordLock onUnlock={handleUnlock} />}
+            {isUnlocked && children}
+          </ToastProvider>
         </I18nProvider>
       </ThemeProvider>
     </GlobalProvider>
