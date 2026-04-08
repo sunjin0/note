@@ -16,8 +16,10 @@ import {
   Grid3X3,
   Moon,
   Camera,
+  CalendarDays,
 } from 'lucide-react';
 import { getLunarDate, isLunarFestival } from '@/core/utils/lunar';
+import DateJumpDialog from './DateJumpDialog';
 
 interface CalendarViewProps {
   entries: MoodEntry[];
@@ -109,6 +111,7 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
   const [currentDate, setCurrentDate] = React.useState(new Date());
   const [daysRange, setDaysRange] = React.useState<90 | 180 | 365>(90);
   const [showLunar, setShowLunar] = React.useState(false);
+  const [showDateJumpDialog, setShowDateJumpDialog] = React.useState(false);
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = React.useState<string | null>(todayStr);
@@ -166,6 +169,18 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
     } else {
       setCurrentDate(now);
       setSelectedDate(todayStr);
+    }
+  };
+
+  const handleDateJump = (jumpYear: number, jumpMonth: number, jumpDay?: number) => {
+    if (jumpDay) {
+      const dateStr = `${jumpYear}-${String(jumpMonth + 1).padStart(2, '0')}-${String(jumpDay).padStart(2, '0')}`;
+      setCurrentDate(new Date(jumpYear, jumpMonth, jumpDay));
+      setSelectedDate(dateStr);
+      onSelectDate(dateStr);
+    } else {
+      setCurrentDate(new Date(jumpYear, jumpMonth, 1));
+      setViewMode('month');
     }
   };
 
@@ -311,6 +326,15 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
           </Button>
           <Button variant="outline" size="sm" onClick={goToday}>
             {t('calendar.today')}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setShowDateJumpDialog(true)}
+            title={t('dateJump.title') || '跳转到日期'}
+          >
+            <CalendarDays className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={prevMonth}>
             <ChevronLeft className="h-4 w-4" />
@@ -578,6 +602,13 @@ export default function CalendarView({ entries, onSelectDate }: CalendarViewProp
           position={tooltipData.position}
         />
       )}
+      <DateJumpDialog
+          isOpen={showDateJumpDialog}
+          onClose={() => setShowDateJumpDialog(false)}
+          onJump={handleDateJump}
+          currentYear={year}
+          currentMonth={month}
+      />
     </div>
   );
 }

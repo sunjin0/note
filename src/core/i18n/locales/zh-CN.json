@@ -92,6 +92,14 @@
     "trendStable": "稳定",
     "noData": "暂无数据"
   },
+  "dateJump": {
+    "title": "跳转到日期",
+    "selectYear": "选择年份",
+    "selectMonth": "选择月份",
+    "selectDay": "选择日期（可选)",
+    "jump": "跳转",
+    "cancel": "取消"
+  },
   "journal": {
     "title": "日记本",
     "recordCount": "共 {count} 条记录",

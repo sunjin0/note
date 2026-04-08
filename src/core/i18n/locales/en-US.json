@@ -98,6 +98,14 @@
     "pageSize": "Per page",
     "page": "Page"
   },
+  "dateJump": {
+    "title": "Jump to Date",
+    "selectYear": "Select Year",
+    "selectMonth": "Select Month",
+    "selectDay": "Select Day (optional)",
+    "jump": "Jump",
+    "cancel": "Cancel"
+  },
   "editor": {
     "title": "Record Mood",
     "howAreYou": "How are you feeling?",
