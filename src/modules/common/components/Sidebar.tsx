@@ -4,7 +4,7 @@ import React from 'react';
 import { cn } from '@/core/utils';
 import { ViewType } from '@/types';
 import { useTranslation } from '@/core/i18n';
-import { LayoutDashboard, Calendar, BookOpen, Settings, Heart, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Calendar, BookOpen, Settings, Heart, Menu, X, BadgeInfo } from 'lucide-react';
 
 interface SidebarProps {
   currentView: ViewType;
@@ -84,6 +84,16 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
             </button>
           ))}
         </nav>
+
+        <div className="px-4 pb-2">
+          <button
+            onClick={() => window.open('/prototype', '_blank', 'noopener,noreferrer')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <BadgeInfo className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} />
+            {t('nav.prototype')}
+          </button>
+        </div>
 
         {/* Footer */}
         <div className="p-4 border-t border-border">
